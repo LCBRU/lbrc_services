@@ -1,0 +1,9 @@
+-r requirements.txt
+
+beautifulsoup4
+pytest
+Faker
+coverage
+pytest-cov
+pytest-integration
+pytest-xdist

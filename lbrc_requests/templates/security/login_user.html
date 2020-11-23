@@ -1,0 +1,46 @@
+{% extends "lbrc_flask/dialog.html" %}
+{% import "lbrc_flask/form_macros.html" as formhelper %}
+{% from "security/_macros.html" import render_field_with_errors, render_field %}
+
+{% block formname %}Login{% endblock%}
+{% block errors %}
+	{{ formhelper.render_form_errors(login_user_form)  }}
+{% endblock %}
+
+{% block content %}
+
+<form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
+	{{ login_user_form.hidden_tag() }}
+
+	<div class="form-group input-group">
+		<span class="input-group-prepend">
+			<span class="input-group-text">
+				<span class="fas fa-at"></span>
+			</span>
+		</span>
+		{{ login_user_form.email(class="form-control", placeholder="Email Address") }}
+	</div>
+
+	<div class="form-group input-group">
+		<span class="input-group-prepend">
+			<span class="input-group-text">
+				<span class="fas fa-lock"></span>
+			</span>
+		</span>
+		{{ login_user_form.password(class="form-control", placeholder="Password") }}
+	</div>
+
+	<div class="checkbox">
+		<label>
+			{{ login_user_form.remember }} Remember me on this computer
+		</label>
+	</div>
+		  
+	<div class="text-right">
+		<a href="{{ url_for_security('forgot_password') }}" class="btn btn-info" role="button">First Login</a>
+		<a href="{{ url_for_security('forgot_password') }}" class="btn btn-info" role="button">Forgotten Password</a>
+		<button type="submit" class="btn btn-primary">Login</button>
+	</div>
+</form>
+
+{% endblock %}

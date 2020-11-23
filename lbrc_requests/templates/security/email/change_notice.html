@@ -1,0 +1,9 @@
+<p>
+    Your password has been changed for the LBRC Uploads Portal.
+
+    {% if security.recoverable %}
+        {{ ('If you did not change your password, click the link below to reset it.') }}
+        {{ url_for_security('forgot_password', _external=True) }}
+    {% endif %}
+</p>
+
