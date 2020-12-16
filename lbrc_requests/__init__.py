@@ -1,6 +1,7 @@
+from lbrc_requests.model import User
 from flask import Flask
 from lbrc_flask import init_lbrc_flask
-from lbrc_flask.security import init_security, Role, User
+from lbrc_flask.security import init_security, Role
 from lbrc_flask.forms.dynamic import init_dynamic_forms
 from config import Config
 from .ui import blueprint as ui_blueprint

@@ -1,0 +1,47 @@
+{% extends "ui/page.html" %}
+{% import "lbrc_flask/form_macros.html" as form_macros %}
+
+{% block content %}
+
+<section>
+    <div class="page-header">
+        <h1>My Jobs</h1>
+
+        {{ form_macros.render_search(search_form, 'ui.my_jobs', placeholder='enter search text - searches request name') }}
+
+    </div>
+
+    <ul class="list-group">
+        {% for r in requests.items %}
+            <li class="list-group-item">
+                <div class='upload_details'>
+                    <header>
+                        <h1>{{r.request_type.name}}: {{ r.name }}</h1>
+                        <h2>For <a href="mailto:{{r.requestor.email}}">{{r.requestor.full_name }}</a> created on {{ r.created_date | date_format }}</h2>
+                    </header>
+                    <dl>
+                        {% for d in r.data %}
+                            <dt>{{ d.field.field_name }}</dt>
+                            <dd>{{ d.formated_value }}</dd>
+                        {% endfor %}
+                    </dl>
+
+                    {% if r.files | length > 0 %}
+                        <h3>Attachments</h3>
+                        <div>
+                            {% for f in r.files %}
+                                <a class='download' href="{{ url_for('ui.download_request_file', request_id=r.id, request_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+</section>
+
+{{ form_macros.render_pagination(requests, 'ui.my_jobs', search=search_form.search.data) }}
+
+{% endblock %}

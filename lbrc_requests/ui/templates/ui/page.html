@@ -1,0 +1,15 @@
+{% extends "lbrc_flask/page.html" %}
+
+{% block navlinks %}
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('ui.my_requests') }}">My Requests</a>
+</li>
+
+{% if current_user.owned_request_types | length > 0 %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('ui.my_jobs') }}">My Jobs</a>
+    </li>
+{% endif %}
+
+{% endblock %}

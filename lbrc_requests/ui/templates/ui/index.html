@@ -1,5 +1,11 @@
-{% extends "lbrc_flask/page.html" %}
+{% extends "ui/page.html" %}
 
 {% block content %}
+
+<section>
+    {% for rt in request_types %}
+        <a href="{{ url_for('ui.create_request', request_type_id=rt.id) }}" class="btn btn-primary btn-lg btn-block">{{ rt.name }}</a>
+    {% endfor %}
+</section>
 
 {% endblock %}

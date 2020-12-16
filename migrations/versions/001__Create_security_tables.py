@@ -1,4 +1,4 @@
-from lbrc_flask.migrations import create_security_tables, drop_security_tables
+from lbrc_flask.security.migrations import create_security_tables, drop_security_tables
 
 
 def upgrade(migrate_engine):
