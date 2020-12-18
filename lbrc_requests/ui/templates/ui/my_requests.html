@@ -1,5 +1,6 @@
 {% extends "ui/page.html" %}
 {% import "lbrc_flask/form_macros.html" as form_macros %}
+{% import "/ui/_request_list.html" as  request_list%}
 
 {% block content %}
 
@@ -11,34 +12,7 @@
 
     </div>
 
-    <ul class="list-group">
-        {% for r in requests.items %}
-            <li class="list-group-item">
-                <div class='summary_details'>
-                    <header>
-                        <h1>{{ r.name }}</h1>
-                        <h2>Created on {{ r.created_date | date_format }}</h2>
-                    </header>
-                    <dl>
-                        {% for d in r.data %}
-                            <dt>{{ d.field.field_name }}</dt>
-                            <dd>{{ d.formated_value }}</dd>
-                        {% endfor %}
-                    </dl>
-
-                    {% if r.files | length > 0 %}
-                        <h3>Attachments</h3>
-                        <div>
-                            {% for f in r.files %}
-                                <a class='download' href="{{ url_for('ui.download_request_file', request_id=r.id, request_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+    {{ request_list.render(requests, False) }}
 
 </section>
 

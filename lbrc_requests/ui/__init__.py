@@ -1,6 +1,6 @@
 from flask import request as flask_request
 from lbrc_flask.forms import SearchForm
-from lbrc_requests.model import Request, RequestData, RequestFile, RequestType, User
+from lbrc_requests.model import Request, RequestData, RequestFile, RequestStatus, RequestStatusType, RequestType, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
 from flask import (
@@ -16,7 +16,7 @@ from wtforms import StringField
 from wtforms.validators import Length, DataRequired
 from sqlalchemy.orm import joinedload
 from .decorators import must_be_request_file_owner_or_requestor
-from .forms import MyJobsSearchForm
+from .forms import MyJobsSearchForm, RequestUpdateStatusForm
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -43,14 +43,42 @@ def my_requests():
     return render_template("ui/my_requests.html", requests=requests, search_form=search_form)
 
 
-@blueprint.route("/my_jobs")
+@blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
 
     search_form = MyJobsSearchForm(formdata=flask_request.args)
+    request_update_status_form = RequestUpdateStatusForm()
+
+    if request_update_status_form.validate_on_submit():
+        request = Request.query.get_or_404(request_update_status_form.request_id.data)
+        status_type = RequestStatusType.query.get_or_404(request_update_status_form.status.data)
+
+        request_status = RequestStatus(
+            request=request,
+            request_status_type=status_type,
+            notes=request_update_status_form.notes.data,
+        )
+
+        db.session.add(request_status)
+
+        request.current_status_type = status_type
+
+        db.session.add(request)
+        db.session.commit()
+
+        return redirect(url_for("ui.my_jobs", **flask_request.args))
 
     requests = _get_requests(search_form=search_form, owner_id=current_user.id, sort_asc=True)
 
-    return render_template("ui/my_jobs.html", requests=requests, search_form=search_form)
+    return render_template("ui/my_jobs.html", requests=requests, search_form=search_form, request_update_status_form=request_update_status_form)
+
+
+@blueprint.route("/request/<int:request_id>/status_history")
+@must_be_request_file_owner_or_requestor("request_id")
+def request_status_history(request_id):
+    request_statuses = RequestStatus.query.filter(RequestStatus.request_id == request_id).order_by(RequestStatus.created_date.desc()).all()
+
+    return render_template("ui/_request_status_history.html", request_statuses=request_statuses)
 
 
 def _get_requests(search_form, owner_id=None, requester_id=None, sort_asc=False):
@@ -100,9 +128,15 @@ def create_request(request_type_id):
     form = builder.get_form()
 
     if form.validate_on_submit():
-        request = Request(request_type=request_type, requestor=current_user, name=form.name.data)
+        request = Request(request_type=request_type, requestor=current_user, name=form.name.data, current_status_type=RequestStatusType.get_created())
+        request_status = RequestStatus(
+            request=request,
+            request_status_type=request.current_status_type,
+            notes='',
+        )
+
+        db.session.add(request_status)
         db.session.add(request)
-        db.session.flush()
 
         for field_name, value in form.data.items():
             field = request_type.get_field_for_field_name(field_name)

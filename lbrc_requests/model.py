@@ -1,6 +1,8 @@
 import uuid
 import pathlib
 from flask import current_app
+from flask.globals import request
+from sqlalchemy.orm import backref
 from werkzeug.utils import secure_filename
 from lbrc_flask.database import db
 from lbrc_flask.security import User as BaseUser, AuditMixin
@@ -36,7 +38,7 @@ class RequestType(AuditMixin, db.Model):
             return self.field_group.get_field_for_field_name(field_name)
 
 
-class RequestStatus(db.Model):
+class RequestStatusType(db.Model):
 
     CREATED = 'Created'
     IN_PROGRESS = 'In Progress'
@@ -46,11 +48,11 @@ class RequestStatus(db.Model):
 
     @classmethod
     def get_request_status(cls, name):
-        return RequestStatus.query.filter_by(name=name).one()
+        return RequestStatusType.query.filter_by(name=name).one()
 
     @classmethod
     def get_created(cls):
-        return cls.get_request_status(RequestStatus.CREATED)
+        return cls.get_request_status(RequestStatusType.CREATED)
 
     @classmethod
     def get_created_id(cls):
@@ -58,19 +60,19 @@ class RequestStatus(db.Model):
 
     @classmethod
     def get_in_progress(cls):
-        return cls.get_request_status(RequestStatus.IN_PROGRESS)
+        return cls.get_request_status(RequestStatusType.IN_PROGRESS)
 
     @classmethod
     def get_complete(cls):
-        return cls.get_request_status(RequestStatus.COMPLETE)
+        return cls.get_request_status(RequestStatusType.COMPLETE)
 
     @classmethod
     def get_awaiting_information(cls):
-        return cls.get_request_status(RequestStatus.AWAITING_INFORMATION)
+        return cls.get_request_status(RequestStatusType.AWAITING_INFORMATION)
 
     @classmethod
     def get_cancelled(cls):
-        return cls.get_request_status(RequestStatus.CANCELLED)
+        return cls.get_request_status(RequestStatusType.CANCELLED)
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
@@ -86,8 +88,18 @@ class Request(AuditMixin, db.Model):
     request_type = db.relationship(RequestType, backref='requests')
     requestor_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     requestor = db.relationship(User, backref='requests', foreign_keys=[requestor_id])
-    current_status_id = db.Column(db.Integer, db.ForeignKey(RequestStatus.id), nullable=False, default=RequestStatus.get_created_id)
-    current_status = db.relationship(RequestStatus)
+    current_status_type_id = db.Column(db.Integer, db.ForeignKey(RequestStatusType.id), nullable=False)
+    current_status_type = db.relationship(RequestStatusType)
+
+
+class RequestStatus(AuditMixin, db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True)
+    request_id = db.Column(db.Integer, db.ForeignKey(Request.id), nullable=False)
+    request = db.relationship(Request, backref="status_history")
+    notes = db.Column(db.String(255))
+    request_status_type_id = db.Column(db.Integer, db.ForeignKey(RequestStatusType.id), nullable=False)
+    request_status_type = db.relationship(RequestStatusType)
 
 
 class RequestData(AuditMixin, db.Model):

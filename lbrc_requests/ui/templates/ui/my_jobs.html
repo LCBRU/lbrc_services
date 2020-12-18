@@ -1,5 +1,6 @@
 {% extends "ui/page.html" %}
 {% import "lbrc_flask/form_macros.html" as form_macros %}
+{% import "/ui/_request_list.html" as  request_list%}
 
 {% block content %}
 
@@ -11,49 +12,101 @@
 
     </div>
 
-    <ul class="list-group">
-        {% for r in requests.items %}
-            <li class="list-group-item">
-                <div class='summary_details'>
-                    <header class="row">
-                        <div class="col-7">
-                            <h1>{{r.request_type.name}}: {{ r.name }}</h1>
-                            <h2>For <a href="mailto:{{r.requestor.email}}">{{r.requestor.full_name }}</a> created on {{ r.created_date | date_format }}</h2>
-                        </div>
-                        <div class="col-5">
-                            <div class="btn-group float-right" role="group">
-                                <button id="btnGroupDrop1" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    {{ r.current_status.name }}
-                                </button>
-                                <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                    <a class="dropdown-item" href="#">Update status</a>
-                                </div>
-                              </div>
-                        </div>
-                    </header>
-                    <dl>
-                        {% for d in r.data %}
-                            <dt>{{ d.field.field_name }}</dt>
-                            <dd>{{ d.formated_value }}</dd>
-                        {% endfor %}
-                    </dl>
-
-                    {% if r.files | length > 0 %}
-                        <h3>Attachments</h3>
-                        <div>
-                            {% for f in r.files %}
-                                <a class='download' href="{{ url_for('ui.download_request_file', request_id=r.id, request_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+    {{ request_list.render(requests, True) }}
 
 </section>
 
 {{ form_macros.render_pagination(requests, 'ui.my_jobs', search=search_form.search.data) }}
+
+<div class="modal fade" id="updateStatusModal" tabindex="-1" role="dialog" aria-labelledby="updateStatusModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="updateStatusModalLabel">Update Status</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+            <p id="modal_description">Set new status for "<span id="request_name"></span>".</p>
+            <form id="request_status_form" method="POST" class="form panel-body" enctype="multipart/form-data">
+                <fieldset>
+                    {{ request_update_status_form.hidden_tag() }}
+
+                    {% for f in request_update_status_form %}
+                        {{ form_macros.render_field(f) }}
+                    {% endfor %}
+
+                    {{ form_macros.render_button_bar('ui.my_jobs', submit_label="Save") }}
+                </fieldset>
+            </form>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="modal fade" id="showStatusHistoryModal" tabindex="-1" role="dialog" aria-labelledby="showStatusHistoryModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="showStatusHistoryModalLabel">Status History</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+            <p id="modal_description">Status history for "<span id="request_name"></span>".</p>
+
+            <div id="showStatusHistoryModal_content"></div>
+        </div>
+      </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+
+<script>
+    $(document).ready(function(){
+        $('#updateStatusModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var request_id = button.data('request-id');
+            var current_status_type_id = button.data('current-status-type-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#request_name').text(name);
+
+            modal.find("#status").val(current_status_type_id);
+            modal.find("#request_id").val(request_id);
+        });
+    });
+
+    $(document).ready(function(){
+        $('#showStatusHistoryModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var request_id = button.data('request-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#request_name').text(name);
+
+            url = "{{ request.script_root|safe }}" + '/request/' + request_id + '/status_history';
+            modal.find('#showStatusHistoryModal_content').html('');
+
+            callback = function(m) {
+                return function (data) {
+                    m.find('#showStatusHistoryModal_content').html(data);
+                }
+            }
+
+            $.get(url, callback(modal));
+
+        });
+    });
+</script>
 
 {% endblock %}

@@ -1,36 +1,35 @@
 from sqlalchemy import MetaData, Table, Column, Integer, NVARCHAR, BOOLEAN
-from sqlalchemy.sql import Select
-from lbrc_requests.model import RequestStatus
+from lbrc_requests.model import RequestStatusType
 
 
 meta = MetaData()
 
 statuses = {
-    RequestStatus.CREATED: {
+    RequestStatusType.CREATED: {
         'is_complete': False,
         'is_active': False,
     },
-    RequestStatus.IN_PROGRESS: {
+    RequestStatusType.IN_PROGRESS: {
         'is_complete': False,
         'is_active': True,
     },
-    RequestStatus.COMPLETE: {
+    RequestStatusType.COMPLETE: {
         'is_complete': True,
         'is_active': False,
     },
-    RequestStatus.AWAITING_INFORMATION: {
+    RequestStatusType.AWAITING_INFORMATION: {
         'is_complete': False,
         'is_active': False,
     },
-    RequestStatus.CANCELLED: {
+    RequestStatusType.CANCELLED: {
         'is_complete': True,
         'is_active': False,
     },
 }
 
 
-request_status = Table(
-    "request_status",
+request_status_type = Table(
+    "request_status_type",
     meta,
     Column("id", Integer, primary_key=True),
     Column("name", NVARCHAR(255)),
@@ -43,7 +42,7 @@ def upgrade(migrate_engine):
     conn = migrate_engine.connect()
 
     for name, status in statuses.items():
-        conn.execute(request_status.insert().values(
+        conn.execute(request_status_type.insert().values(
             name=name,
             is_complete=status['is_complete'],
             is_active=status['is_active'],
@@ -53,4 +52,4 @@ def upgrade(migrate_engine):
 def downgrade(migrate_engine):
     conn = migrate_engine.connect()
 
-    conn.execute(request_status.delete())
+    conn.execute(request_status_type.delete())

@@ -1,7 +1,9 @@
-from lbrc_flask.forms import SearchForm
+from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
-from wtforms import SelectField, BooleanField
-from lbrc_requests.model import RequestType, Request, User
+from wtforms import SelectField, BooleanField, TextAreaField
+from wtforms.fields.simple import HiddenField 
+from wtforms.validators import DataRequired, Length
+from lbrc_requests.model import RequestStatusType, RequestType, Request, User
 
 
 class MyJobsSearchForm(SearchForm):
@@ -26,3 +28,19 @@ class MyJobsSearchForm(SearchForm):
         request_types = RequestType.query.join(RequestType.owners).filter(User.id == current_user.id).all()
 
         return [(0, 'All')] + [(rt.id, rt.name) for rt in request_types]
+
+
+class RequestUpdateStatusForm(FlashingForm):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.status.choices = self._get_status_choices()
+
+    def _get_status_choices(self):
+        request_statuses = RequestStatusType.query.order_by(RequestStatusType.name.asc()).all()
+
+        return [(rt.id, rt.name) for rt in request_statuses]
+
+    request_id = HiddenField()
+    status = SelectField("New Status", validators=[DataRequired()])
+    notes = TextAreaField("Notes", validators=[Length(max=500)])

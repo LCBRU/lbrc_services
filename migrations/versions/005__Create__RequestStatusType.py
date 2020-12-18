@@ -4,7 +4,7 @@ meta = MetaData()
 
 
 t = Table(
-    "request_status",
+    "request_status_type",
     meta,
     Column("id", Integer, primary_key=True),
     Column("name", NVARCHAR(255)),
@@ -21,5 +21,5 @@ def upgrade(migrate_engine):
 
 def downgrade(migrate_engine):
     meta.bind = migrate_engine
-    t = Table("request_status", meta, autoload=True)
+    t = Table("request_status_type", meta, autoload=True)
     t.drop()

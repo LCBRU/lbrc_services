@@ -1,0 +1,15 @@
+<ul class="list-group">
+    {% for rs in request_statuses %}
+        <li class="list-group-item">
+            <div class='summary_details'>
+                <header>
+                    <div>
+                        <h1>{{rs.request_status_type.name}}</h1>
+                        <h2>Created {{ rs.created_date | datetime_humanize }}</h2>
+                    </div>
+                </header>
+                <p>{{ rs.notes }}</p>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
