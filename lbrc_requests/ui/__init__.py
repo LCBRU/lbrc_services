@@ -119,7 +119,7 @@ def create_request(request_type_id):
 
                 if field.field_type.is_file:
                     rf = RequestFile(request=request, field=field)
-                    rf.store_file(v)
+                    rf.set_filename_and_save(v)
                     db.session.add(rf)
                 else:
                     db.session.add(RequestData(request=request, field=field, value=v))

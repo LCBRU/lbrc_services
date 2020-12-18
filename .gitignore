@@ -127,5 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-file_upload
+file_uploads
 database.sqlite3

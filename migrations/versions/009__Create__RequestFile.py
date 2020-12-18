@@ -10,7 +10,6 @@ def upgrade(migrate_engine):
 
     f = Table("field", meta, autoload=True)
     r = Table("request", meta, autoload=True)
-    u = Table("user", meta, autoload=True)
 
     t = Table(
         "request_file",

@@ -36,6 +36,48 @@ class RequestType(AuditMixin, db.Model):
             return self.field_group.get_field_for_field_name(field_name)
 
 
+class RequestStatus(db.Model):
+
+    CREATED = 'Created'
+    IN_PROGRESS = 'In Progress'
+    COMPLETE = 'Complete'
+    AWAITING_INFORMATION = 'Awaiting Information'
+    CANCELLED = 'Cancelled'
+
+    @classmethod
+    def get_request_status(cls, name):
+        return RequestStatus.query.filter_by(name=name).one()
+
+    @classmethod
+    def get_created(cls):
+        return cls.get_request_status(RequestStatus.CREATED)
+
+    @classmethod
+    def get_created_id(cls):
+        return cls.get_created().id
+
+    @classmethod
+    def get_in_progress(cls):
+        return cls.get_request_status(RequestStatus.IN_PROGRESS)
+
+    @classmethod
+    def get_complete(cls):
+        return cls.get_request_status(RequestStatus.COMPLETE)
+
+    @classmethod
+    def get_awaiting_information(cls):
+        return cls.get_request_status(RequestStatus.AWAITING_INFORMATION)
+
+    @classmethod
+    def get_cancelled(cls):
+        return cls.get_request_status(RequestStatus.CANCELLED)
+
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255))
+    is_complete = db.Column(db.Boolean)
+    is_active = db.Column(db.Boolean)
+
+
 class Request(AuditMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
@@ -44,6 +86,8 @@ class Request(AuditMixin, db.Model):
     request_type = db.relationship(RequestType, backref='requests')
     requestor_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     requestor = db.relationship(User, backref='requests', foreign_keys=[requestor_id])
+    current_status_id = db.Column(db.Integer, db.ForeignKey(RequestStatus.id), nullable=False, default=RequestStatus.get_created_id)
+    current_status = db.relationship(RequestStatus)
 
 
 class RequestData(AuditMixin, db.Model):
@@ -70,7 +114,7 @@ class RequestFile(AuditMixin, db.Model):
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
     field = db.relationship(Field)
 
-    def store_file(self, file):
+    def set_filename_and_save(self, file):
         self.filename = file.filename
 
         local_filepath = self._new_local_filepath(
