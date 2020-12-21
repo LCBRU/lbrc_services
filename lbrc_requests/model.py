@@ -42,7 +42,7 @@ class RequestStatusType(db.Model):
 
     CREATED = 'Created'
     IN_PROGRESS = 'In Progress'
-    COMPLETE = 'Complete'
+    DONE = 'Done'
     AWAITING_INFORMATION = 'Awaiting Information'
     CANCELLED = 'Cancelled'
 
@@ -63,8 +63,8 @@ class RequestStatusType(db.Model):
         return cls.get_request_status(RequestStatusType.IN_PROGRESS)
 
     @classmethod
-    def get_complete(cls):
-        return cls.get_request_status(RequestStatusType.COMPLETE)
+    def get_done(cls):
+        return cls.get_request_status(RequestStatusType.DONE)
 
     @classmethod
     def get_awaiting_information(cls):

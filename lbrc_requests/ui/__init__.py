@@ -16,7 +16,7 @@ from wtforms import StringField
 from wtforms.validators import Length, DataRequired
 from sqlalchemy.orm import joinedload
 from .decorators import must_be_request_file_owner_or_requestor
-from .forms import MyJobsSearchForm, RequestUpdateStatusForm
+from .forms import MyJobsSearchForm, RequestUpdateStatusForm, RequestSearchForm
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -36,7 +36,7 @@ def index():
 
 @blueprint.route("/my_requests")
 def my_requests():
-    search_form = SearchForm(formdata=flask_request.args)
+    search_form = RequestSearchForm(formdata=flask_request.args)
 
     requests = _get_requests(search_form=search_form, requester_id=current_user.id)
 
@@ -96,6 +96,15 @@ def _get_requests(search_form, owner_id=None, requester_id=None, sort_asc=False)
 
     if search_form.data.get('requestor_id', 0) not in (0, "0", None):
         q = q.filter(Request.requestor_id == search_form.data['requestor_id'])
+
+    if 'request_status_id' in search_form.data:
+        option = search_form.data.get('request_status_id', 0) or 0
+        if option == 0:
+            q = q.filter(Request.current_status_type_id.notin_([RequestStatusType.get_cancelled().id, RequestStatusType.get_done().id]))
+        elif option == -1:
+            q = q.filter(Request.current_status_type_id.in_([RequestStatusType.get_cancelled().id, RequestStatusType.get_done().id]))
+        elif option != -2:
+            q = q.filter(Request.current_status_type_id == option)
 
     if owner_id is not None:
         q = q.join(Request.request_type)

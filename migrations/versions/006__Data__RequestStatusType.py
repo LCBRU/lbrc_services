@@ -13,7 +13,7 @@ statuses = {
         'is_complete': False,
         'is_active': True,
     },
-    RequestStatusType.COMPLETE: {
+    RequestStatusType.DONE: {
         'is_complete': True,
         'is_active': False,
     },
