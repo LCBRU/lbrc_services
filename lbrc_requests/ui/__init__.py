@@ -15,7 +15,7 @@ from lbrc_flask.forms.dynamic import FormBuilder
 from wtforms import StringField
 from wtforms.validators import Length, DataRequired
 from sqlalchemy.orm import joinedload
-from .decorators import must_be_request_file_owner_or_requestor
+from .decorators import must_be_request_file_owner_or_requestor, must_be_request_owner_or_requestor
 from .forms import MyJobsSearchForm, RequestUpdateStatusForm, RequestSearchForm
 
 
@@ -74,7 +74,7 @@ def my_jobs():
 
 
 @blueprint.route("/request/<int:request_id>/status_history")
-@must_be_request_file_owner_or_requestor("request_id")
+@must_be_request_owner_or_requestor("request_id")
 def request_status_history(request_id):
     request_statuses = RequestStatus.query.filter(RequestStatus.request_id == request_id).order_by(RequestStatus.created_date.desc()).all()
 
@@ -97,8 +97,8 @@ def _get_requests(search_form, owner_id=None, requester_id=None, sort_asc=False)
     if search_form.data.get('requestor_id', 0) not in (0, "0", None):
         q = q.filter(Request.requestor_id == search_form.data['requestor_id'])
 
-    if 'request_status_id' in search_form.data:
-        option = search_form.data.get('request_status_id', 0) or 0
+    if 'request_status_type_id' in search_form.data:
+        option = search_form.data.get('request_status_type_id', 0) or 0
         if option == 0:
             q = q.filter(Request.current_status_type_id.notin_([RequestStatusType.get_cancelled().id, RequestStatusType.get_done().id]))
         elif option == -1:

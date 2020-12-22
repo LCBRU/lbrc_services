@@ -46,6 +46,29 @@ class RequestStatusType(db.Model):
     AWAITING_INFORMATION = 'Awaiting Information'
     CANCELLED = 'Cancelled'
 
+    all_details = {
+        CREATED: {
+            'is_complete': False,
+            'is_active': False,
+        },
+        IN_PROGRESS: {
+            'is_complete': False,
+            'is_active': True,
+        },
+        DONE: {
+            'is_complete': True,
+            'is_active': False,
+        },
+        AWAITING_INFORMATION: {
+            'is_complete': False,
+            'is_active': False,
+        },
+        CANCELLED: {
+            'is_complete': True,
+            'is_active': False,
+        },
+    }
+
     @classmethod
     def get_request_status(cls, name):
         return RequestStatusType.query.filter_by(name=name).one()
@@ -148,3 +171,20 @@ class RequestFile(AuditMixin, db.Model):
         result = result.joinpath(secure_filename("{}_{}".format(uuid.uuid1().hex, filename)))
 
         return result
+
+
+def init_model(app):
+    
+    @app.before_first_request
+    def request_status_type_setup():
+        for name, details in RequestStatusType.all_details.items():
+            if RequestStatusType.query.filter(RequestStatusType.name == name).count() == 0:
+                db.session.add(
+                    RequestStatusType(
+                        name=name,
+                        is_complete=details['is_complete'],
+                        is_active=details['is_active'],
+                    )
+                )
+
+        db.session.commit()

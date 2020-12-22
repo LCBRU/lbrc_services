@@ -4,6 +4,7 @@ from lbrc_flask.security.migrations import get_audit_mixin_columns
 
 meta = MetaData()
 
+
 def upgrade(migrate_engine):
     meta.bind = migrate_engine
 

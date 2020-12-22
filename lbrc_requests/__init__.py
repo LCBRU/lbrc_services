@@ -6,6 +6,7 @@ from lbrc_flask.forms.dynamic import init_dynamic_forms
 from config import Config
 from .ui import blueprint as ui_blueprint
 from .admin import init_admin
+from .model import init_model
 
 
 def create_app(config=Config):
@@ -19,6 +20,7 @@ def create_app(config=Config):
         init_security(app, user_class=User, role_class=Role)
         init_admin(app, TITLE)
         init_dynamic_forms(app)
+        init_model(app)
 
     app.register_blueprint(ui_blueprint)
 

@@ -20,25 +20,25 @@ def _get_request_type_choices():
     return [(0, 'All')] + [(rt.id, rt.name) for rt in request_types]
 
 
-def _get_status_choices():
-    request_statuses = RequestStatusType.query.order_by(RequestStatusType.name.asc()).all()
+def _get_status_type_choices():
+    request_status_types = RequestStatusType.query.order_by(RequestStatusType.name.asc()).all()
 
-    return [(rt.id, rt.name) for rt in request_statuses]
+    return [(rt.id, rt.name) for rt in request_status_types]
 
 
-def _get_combined_status_choices():
-    return [(0, 'Outstanding (not done or cancelled)'), (-1, 'Completed (done or cancelled)'), (-2, 'All')] + _get_status_choices()
+def _get_combined_request_status_type_choices():
+    return [(0, 'Outstanding (not done or cancelled)'), (-1, 'Completed (done or cancelled)'), (-2, 'All')] + _get_status_type_choices()
 
 
 class RequestSearchForm(SearchForm):
     request_type_id = SelectField('Request Type', coerce=int, choices=[])
-    request_status_id = SelectField('Status', coerce=int, choices=[])
+    request_status_type_id = SelectField('Status', coerce=int, choices=[])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.request_type_id.choices = _get_request_type_choices()
-        self.request_status_id.choices = _get_combined_status_choices()
+        self.request_status_type_id.choices = _get_combined_request_status_type_choices()
 
 
 class MyJobsSearchForm(RequestSearchForm):
@@ -54,7 +54,7 @@ class RequestUpdateStatusForm(FlashingForm):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.status.choices = _get_status_choices()
+        self.status.choices = _get_status_type_choices()
 
     request_id = HiddenField()
     status = SelectField("New Status", validators=[DataRequired()])
