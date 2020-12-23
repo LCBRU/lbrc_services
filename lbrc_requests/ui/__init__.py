@@ -199,6 +199,7 @@ def create_request(request_type_id):
 @blueprint.route("/request/<int:request_id>/file/<int:request_file_id>")
 @must_be_request_file_owner_or_requestor("request_file_id")
 def download_request_file(request_id, request_file_id):
+    r = Request.query.get_or_404(request_id)
     rf = RequestFile.query.get_or_404(request_file_id)
 
     return send_file(rf.local_filepath, as_attachment=True, attachment_filename=rf.filename)
