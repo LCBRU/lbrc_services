@@ -1,10 +1,25 @@
 import pytest
 import re
+from flask import url_for
 from itertools import repeat
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
 from lbrc_requests.model import RequestStatusType
-from tests import _get_test_user
+from tests import get_test_user
+from lbrc_flask.pytest.asserts import assert__html_standards
+
+
+def _url(**kwargs):
+    return url_for('ui.my_requests', _external=True, **kwargs)
+
+
+def test__get__requires_login(client):
+    resp = client.get(_url())
+    assert resp.status_code == 302
+
+
+def test__standards(client, faker):
+    assert__html_standards(client, faker, _url())
 
 
 @pytest.mark.parametrize(
@@ -13,14 +28,14 @@ from tests import _get_test_user
 )
 def test__my_requests(client, faker, mine, others):
     user = login(client, faker)
-    user2 = _get_test_user(faker)
+    user2 = get_test_user(faker)
 
     my_requests = [faker.request_details(requestor=u) for u in repeat(user, mine)]
     db.session.add_all(my_requests)
     db.session.add_all([faker.request_details(requestor=u) for u in repeat(user2, others)])
     db.session.commit()
 
-    resp = client.get("/my_requests")
+    resp = client.get(_url())
 
     assert_results(resp, my_requests)
 
@@ -33,7 +48,7 @@ def test__my_requests__search__name(client, faker):
     db.session.add(faker.request_details(requestor=user, name='Joseph'))
     db.session.commit()
 
-    resp = client.get("/my_requests?search=ar")
+    resp = client.get(_url(search='ar'))
 
     assert_results(resp, [matching])
 
@@ -46,7 +61,7 @@ def test__my_requests__search__request_status_type(client, faker):
     db.session.add(faker.request_details(requestor=user, current_status_type=RequestStatusType.get_awaiting_information()))
     db.session.commit()
 
-    resp = client.get("/my_requests?request_status_type_id={}".format(RequestStatusType.get_done().id))
+    resp = client.get(_url(request_status_type_id=RequestStatusType.get_done().id))
 
     assert_results(resp, [matching])
 
@@ -59,7 +74,7 @@ def test__my_requests__search__request_type(client, faker):
     db.session.add(faker.request_details(requestor=user))
     db.session.commit()
 
-    resp = client.get("/my_requests?request_type_id={}".format(matching.request_type.id))
+    resp = client.get(_url(request_type_id=matching.request_type.id))
 
     assert_results(resp, [matching])
 

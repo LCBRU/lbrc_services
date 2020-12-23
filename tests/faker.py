@@ -12,10 +12,16 @@ class LbrcRequestsFakerProvider(BaseProvider):
         )
         return u
 
-    def request_type_details(self, owners=None):
+    def request_type_details(self, owners=None, name=None, field_group=None):
+        if name is None:
+            name = self.generator.pystr(min_chars=5, max_chars=10)
+
+        if field_group is None:
+            field_group = self.generator.field_group_details()
+
         result = RequestType(
-            name=self.generator.pystr(min_chars=5, max_chars=10),
-            field_group=self.generator.field_group_details(),
+            name=name,
+            field_group=field_group,
         )
 
         result.owners = owners or []

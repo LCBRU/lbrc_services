@@ -1,4 +1,4 @@
-from flask import request as flask_request
+from flask import request as flask_request, abort
 from lbrc_flask.forms import SearchForm
 from lbrc_requests.model import Request, RequestData, RequestFile, RequestStatus, RequestStatusType, RequestType, User
 from lbrc_flask.database import db
@@ -51,6 +51,10 @@ def my_jobs():
 
     if request_update_status_form.validate_on_submit():
         request = Request.query.get_or_404(request_update_status_form.request_id.data)
+
+        if not current_user in request.request_type.owners:
+            abort(403)
+
         status_type = RequestStatusType.query.get_or_404(request_update_status_form.status.data)
 
         request_status = RequestStatus(
@@ -161,9 +165,10 @@ def create_request(request_type_id):
             for v in values:
 
                 if field.field_type.is_file:
-                    rf = RequestFile(request=request, field=field)
-                    rf.set_filename_and_save(v)
-                    db.session.add(rf)
+                    if v is not None:
+                        rf = RequestFile(request=request, field=field)
+                        rf.set_filename_and_save(v)
+                        db.session.add(rf)
                 else:
                     db.session.add(RequestData(request=request, field=field, value=v))
 
