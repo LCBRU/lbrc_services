@@ -5,8 +5,8 @@ from lbrc_flask.pytest.helpers import login
 from flask import url_for
 
 
-def _url(request_file):
-    return url_for('ui.download_request_file', request_id=request_file.request.id, request_file_id=request_file.id, _external=True)
+def _url(request_file_id, request_id):
+    return url_for('ui.download_request_file', request_id=request_id, request_file_id=request_file_id, _external=True)
 
 
 @pytest.yield_fixture(scope="function")
@@ -17,7 +17,8 @@ def mock_send_file(app):
 
 
 def test_url_requires_login_get(client, faker):
-    resp = client.get(_url(get_test_request_file(faker)))
+    rf = get_test_request_file(faker)
+    resp = client.get(_url(rf.id, rf.request.id))
     assert resp.status_code == 302
 
 
@@ -28,7 +29,7 @@ def test__must_be_request_file_owner_or_requestor__is_owner(client, faker, mock_
     r = get_test_request(faker, request_type=rt)
     rf = get_test_request_file(faker, request=r)
 
-    resp = client.get(_url(rf))
+    resp = client.get(_url(rf.id, rf.request.id))
     assert resp.status_code == 200
 
 
@@ -38,26 +39,37 @@ def test__must_be_request_file_owner_or_requestor__is_requestor(client, faker, m
     r = get_test_request(faker, requestor=user)
     rf = get_test_request_file(faker, request=r)
 
-    resp = client.get(_url(rf))
+    resp = client.get(_url(rf.id, rf.request.id))
     assert resp.status_code == 200
 
 
 def test__must_be_request_file_owner_or_requestor__is_neither(client, faker):
     user = login(client, faker)
 
-    resp = client.get(_url(get_test_request_file(faker)))
+    rf = get_test_request_file(faker)
+    resp = client.get(_url(rf.id, rf.request.id))
     assert resp.status_code == 403
 
 
-def test__request_not_found(client, faker, mock_send_file):
+def test__request_file__not_found(client, faker, mock_send_file):
     user = login(client, faker)
 
     rt = get_test_request_type(faker, owners=[user])
     r = get_test_request(faker, request_type=rt)
     rf = get_test_request_file(faker, request=r)
 
-    rf.id += 1
+    resp = client.get(_url(999, rf.request.id))
 
-    resp = client.get(url_for('ui.download_request_file', request_id=rf.request.id, request_file_id=rf.id + 1, _external=True))
+    assert resp.status_code == 404
+
+
+def test__request__not_found(client, faker, mock_send_file):
+    user = login(client, faker)
+
+    rt = get_test_request_type(faker, owners=[user])
+    r = get_test_request(faker, request_type=rt)
+    rf = get_test_request_file(faker, request=r)
+
+    resp = client.get(_url(rf.id, 999))
 
     assert resp.status_code == 404

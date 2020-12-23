@@ -30,6 +30,17 @@ def test__status_history__not_owner_or_requestor(client, faker):
     assert resp.status_code == 403
 
 
+def test__status_history__missing(client, faker):
+    user = login(client, faker)
+    rt = faker.request_type_details(owners=[user])
+
+    request = get_test_request(faker, request_type=rt)
+
+    resp = client.get(_url(request_id=request.id + 1))
+
+    assert resp.status_code == 404
+
+
 def test__status_history__is_owner(client, faker):
     user = login(client, faker)
     rt = faker.request_type_details(owners=[user])

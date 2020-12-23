@@ -59,6 +59,20 @@ def test__post__requires_login(client, faker):
     assert resp.status_code == 302
 
 
+def test__get__missing(client, faker):
+    user = login(client, faker)
+
+    resp = client.get(_url(request_type_id=999))
+    assert resp.status_code == 404
+
+
+def test__post__missing(client, faker):
+    user = login(client, faker)
+
+    resp = client.post(_url(request_type_id=999))
+    assert resp.status_code == 404
+
+
 @pytest.mark.app_crsf(True)
 def test__standards(client, faker):
     rt = get_test_request_type(faker)

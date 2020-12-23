@@ -22,11 +22,11 @@ def test__standards(client, faker):
     assert__form_standards(client, faker, _url())
 
 
-def _post_update_request_status(client, faker, request, status_type_id, notes):
+def _post_update_request_status(client, faker, request_id, status_type_id, notes):
     return client.post(
         _url(),
         data = {
-            'request_id': request.id,
+            'request_id': request_id,
             'status': status_type_id,
             'notes': notes,
         },
@@ -55,7 +55,7 @@ def test__my_jobs__update_status(client, faker, n):
         resp = _post_update_request_status(
             client,
             faker,
-            request,
+            request.id,
             history[-1]['status'].id,
             history[-1]['notes'],
         )
@@ -79,6 +79,14 @@ def test__my_jobs__update_status__not_owner(client, faker):
 
     request = get_test_request(faker, request_type=rt, current_status_type=RequestStatusType.get_created())
 
-    resp = _post_update_request_status(client, faker, request, RequestStatusType.get_done().id, faker.pystr(min_chars=5, max_chars=10))
+    resp = _post_update_request_status(client, faker, request.id, RequestStatusType.get_done().id, faker.pystr(min_chars=5, max_chars=10))
 
     assert resp.status_code == 403
+
+
+def test__my_jobs__update_status__not_owner(client, faker):
+    user = login(client, faker)
+
+    resp = _post_update_request_status(client, faker, 999, RequestStatusType.get_done().id, faker.pystr(min_chars=5, max_chars=10))
+
+    assert resp.status_code == 404
