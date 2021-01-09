@@ -1,7 +1,7 @@
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from wtforms import SelectField, TextAreaField
-from wtforms.fields.simple import HiddenField 
+from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length
 from lbrc_requests.model import RequestStatusType, RequestType, Request, User
 
