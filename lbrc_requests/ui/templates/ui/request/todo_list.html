@@ -1,0 +1,29 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/form_macros.html" import render_search %}
+
+{% block content %}
+
+<section>
+    <div class="page-header">
+        <h1>{{request.request_type.name}}: {{ request.name }}</h1>
+        <h2>To Do List</h2>
+
+        {{ render_search(search_form, 'ui.request_todo_list', placeholder='enter search text', request_id=request.id, buttons={'Add': ''}) }}
+
+    </div>
+
+    <ul class="list-group">
+        {% for t in request.todos %}
+            <li class="list-group-item row">
+                <div class='col7'>
+                    {{ t.description }}
+                </div>
+                <div class='col-5'>
+                    {{ t.status_name }}
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</section>
+
+{% endblock %}

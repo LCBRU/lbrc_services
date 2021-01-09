@@ -114,6 +114,18 @@ class Request(AuditMixin, db.Model):
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(RequestStatusType.id), nullable=False)
     current_status_type = db.relationship(RequestStatusType)
 
+    @property
+    def total_todos(self):
+        return len(self.todos)
+
+    @property
+    def required_todos(self):
+        return len([t for t in self.todos if t.is_required])
+
+    @property
+    def complete_todos(self):
+        return len([t for t in self.todos if t.is_complete])
+
 
 class RequestStatus(AuditMixin, db.Model):
 
@@ -171,6 +183,39 @@ class RequestFile(AuditMixin, db.Model):
         result = result.joinpath(secure_filename("{}_{}".format(uuid.uuid1().hex, filename)))
 
         return result
+
+
+class ToDo(AuditMixin, db.Model):
+
+    OUTSTANDING = 'Outstanding'
+    COMPLETED = 'Completed'
+    NOT_REQUIRED = 'Not Required'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    request_id = db.Column(db.Integer, db.ForeignKey(Request.id))
+    request = db.relationship(Request, backref='todos')
+    description = db.Column(db.UnicodeText())
+    status = db.Column(db.Integer, db.CheckConstraint("status IN (-1, 0, 1)"))
+
+    @property
+    def status_name(self):
+        return {
+            -1: ToDo.NOT_REQUIRED,
+            0: ToDo.OUTSTANDING,
+            1: ToDo.COMPLETED,
+        }[self.status]
+
+    @property
+    def is_outstanding(self):
+        return self.status == 0
+
+    @property
+    def is_required(self):
+        return self.status > -1
+
+    @property
+    def is_complete(self):
+        return self.status == 1
 
 
 def init_model(app):

@@ -3,62 +3,80 @@
 <ul class="list-group">
     {% for r in requests.items %}
         <li class="list-group-item">
-            <div class='summary_details'>
-                <header class="row">
-                    <div class="col-7">
+            <div class='summary_details row'>
+                <div class="col-7">
+                    <header>
                         <h1>{{r.request_type.name}}: {{ r.name }}</h1>
                         <h2>For <a href="mailto:{{r.requestor.email}}">{{r.requestor.full_name }}</a> created {{ r.created_date | datetime_humanize }}</h2>
-                    </div>
-                    <div class="col-5">
-                        <div class="btn-group float-right" role="group">
-                            {% if is_owner %}
-                                <button id="btnGroupDrop1"
-                                    type="button"
-                                    class="btn btn-primary dropdown-toggle"
-                                    data-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                >
-                                    {{ r.current_status_type.name }}
-                                </button>
-                                <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                    <a class="dropdown-item"
-                                        data-toggle="modal"
-                                        data-request-id="{{ r.id }}"
-                                        data-current-status-type-id="{{ r.current_status_type.id }}"
-                                        data-name="{{ r.name }}"
-                                        data-target="#updateStatusModal"
-                                        href="#">Update Status</a>
-                                    <a class="dropdown-item"
-                                        data-toggle="modal"
-                                        data-request-id="{{ r.id }}"
-                                        data-name="{{ r.name }}"
-                                        data-target="#showStatusHistoryModal"
-                                        href="#">Show History</a>
+                    </header>
+                    <div class="row">
+                        <dl class="col-12 col-md">
+                            {% for d in r.data %}
+                                <dt>{{ d.field.field_name }}</dt>
+                                <dd>{{ d.formated_value }}</dd>
+                            {% endfor %}
+                        </dl>
+    
+                        {% if r.files | length > 0 %}
+                            <div class="col-12 col-md">
+                                <h3>Attachments</h3>
+                                <div>
+                                    {% for f in r.files %}
+                                        <a class='download' href="{{ url_for('ui.download_request_file', request_id=r.id, request_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
+                                    {% endfor %}
                                 </div>
-                            {% else %}
-                                <span class="float-right badge badge-primary">{{ r.current_status_type.name }}</span>
-                            {% endif %}
-                        </div>
+                            </div>
+                        {% endif %}
                     </div>
-                </header>
-                <div class="row">
-                    <dl class="col-12 col-md">
-                        {% for d in r.data %}
-                            <dt>{{ d.field.field_name }}</dt>
-                            <dd>{{ d.formated_value }}</dd>
-                        {% endfor %}
-                    </dl>
+                </div>
 
-                    {% if r.files | length > 0 %}
-                        <div class="col-12 col-md">
-                            <h3>Attachments</h3>
-                            <div>
-                                {% for f in r.files %}
-                                    <a class='download' href="{{ url_for('ui.download_request_file', request_id=r.id, request_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
-                                {% endfor %}
+                <div class="col-5">
+                    {% if is_owner %}
+                        <div class="clearfix">
+                            <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+                                <div class="btn-group mr-2" role="group" aria-label="First group">
+                                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#todos_{{ r.id }}" aria-expanded="false" aria-controls="todos_{{ r.id }}">
+                                        <i class="fas fa-clipboard-check"></i>
+                                        {% if r.required_todos > 0 %}
+                                            <span>({{r.complete_todos}} / {{r.required_todos}})</span>
+                                        {% endif %}
+                                    </button>
+                                </div>
+                                <div class="btn-group" role="group" aria-label="Third group">
+                                    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ r.current_status_type.name }}
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                        <a class="dropdown-item"
+                                            data-toggle="modal"
+                                            data-request-id="{{ r.id }}"
+                                            data-current-status-type-id="{{ r.current_status_type.id }}"
+                                            data-name="{{ r.name }}"
+                                            data-target="#updateStatusModal"
+                                            href="#">Update Status</a>
+                                        <a class="dropdown-item"
+                                            data-toggle="modal"
+                                            data-request-id="{{ r.id }}"
+                                            data-name="{{ r.name }}"
+                                            data-target="#showStatusHistoryModal"
+                                            href="#">Show History</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <div class="collapse multi-collapse" id="todos_{{ r.id }}">
+                            <div class="card card-body">
+                                <ul>
+                                    {% for t in r.todos %}
+                                        <li>{{ t.name }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <a class='btn btn-primary' href="{{ url_for('ui.request_todo_list', request_id=r.id) }}">Edit Todo List</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <span class="float-right badge badge-primary">{{ r.current_status_type.name }}</span>
                     {% endif %}
                 </div>
             </div>

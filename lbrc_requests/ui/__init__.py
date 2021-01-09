@@ -196,6 +196,14 @@ def create_request(request_type_id):
     return render_template("ui/request/create.html", form=form, request_type=request_type)
 
 
+@blueprint.route("/request/<int:request_id>/todo_list", methods=["GET", "POST"])
+def request_todo_list(request_id):
+    request = Request.query.get_or_404(request_id)
+    search_form = SearchForm()
+
+    return render_template("ui/request/todo_list.html", search_form=search_form, request=request)
+
+
 @blueprint.route("/request/<int:request_id>/file/<int:request_file_id>")
 @must_be_request_file_owner_or_requestor("request_file_id")
 def download_request_file(request_id, request_file_id):
