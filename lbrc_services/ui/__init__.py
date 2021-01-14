@@ -204,7 +204,7 @@ def task_todo_list(task_id):
     search_form = SearchForm()
     todo_form = EditToDoForm(task_id=task_id)
 
-    return render_template("ui/task/todo_list.html", search_form=search_form, todo_form=todo_form, task=task)
+    return render_template("ui/task/todo_list.html", search_form=search_form, todo_form=todo_form, task=task, prev=flask_request.args.get('prev', ''))
 
 
 @blueprint.route("/todo/save", methods=["POST"])
