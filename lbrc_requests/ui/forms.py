@@ -59,3 +59,9 @@ class RequestUpdateStatusForm(FlashingForm):
     request_id = HiddenField()
     status = SelectField("New Status", validators=[DataRequired()])
     notes = TextAreaField("Notes", validators=[Length(max=500)])
+
+
+class EditToDoForm(FlashingForm):
+    request_id = HiddenField()
+    todo_id = HiddenField()
+    description = TextAreaField("Description", validators=[Length(max=500)])

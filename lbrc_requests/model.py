@@ -195,7 +195,7 @@ class ToDo(AuditMixin, db.Model):
     request_id = db.Column(db.Integer, db.ForeignKey(Request.id))
     request = db.relationship(Request, backref='todos')
     description = db.Column(db.UnicodeText())
-    status = db.Column(db.Integer, db.CheckConstraint("status IN (-1, 0, 1)"))
+    status = db.Column(db.Integer, db.CheckConstraint("status IN (-1, 0, 1)"), nullable=False, default=0)
 
     @property
     def status_name(self):

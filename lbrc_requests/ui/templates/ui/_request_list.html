@@ -1,3 +1,5 @@
+{% from "lbrc_flask/modal_macros.html" import render_modal %}
+
 {% macro render(requests, is_owner) %}
 
 <ul class="list-group">
@@ -67,9 +69,26 @@
 
                         <div class="collapse multi-collapse" id="todos_{{ r.id }}">
                             <div class="card card-body">
-                                <ul>
+                                <ul class="list-group">
                                     {% for t in r.todos %}
-                                        <li>{{ t.name }}</li>
+                                        <li class="list-group-item">
+                                            <div class="row">
+                                                <div class='col-2'>
+                                                    <a href="" class="todo_edit" data-todo-id="{{ t.id }}" data-description="{{ t.description }}"><i class="far fa-edit"></i></a>
+                                                    {% if t.status == 0 %}
+                                                        <a href="" class="todo_checkbox" data-todo-id="{{ t.id }}" data-action="check"><i class="far fa-square"></i></a>
+                                                    {% elif t.status == 1 %}
+                                                        <a href="" class="todo_checkbox" data-todo-id="{{ t.id }}" data-action="unneeded"><i class="far fa-check-square"></i></a>
+                                                    {% elif t.status == -1 %}
+                                                        <a href="" class="todo_checkbox" data-todo-id="{{ t.id }}" data-action="uncheck"><i class="fas fa-ban"></i></a>
+                                                    {% endif %}
+                                                </div>
+                                                <div class='col'>
+                                                    <p>{{ t.description }}</p>
+                                                    <p>{{ t.created_date | datetime_humanize }}</p>
+                                                </div>
+                                            </div>
+                                        </li>
                                     {% endfor %}
                                 </ul>
                                 <a class='btn btn-primary' href="{{ url_for('ui.request_todo_list', request_id=r.id) }}">Edit Todo List</a>

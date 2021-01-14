@@ -1,6 +1,7 @@
-from flask import request as flask_request, abort
+from flask import request as flask_request, abort, jsonify
+from flask_api import status
 from lbrc_flask.forms import SearchForm
-from lbrc_requests.model import Request, RequestData, RequestFile, RequestStatus, RequestStatusType, RequestType, User
+from lbrc_requests.model import Request, RequestData, RequestFile, RequestStatus, RequestStatusType, RequestType, ToDo, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
 from flask import (
@@ -16,7 +17,7 @@ from wtforms import StringField
 from wtforms.validators import Length, DataRequired
 from sqlalchemy.orm import joinedload
 from .decorators import must_be_request_file_owner_or_requestor, must_be_request_owner_or_requestor
-from .forms import MyJobsSearchForm, RequestUpdateStatusForm, RequestSearchForm
+from .forms import EditToDoForm, MyJobsSearchForm, RequestUpdateStatusForm, RequestSearchForm
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -46,6 +47,7 @@ def my_requests():
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
 
+    todo_form = EditToDoForm()
     search_form = MyJobsSearchForm(formdata=flask_request.args)
     request_update_status_form = RequestUpdateStatusForm()
 
@@ -74,7 +76,7 @@ def my_jobs():
 
     requests = _get_requests(search_form=search_form, owner_id=current_user.id, sort_asc=True)
 
-    return render_template("ui/my_jobs.html", requests=requests, search_form=search_form, request_update_status_form=request_update_status_form)
+    return render_template("ui/my_jobs.html", requests=requests, search_form=search_form, todo_form=todo_form, request_update_status_form=request_update_status_form)
 
 
 @blueprint.route("/request/<int:request_id>/status_history")
@@ -200,8 +202,46 @@ def create_request(request_type_id):
 def request_todo_list(request_id):
     request = Request.query.get_or_404(request_id)
     search_form = SearchForm()
+    todo_form = EditToDoForm(request_id=request_id)
 
-    return render_template("ui/request/todo_list.html", search_form=search_form, request=request)
+    return render_template("ui/request/todo_list.html", search_form=search_form, todo_form=todo_form, request=request)
+
+
+@blueprint.route("/todo/save", methods=["POST"])
+def request_save_todo():
+    form = EditToDoForm()
+
+    print(form.data)
+    if form.validate_on_submit():
+        if form.todo_id.data:
+            todo = ToDo.query.get_or_404(form.todo_id.data)
+        else:
+            todo = ToDo(request_id=form.request_id.data)
+        
+        todo.description = form.description.data
+        db.session.add(todo)
+        db.session.commit()
+
+    return redirect(url_for("ui.request_todo_list", request_id=form.request_id.data))
+
+
+@blueprint.route("/todo/update_status", methods=["POST"])
+def todo_update_status():
+    data = flask_request.get_json()
+
+    todo = ToDo.query.get_or_404(data['todo_id'])
+
+    if data['action'] == 'check':
+        todo.status = 1
+    elif data['action'] == 'unneeded':
+        todo.status = -1
+    elif data['action'] == 'uncheck':
+        todo.status = 0
+    
+    db.session.add(todo)
+    db.session.commit()
+
+    return '', status.HTTP_205_RESET_CONTENT
 
 
 @blueprint.route("/request/<int:request_id>/file/<int:request_file_id>")
