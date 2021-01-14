@@ -18,11 +18,11 @@ def test__get__requires_login(client):
     ["n"],
     [(0,), (1,), (2,), (10,)],
 )
-def test__requests_types(client, faker, n):
+def test__services(client, faker, n):
     user = login(client, faker)
 
-    request_types = [faker.request_type_details() for _ in range(n)]
-    db.session.add_all(request_types)
+    services = [faker.service_details() for _ in range(n)]
+    db.session.add_all(services)
     db.session.commit()
 
     resp = client.get(_url())
@@ -31,7 +31,7 @@ def test__requests_types(client, faker, n):
     content = resp.soup.find(id="content")
     assert len(content.find_all("a", "btn")) == n
 
-    for rt in request_types:
-        assert content.find("a", string=re.compile(rt.name)) is not None
+    for s in services:
+        assert content.find("a", string=re.compile(s.name)) is not None
 
 

@@ -1,11 +1,11 @@
 from wtforms import validators
-from lbrc_requests.model import RequestType, User
+from lbrc_services.model import Service, User
 from lbrc_flask.admin import init_admin as flask_init_admin, AdminCustomView
 from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms
 from lbrc_flask.database import db
 
 
-class RequestTypeView(AdminCustomView):
+class ServiceView(AdminCustomView):
 
     form_args = dict(
         name=dict(validators=[validators.DataRequired()]),
@@ -13,11 +13,11 @@ class RequestTypeView(AdminCustomView):
         owners=dict(query_factory=lambda: User.query.order_by(User.last_name, User.first_name, User.email)),
     )
     form_columns = [
-        RequestType.name,
+        Service.name,
         "field_group",
         "owners",
     ]
-    column_searchable_list = [RequestType.name]
+    column_searchable_list = [Service.name]
 
 
 def init_admin(app, title):
@@ -25,7 +25,7 @@ def init_admin(app, title):
         app,
         title,
         [
-            RequestTypeView(RequestType, db.session),
+            ServiceView(Service, db.session),
             *get_dynamic_forms_admin_forms(),
         ],
     )

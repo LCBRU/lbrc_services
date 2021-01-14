@@ -7,13 +7,13 @@ meta = MetaData()
 def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
-    r = Table("request", meta, autoload=True)
+    tsk = Table("task", meta, autoload=True)
 
     rs = Table(
         "to_do",
         meta,
         Column("id", Integer, primary_key=True),
-        Column("request_id", Integer, ForeignKey(r.c.id), nullable=False, index=True),
+        Column("task_id", Integer, ForeignKey(tsk.c.id), nullable=False, index=True),
         Column("description", UnicodeText),
         Column("status", Integer, CheckConstraint("status IN (-1, 0, 1)")),
         *get_audit_mixin_columns(),

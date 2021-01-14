@@ -4,22 +4,18 @@ from lbrc_flask.security.migrations import get_audit_mixin_columns
 
 meta = MetaData()
 
-
 def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
-    rst = Table("request_status_type", meta, autoload=True)
-    rt = Table("request_type", meta, autoload=True)
+    fg = Table("field_group", meta, autoload=True)
     u = Table("user", meta, autoload=True)
 
     t = Table(
-        "request",
+        "service",
         meta,
         Column("id", Integer, primary_key=True),
-        Column("name", NVARCHAR(255)),
-        Column("request_type_id", Integer, ForeignKey(rt.c.id), index=True, nullable=False),
-        Column("requestor_id", Integer, ForeignKey(u.c.id), index=True, nullable=False),
-        Column("current_status_type_id", Integer, ForeignKey(rst.c.id), nullable=False, index=True),
+        Column("name", NVARCHAR(200)),
+        Column("field_group_id", Integer, ForeignKey(fg.c.id), index=True, nullable=False),
         *get_audit_mixin_columns(),
     )
 
@@ -28,5 +24,5 @@ def upgrade(migrate_engine):
 
 def downgrade(migrate_engine):
     meta.bind = migrate_engine
-    t = Table("request", meta, autoload=True)
+    t = Table("service", meta, autoload=True)
     t.drop()

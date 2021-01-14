@@ -1,17 +1,15 @@
 import uuid
 import pathlib
 from flask import current_app
-from flask.globals import request
-from sqlalchemy.orm import backref
 from werkzeug.utils import secure_filename
 from lbrc_flask.database import db
 from lbrc_flask.security import User as BaseUser, AuditMixin
 from lbrc_flask.forms.dynamic import Field, FieldGroup
 
 
-request_types_owners = db.Table(
-    "request_types_owners",
-    db.Column("request_type_id", db.Integer(), db.ForeignKey("request_type.id")),
+services_owners = db.Table(
+    "services_owners",
+    db.Column("service_id", db.Integer(), db.ForeignKey("service.id")),
     db.Column("user_id", db.Integer(), db.ForeignKey("user.id")),
 )
 
@@ -19,16 +17,16 @@ request_types_owners = db.Table(
 class User(BaseUser):
     __table_args__ = {'extend_existing': True}
 
-    owned_request_types = db.relationship("RequestType", secondary=request_types_owners)
+    owned_services = db.relationship("Service", secondary=services_owners)
 
 
-class RequestType(AuditMixin, db.Model):
+class Service(AuditMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
     field_group_id = db.Column(db.Integer, db.ForeignKey(FieldGroup.id))
     field_group = db.relationship(FieldGroup)
-    owners = db.relationship(User, secondary=request_types_owners)
+    owners = db.relationship(User, secondary=services_owners)
 
     def __str__(self):
         return self.name
@@ -38,7 +36,7 @@ class RequestType(AuditMixin, db.Model):
             return self.field_group.get_field_for_field_name(field_name)
 
 
-class RequestStatusType(db.Model):
+class TaskStatusType(db.Model):
 
     CREATED = 'Created'
     IN_PROGRESS = 'In Progress'
@@ -70,12 +68,12 @@ class RequestStatusType(db.Model):
     }
 
     @classmethod
-    def get_request_status(cls, name):
-        return RequestStatusType.query.filter_by(name=name).one()
+    def get_task_status(cls, name):
+        return TaskStatusType.query.filter_by(name=name).one()
 
     @classmethod
     def get_created(cls):
-        return cls.get_request_status(RequestStatusType.CREATED)
+        return cls.get_task_status(TaskStatusType.CREATED)
 
     @classmethod
     def get_created_id(cls):
@@ -83,19 +81,19 @@ class RequestStatusType(db.Model):
 
     @classmethod
     def get_in_progress(cls):
-        return cls.get_request_status(RequestStatusType.IN_PROGRESS)
+        return cls.get_task_status(TaskStatusType.IN_PROGRESS)
 
     @classmethod
     def get_done(cls):
-        return cls.get_request_status(RequestStatusType.DONE)
+        return cls.get_task_status(TaskStatusType.DONE)
 
     @classmethod
     def get_awaiting_information(cls):
-        return cls.get_request_status(RequestStatusType.AWAITING_INFORMATION)
+        return cls.get_task_status(TaskStatusType.AWAITING_INFORMATION)
 
     @classmethod
     def get_cancelled(cls):
-        return cls.get_request_status(RequestStatusType.CANCELLED)
+        return cls.get_task_status(TaskStatusType.CANCELLED)
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
@@ -103,16 +101,16 @@ class RequestStatusType(db.Model):
     is_active = db.Column(db.Boolean)
 
 
-class Request(AuditMixin, db.Model):
+class Task(AuditMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
-    request_type_id = db.Column(db.Integer, db.ForeignKey(RequestType.id))
-    request_type = db.relationship(RequestType, backref='requests')
+    service_id = db.Column(db.Integer, db.ForeignKey(Service.id))
+    service = db.relationship(Service, backref='tasks')
     requestor_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    requestor = db.relationship(User, backref='requests', foreign_keys=[requestor_id])
-    current_status_type_id = db.Column(db.Integer, db.ForeignKey(RequestStatusType.id), nullable=False)
-    current_status_type = db.relationship(RequestStatusType)
+    requestor = db.relationship(User, backref='tasks', foreign_keys=[requestor_id])
+    current_status_type_id = db.Column(db.Integer, db.ForeignKey(TaskStatusType.id), nullable=False)
+    current_status_type = db.relationship(TaskStatusType)
 
     @property
     def total_todos(self):
@@ -127,22 +125,22 @@ class Request(AuditMixin, db.Model):
         return len([t for t in self.todos if t.is_complete])
 
 
-class RequestStatus(AuditMixin, db.Model):
+class TaskStatus(AuditMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
-    request_id = db.Column(db.Integer, db.ForeignKey(Request.id), nullable=False)
-    request = db.relationship(Request, backref="status_history")
+    task_id = db.Column(db.Integer, db.ForeignKey(Task.id), nullable=False)
+    task = db.relationship(Task, backref="status_history")
     notes = db.Column(db.String(255))
-    request_status_type_id = db.Column(db.Integer, db.ForeignKey(RequestStatusType.id), nullable=False)
-    request_status_type = db.relationship(RequestStatusType)
+    task_status_type_id = db.Column(db.Integer, db.ForeignKey(TaskStatusType.id), nullable=False)
+    task_status_type = db.relationship(TaskStatusType)
 
 
-class RequestData(AuditMixin, db.Model):
+class TaskData(AuditMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     value = db.Column(db.UnicodeText())
-    request_id = db.Column(db.Integer, db.ForeignKey(Request.id))
-    request = db.relationship(Request, backref='data')
+    task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
+    task = db.relationship(Task, backref='data')
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
     field = db.relationship(Field)
 
@@ -151,13 +149,13 @@ class RequestData(AuditMixin, db.Model):
         return self.field.format_value(self.value)
 
 
-class RequestFile(AuditMixin, db.Model):
+class TaskFile(AuditMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     filename = db.Column(db.UnicodeText())
     local_filepath = db.Column(db.UnicodeText())
-    request_id = db.Column(db.Integer, db.ForeignKey(Request.id))
-    request = db.relationship(Request, backref='files')
+    task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
+    task = db.relationship(Task, backref='files')
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
     field = db.relationship(Field)
 
@@ -166,7 +164,7 @@ class RequestFile(AuditMixin, db.Model):
 
         local_filepath = self._new_local_filepath(
             filename=file.filename,
-            parent=str(self.request.id),
+            parent=str(self.task.id),
         )
 
         self.local_filepath = str(local_filepath)
@@ -192,8 +190,8 @@ class ToDo(AuditMixin, db.Model):
     NOT_REQUIRED = 'Not Required'
 
     id = db.Column(db.Integer(), primary_key=True)
-    request_id = db.Column(db.Integer, db.ForeignKey(Request.id))
-    request = db.relationship(Request, backref='todos')
+    task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
+    task = db.relationship(Task, backref='todos')
     description = db.Column(db.UnicodeText())
     status = db.Column(db.Integer, db.CheckConstraint("status IN (-1, 0, 1)"), nullable=False, default=0)
 
@@ -221,11 +219,11 @@ class ToDo(AuditMixin, db.Model):
 def init_model(app):
     
     @app.before_first_request
-    def request_status_type_setup():
-        for name, details in RequestStatusType.all_details.items():
-            if RequestStatusType.query.filter(RequestStatusType.name == name).count() == 0:
+    def task_status_type_setup():
+        for name, details in TaskStatusType.all_details.items():
+            if TaskStatusType.query.filter(TaskStatusType.name == name).count() == 0:
                 db.session.add(
-                    RequestStatusType(
+                    TaskStatusType(
                         name=name,
                         is_complete=details['is_complete'],
                         is_active=details['is_active'],

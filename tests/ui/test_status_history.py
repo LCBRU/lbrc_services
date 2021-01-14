@@ -1,53 +1,53 @@
 import re
 import pytest
 from itertools import cycle
-from lbrc_requests.model import RequestStatus, RequestStatusType
+from lbrc_services.model import TaskStatus, TaskStatusType
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.database import db
-from tests import get_test_request, get_test_user
+from tests import get_test_task, get_test_user
 
 
 def _url(**kwargs):
-    return url_for('ui.request_status_history', _external=True, **kwargs)
+    return url_for('ui.task_status_history', _external=True, **kwargs)
 
 
 def test__get__requires_login(client, faker):
-    request = get_test_request(faker)
-    resp = client.get(_url(request_id=request.id))
+    task = get_test_task(faker)
+    resp = client.get(_url(task_id=task.id))
     assert resp.status_code == 302
 
 
 def test__status_history__not_owner_or_requestor(client, faker):
     user1 = login(client, faker)
     user2 = get_test_user(faker)
-    rt = faker.request_type_details(owners=[user2])
+    s = faker.service_details(owners=[user2])
 
-    request = get_test_request(faker, request_type=rt)
+    task = get_test_task(faker, service=s)
 
-    resp = client.get(_url(request_id=request.id))
+    resp = client.get(_url(task_id=task.id))
 
     assert resp.status_code == 403
 
 
 def test__status_history__missing(client, faker):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    request = get_test_request(faker, request_type=rt)
+    task = get_test_task(faker, service=s)
 
-    resp = client.get(_url(request_id=request.id + 1))
+    resp = client.get(_url(task_id=task.id + 1))
 
     assert resp.status_code == 404
 
 
 def test__status_history__is_owner(client, faker):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    request = get_test_request(faker, request_type=rt)
+    task = get_test_task(faker, service=s)
 
-    resp = client.get(_url(request_id=request.id))
+    resp = client.get(_url(task_id=task.id))
 
     assert resp.status_code == 200
 
@@ -55,9 +55,9 @@ def test__status_history__is_owner(client, faker):
 def test__status_history__is_requestor(client, faker):
     user = login(client, faker)
 
-    request = get_test_request(faker, requestor=user)
+    task = get_test_task(faker, requestor=user)
 
-    resp = client.get(_url(request_id=request.id))
+    resp = client.get(_url(task_id=task.id))
 
     assert resp.status_code == 200
 
@@ -68,12 +68,12 @@ def test__status_history__is_requestor(client, faker):
 )
 def test__my_jobs__update_status(client, faker, n):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    actual_status = RequestStatusType.get_created()
-    request = get_test_request(faker, request_type=rt, current_status_type=actual_status)
+    actual_status = TaskStatusType.get_created()
+    task = get_test_task(faker, service=s, current_status_type=actual_status)
 
-    statuses = cycle(RequestStatusType.query.all())
+    statuses = cycle(TaskStatusType.query.all())
     history = []
 
     for x in range(n):
@@ -81,16 +81,16 @@ def test__my_jobs__update_status(client, faker, n):
             'status': next(statuses),
             'notes': faker.pystr(min_chars=5, max_chars=10),
         })
-        request.status_history.append(RequestStatus(
-            request=request,
+        task.status_history.append(TaskStatus(
+            task=task,
             notes=history[-1]['notes'],
-            request_status_type=history[-1]['status']
+            task_status_type=history[-1]['status']
         ))
 
-        db.session.add(request)
+        db.session.add(task)
         db.session.commit()
 
-        resp = client.get(_url(request_id=request.id))
+        resp = client.get(_url(task_id=task.id))
 
         assert resp.status_code == 200
         assert len(resp.soup.find_all("li", "list-group-item")) == len(history)

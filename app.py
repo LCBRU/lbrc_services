@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from lbrc_requests import create_app
+from lbrc_services import create_app
 
 application = create_app()
 

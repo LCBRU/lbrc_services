@@ -1,4 +1,4 @@
-# LBRC Requests
+# LBRC Services
 
 Site for BRC staff to make requests for BRC central services, such as
 comms, PPI and IT.
@@ -8,12 +8,12 @@ comms, PPI and IT.
 1. Download the code from github
 
 ```bash
-git clone git@github.com:LCBRU/lbrc_requests.git
+git clone git@github.com:LCBRU/lbrc_services.git
 ```
 
 2. Install the requirements
 
-Go to the `lbrc_requests` directory and type the command:
+Go to the `lbrc_services` directory and type the command:
 
 ```bash
 pip install -r requirements.txt
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 3. Create the database using
 
-Staying in the `lbrc_requests` directory and type the command:
+Staying in the `lbrc_services` directory and type the command:
 
 ```bash
 ./manage.py version_control
@@ -30,7 +30,7 @@ Staying in the `lbrc_requests` directory and type the command:
 
 4. Run the application
 
-Staying in the `lbrc_requests` directory and type the command:
+Staying in the `lbrc_services` directory and type the command:
 
 ```bash
 ./app.py

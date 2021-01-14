@@ -6,14 +6,14 @@
 
 <section>
     <div class="page-header">
-        <h1>{{request.request_type.name}}: {{ request.name }}</h1>
+        <h1>{{task.service.name}}: {{ task.name }}</h1>
         <h2>To Do List</h2>
 
         {{ render_search(
             search_form,
-            'ui.request_todo_list',
+            'ui.task_todo_list',
             placeholder='enter search text',
-            request_id=request.id,
+            task_id=task.id,
             buttons=[
                 {
                     'id': 'add_item',
@@ -29,7 +29,7 @@
     </div>
 
     <ul class="list-group">
-        {% for t in request.todos %}
+        {% for t in task.todos %}
             <li class="list-group-item">
                 <div class="row">
                     <div class='col-1'>
@@ -53,7 +53,7 @@
 </section>
 
 {% call render_modal('edit_todo_modal', 'To Do') %}
-<form id="todo_form" method="POST" action="{{ url_for('ui.request_save_todo', request_id=request.id) }}" class="form panel-body" enctype="multipart/form-data">
+<form id="todo_form" method="POST" action="{{ url_for('ui.task_save_todo', task_id=task.id) }}" class="form panel-body" enctype="multipart/form-data">
     <fieldset>
         {{ todo_form.hidden_tag() }}
 

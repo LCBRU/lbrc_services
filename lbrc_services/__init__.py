@@ -1,4 +1,4 @@
-from lbrc_requests.model import User
+from lbrc_services.model import User
 from flask import Flask
 from lbrc_flask import init_lbrc_flask
 from lbrc_flask.security import init_security, Role
@@ -13,7 +13,7 @@ def create_app(config=Config):
     app = Flask(__name__)
     app.config.from_object(config)
 
-    TITLE = 'Requests'
+    TITLE = 'Services'
 
     with app.app_context():
         init_lbrc_flask(app, TITLE)

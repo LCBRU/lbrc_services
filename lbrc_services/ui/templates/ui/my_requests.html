@@ -7,33 +7,33 @@
     <div class="page-header">
         <h1>My Requests</h1>
 
-        {{ form_macros.render_search(search_form, 'ui.my_requests', placeholder='enter search text - searches request name') }}
+        {{ form_macros.render_search(search_form, 'ui.my_requests', placeholder='enter search text - searches names') }}
 
     </div>
 
     <ul class="list-group">
-        {% for r in requests.items %}
+        {% for t in tasks.items %}
             <li class="list-group-item">
                 <div class='summary_details row'>
                     <div class="col-7">
                         <header>
-                            <h1>{{r.request_type.name}}: {{ r.name }}</h1>
-                            <h2>For <a href="mailto:{{r.requestor.email}}">{{r.requestor.full_name }}</a> created {{ r.created_date | datetime_humanize }}</h2>
+                            <h1>{{t.service.name}}: {{ t.name }}</h1>
+                            <h2>For <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
                         </header>
                         <div class="row">
                             <dl class="col-12 col-md">
-                                {% for d in r.data %}
+                                {% for d in t.data %}
                                     <dt>{{ d.field.field_name }}</dt>
                                     <dd>{{ d.formated_value }}</dd>
                                 {% endfor %}
                             </dl>
         
-                            {% if r.files | length > 0 %}
+                            {% if t.files | length > 0 %}
                                 <div class="col-12 col-md">
                                     <h3>Attachments</h3>
                                     <div>
-                                        {% for f in r.files %}
-                                            <a class='download' href="{{ url_for('ui.download_request_file', request_id=r.id, request_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
+                                        {% for f in t.files %}
+                                            <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
                                         {% endfor %}
                                     </div>
                                 </div>
@@ -42,7 +42,7 @@
                     </div>
     
                     <div class="col-5">
-                        <span class="float-right badge badge-primary">{{ r.current_status_type.name }}</span>
+                        <span class="float-right badge badge-primary">{{ t.current_status_type.name }}</span>
                     </div>
                 </div>
             </li>
@@ -50,6 +50,6 @@
     </ul>
 </section>
 
-{{ form_macros.render_pagination(requests, 'ui.my_requests', search=search_form.search.data) }}
+{{ form_macros.render_pagination(tasks, 'ui.my_requests', search=search_form.search.data) }}
 
 {% endblock %}

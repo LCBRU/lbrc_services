@@ -1,8 +1,8 @@
 from faker.providers import BaseProvider
-from lbrc_requests.model import RequestStatusType, User, RequestType, Request, RequestFile
+from lbrc_services.model import RequestStatusType, User, Service, Task, TaskFile
 
 
-class LbrcRequestsFakerProvider(BaseProvider):
+class LbrcServicesFakerProvider(BaseProvider):
     def user_details(self):
         u = User(
             first_name=self.generator.first_name(),
@@ -12,14 +12,14 @@ class LbrcRequestsFakerProvider(BaseProvider):
         )
         return u
 
-    def request_type_details(self, owners=None, name=None, field_group=None):
+    def service_details(self, owners=None, name=None, field_group=None):
         if name is None:
             name = self.generator.pystr(min_chars=5, max_chars=10)
 
         if field_group is None:
             field_group = self.generator.field_group_details()
 
-        result = RequestType(
+        result = Service(
             name=name,
             field_group=field_group,
         )
@@ -29,33 +29,33 @@ class LbrcRequestsFakerProvider(BaseProvider):
         return result
 
 
-    def request_details(self, name=None, request_type=None, requestor=None, current_status_type=None):
+    def task_details(self, name=None, service=None, requestor=None, current_status_type=None):
         if name is None:
             name = self.generator.pystr(min_chars=5, max_chars=10)
 
-        if request_type is None:
-            request_type = self.request_type_details()
+        if service is None:
+            service = self.service_details()
         
         if requestor is None:
             requestor = self.user_details()
 
         if current_status_type is None:
-            current_status_type = RequestStatusType.get_created()
+            current_status_type = TaskStatusType.get_created()
 
-        return Request(
+        return Task(
             name=name,
-            request_type=request_type,
+            service=service,
             requestor=requestor,
             current_status_type=current_status_type,
         )
 
-    def request_file_details(self, request=None):
-        if request is None:
-            request = self.request_details()
+    def task_file_details(self, task=None):
+        if task is None:
+            task = self.task_details()
 
-        return RequestFile(
+        return TaskFile(
             filename=self.generator.pystr(min_chars=5, max_chars=10),
             local_filepath=self.generator.pystr(min_chars=5, max_chars=10),
-            request=request,
+            task=task,
             field=self.generator.field_details()
         )

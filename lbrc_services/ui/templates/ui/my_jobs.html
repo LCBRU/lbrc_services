@@ -8,33 +8,33 @@
     <div class="page-header">
         <h1>My Jobs</h1>
 
-        {{ render_search(search_form, 'ui.my_jobs', placeholder='enter search text - searches request name') }}
+        {{ render_search(search_form, 'ui.my_jobs', placeholder='enter search text - searches names') }}
 
     </div>
 
     <ul class="list-group">
-        {% for r in requests.items %}
+        {% for t in tasks.items %}
             <li class="list-group-item">
                 <div class='summary_details row'>
                     <div class="col-7">
                         <header>
-                            <h1>{{r.request_type.name}}: {{ r.name }}</h1>
-                            <h2>For <a href="mailto:{{r.requestor.email}}">{{r.requestor.full_name }}</a> created {{ r.created_date | datetime_humanize }}</h2>
+                            <h1>{{t.service.name}}: {{ t.name }}</h1>
+                            <h2>For <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
                         </header>
                         <div class="row">
                             <dl class="col-12 col-md">
-                                {% for d in r.data %}
+                                {% for d in t.data %}
                                     <dt>{{ d.field.field_name }}</dt>
                                     <dd>{{ d.formated_value }}</dd>
                                 {% endfor %}
                             </dl>
 
-                            {% if r.files | length > 0 %}
+                            {% if t.files | length > 0 %}
                                 <div class="col-12 col-md">
                                     <h3>Attachments</h3>
                                     <div>
                                         {% for f in r.files %}
-                                            <a class='download' href="{{ url_for('ui.download_request_file', request_id=r.id, request_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
+                                            <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
                                         {% endfor %}
                                     </div>
                                 </div>
@@ -46,29 +46,29 @@
                         <div class="clearfix">
                             <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
                                 <div class="btn-group mr-2" role="group" aria-label="First group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.request_todo_list', request_id=r.id) }}">
+                                    <a class="btn btn-primary" href="{{ url_for('ui.task_todo_list', task_id=t.id) }}">
                                         <i class="fas fa-clipboard-check"></i>
-                                        {% if r.required_todos > 0 %}
-                                            <span>({{r.complete_todos}} / {{r.required_todos}})</span>
+                                        {% if t.required_todos > 0 %}
+                                            <span>({{t.complete_todos}} / {{t.required_todos}})</span>
                                         {% endif %}
                                     </a>
                                 </div>
                                 <div class="btn-group" role="group" aria-label="Third group">
                                     <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        {{ r.current_status_type.name }}
+                                        {{ t.current_status_type.name }}
                                     </button>
                                     <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
                                         <a class="dropdown-item"
                                             data-toggle="modal"
-                                            data-request-id="{{ r.id }}"
-                                            data-current-status-type-id="{{ r.current_status_type.id }}"
-                                            data-name="{{ r.name }}"
+                                            data-task-id="{{ t.id }}"
+                                            data-current-status-type-id="{{ t.current_status_type.id }}"
+                                            data-name="{{ t.name }}"
                                             data-target="#updateStatusModal"
                                             href="#">Update Status</a>
                                         <a class="dropdown-item"
                                             data-toggle="modal"
-                                            data-request-id="{{ r.id }}"
-                                            data-name="{{ r.name }}"
+                                            data-task-id="{{ t.id }}"
+                                            data-name="{{ t.name }}"
                                             data-target="#showStatusHistoryModal"
                                             href="#">Show History</a>
                                     </div>
@@ -83,15 +83,15 @@
     </ul>
 </section>
 
-{{ render_pagination(requests, 'ui.my_jobs', search=search_form.search.data) }}
+{{ render_pagination(tasks, 'ui.my_jobs', search=search_form.search.data) }}
 
 {% call render_modal('updateStatusModal', 'Update Status') %}
-    <p id="modal_description">Set new status for "<span id="request_name"></span>".</p>
-    <form id="request_status_form" method="POST" class="form panel-body" enctype="multipart/form-data">
+    <p id="modal_description">Set new status for "<span id="task_name"></span>".</p>
+    <form id="task_status_form" method="POST" class="form panel-body" enctype="multipart/form-data">
         <fieldset>
-            {{ request_update_status_form.hidden_tag() }}
+            {{ task_update_status_form.hidden_tag() }}
 
-            {% for f in request_update_status_form %}
+            {% for f in task_update_status_form %}
                 {{ render_field(f) }}
             {% endfor %}
 
@@ -101,13 +101,13 @@
 {% endcall %}
 
 {% call render_modal('showStatusHistoryModal', 'Status History') %}
-    <p id="modal_description">Status history for "<span id="request_name"></span>".</p>
+    <p id="modal_description">Status history for "<span id="task_name"></span>".</p>
 
     <div id="showStatusHistoryModal_content"></div>
 {% endcall %}
 
 {% call render_modal('edit_todo_modal', 'To Do') %}
-    <form id="todo_form" method="POST" action="{{ url_for('ui.request_save_todo') }}" class="form panel-body" enctype="multipart/form-data">
+    <form id="todo_form" method="POST" action="{{ url_for('ui.task_save_todo') }}" class="form panel-body" enctype="multipart/form-data">
         <fieldset>
             {{ todo_form.hidden_tag() }}
 
@@ -128,28 +128,28 @@
     $(document).ready(function(){
         $('#updateStatusModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
-            var request_id = button.data('request-id');
+            var task_id = button.data('task-id');
             var current_status_type_id = button.data('current-status-type-id');
             var name = button.data('name');
 
             var modal = $(this);
-            modal.find('#request_name').text(name);
+            modal.find('#task_name').text(name);
 
             modal.find("#status").val(current_status_type_id);
-            modal.find("#request_id").val(request_id);
+            modal.find("#task_id").val(task_id);
         });
     });
 
     $(document).ready(function(){
         $('#showStatusHistoryModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
-            var request_id = button.data('request-id');
+            var task_id = button.data('task-id');
             var name = button.data('name');
 
             var modal = $(this);
-            modal.find('#request_name').text(name);
+            modal.find('#task_name').text(name);
 
-            url = "{{ request.script_root|safe }}" + '/request/' + request_id + '/status_history';
+            url = "{{ request.script_root | safe }}" + '/task/' + task_id + '/status_history';
             modal.find('#showStatusHistoryModal_content').html('');
 
             callback = function(m) {
@@ -160,26 +160,6 @@
 
             $.get(url, callback(modal));
 
-        });
-    });
-
-    $(document).ready(function(){
-        url = "{{ url_for('ui.todo_update_status') }}";
-
-        $('.todo_checkbox').click(function (event) {
-            event.preventDefault();
-
-            fetch(url, {
-                method: 'post',
-                headers: {"Content-type": "application/json; charset=UTF-8"},
-                body: JSON.stringify({
-                    todo_id: this.getAttribute("data-todo-id"),
-                    action: this.getAttribute("data-action"),
-                }),
-            })
-            .then(standard_status_actions);
-
-            return false;
         });
     });
 

@@ -4,7 +4,7 @@ from flask import url_for
 from itertools import repeat
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
-from lbrc_requests.model import RequestStatusType
+from lbrc_services.model import TaskStatusType
 from tests import get_test_user
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards
 
@@ -31,12 +31,12 @@ def test__standards(client, faker):
 def test__my_jobs(client, faker, mine, others):
     user = login(client, faker)
     user2 = get_test_user(faker)
-    rt1 = faker.request_type_details(owners=[user])
-    rt2 = faker.request_type_details(owners=[user2])
+    s1 = faker.service_details(owners=[user])
+    s2 = faker.service_details(owners=[user2])
 
-    my_jobs = [faker.request_details(request_type=rt) for rt in repeat(rt1, mine)]
+    my_jobs = [faker.task_details(service=s) for s in repeat(s1, mine)]
     db.session.add_all(my_jobs)
-    db.session.add_all([faker.request_details(request_type=rt) for rt in repeat(rt2, others)])
+    db.session.add_all([faker.task_details(service=s) for s in repeat(s2, others)])
     db.session.commit()
 
     resp = client.get(_url())
@@ -46,11 +46,11 @@ def test__my_jobs(client, faker, mine, others):
 
 def test__my_jobs__search__name(client, faker):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    matching = faker.request_details(request_type=rt, name='Mary')
+    matching = faker.task_details(service=s, name='Mary')
     db.session.add(matching)
-    db.session.add(faker.request_details(request_type=rt, name='Joseph'))
+    db.session.add(faker.task_details(service=s, name='Joseph'))
     db.session.commit()
 
     resp = client.get(_url(search='ar'))
@@ -58,42 +58,42 @@ def test__my_jobs__search__name(client, faker):
     assert_results(resp, [matching])
 
 
-def test__my_jobs__search__request_status_type(client, faker):
+def test__my_jobs__search__task_status_type(client, faker):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    matching = faker.request_details(request_type=rt, current_status_type=RequestStatusType.get_done())
+    matching = faker.task_details(service=s, current_status_type=TaskStatusType.get_done())
     db.session.add(matching)
-    db.session.add(faker.request_details(request_type=rt, current_status_type=RequestStatusType.get_awaiting_information()))
+    db.session.add(faker.task_details(service=s, current_status_type=TaskStatusType.get_awaiting_information()))
     db.session.commit()
 
-    resp = client.get(_url(request_status_type_id=RequestStatusType.get_done().id))
+    resp = client.get(_url(task_status_type_id=TaskStatusType.get_done().id))
 
     assert_results(resp, [matching])
 
 
-def test__my_jobs__search__request_type(client, faker):
+def test__my_jobs__search__service(client, faker):
     user = login(client, faker)
-    rt1 = faker.request_type_details(owners=[user])
-    rt2 = faker.request_type_details(owners=[user])
+    s1 = faker.service_details(owners=[user])
+    s2 = faker.service_details(owners=[user])
 
-    matching = faker.request_details(request_type=rt1)
+    matching = faker.task_details(service=s1)
     db.session.add(matching)
-    db.session.add(faker.request_details(request_type=rt2))
+    db.session.add(faker.task_details(service=s2))
     db.session.commit()
 
-    resp = client.get(_url(request_type_id=matching.request_type.id))
+    resp = client.get(_url(service_id=matching.service.id))
 
     assert_results(resp, [matching])
 
 
 def test__my_jobs__search__requestor(client, faker):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    matching = faker.request_details(request_type=rt)
+    matching = faker.task_details(service=s)
     db.session.add(matching)
-    db.session.add(faker.request_details(request_type=rt))
+    db.session.add(faker.task_details(service=s))
     db.session.commit()
 
     resp = client.get(_url(requestor_id=matching.requestor.id))
@@ -103,11 +103,11 @@ def test__my_jobs__search__requestor(client, faker):
 
 def test__my_jobs__update_status(client, faker):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    matching = faker.request_details(request_type=rt)
+    matching = faker.task_details(service=s)
     db.session.add(matching)
-    db.session.add(faker.request_details(request_type=rt))
+    db.session.add(faker.task_details(service=s))
     db.session.commit()
 
     resp = client.get(_url(requestor_id=matching.requestor.id))
@@ -120,11 +120,11 @@ def assert_results(resp, matches):
     assert len(resp.soup.find_all("li", "list-group-item")) == len(matches)
 
     for u, li in zip(matches, resp.soup.find_all("li", "list-group-item")):
-        request_matches_li(u, li)
+        task_matches_li(u, li)
 
 
-def request_matches_li(request, li):
-    assert li.find("h1").find(string=re.compile(request.request_type.name)) is not None
-    assert li.find("h1").find(string=re.compile(request.name)) is not None
-    assert li.find("h2").find(string=re.compile(request.requestor.full_name)) is not None
-    assert li.find("button", "btn").find(string=re.compile(request.current_status_type.name)) is not None
+def task_matches_li(task, li):
+    assert li.find("h1").find(string=re.compile(task.service.name)) is not None
+    assert li.find("h1").find(string=re.compile(task.name)) is not None
+    assert li.find("h2").find(string=re.compile(task.requestor.full_name)) is not None
+    assert li.find("button", "btn").find(string=re.compile(task.current_status_type.name)) is not None

@@ -1,7 +1,7 @@
 from itertools import cycle
 import pytest
-from tests import get_test_user, get_test_request
-from lbrc_requests.model import RequestStatusType, Request
+from tests import get_test_user, get_test_task
+from lbrc_services.model import TaskStatusType, Task
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards
@@ -22,11 +22,11 @@ def test__standards(client, faker):
     assert__form_standards(client, faker, _url())
 
 
-def _post_update_request_status(client, faker, request_id, status_type_id, notes):
+def _post_update_task_status(client, faker, task_id, status_type_id, notes):
     return client.post(
         _url(),
         data = {
-            'request_id': request_id,
+            'task_id': task_id,
             'status': status_type_id,
             'notes': notes,
         },
@@ -39,12 +39,12 @@ def _post_update_request_status(client, faker, request_id, status_type_id, notes
 )
 def test__my_jobs__update_status(client, faker, n):
     user = login(client, faker)
-    rt = faker.request_type_details(owners=[user])
+    s = faker.service_details(owners=[user])
 
-    actual_status = RequestStatusType.get_created()
-    request = get_test_request(faker, request_type=rt, current_status_type=actual_status)
+    actual_status = TaskStatusType.get_created()
+    task = get_test_task(faker, service=s, current_status_type=actual_status)
 
-    statuses = cycle(RequestStatusType.query.all())
+    statuses = cycle(TaskStatusType.query.all())
     history = []
 
     for x in range(n):
@@ -52,10 +52,10 @@ def test__my_jobs__update_status(client, faker, n):
             'status': next(statuses),
             'notes': faker.pystr(min_chars=5, max_chars=10),
         })
-        resp = _post_update_request_status(
+        resp = _post_update_task_status(
             client,
             faker,
-            request.id,
+            task.id,
             history[-1]['status'].id,
             history[-1]['notes'],
         )
@@ -63,23 +63,23 @@ def test__my_jobs__update_status(client, faker, n):
         assert resp.status_code == 302
         assert resp.location == _url()
 
-        actual = Request.query.get(request.id)
+        actual = Task.query.get(task.id)
         assert actual.current_status_type == history[-1]['status']
         assert len(actual.status_history) == len(history)
 
         for e, a in zip(history, actual.status_history):
-            assert e['status'] == a.request_status_type
+            assert e['status'] == a.task_status_type
             assert e['notes'] == a.notes
 
 
 def test__my_jobs__update_status__not_owner(client, faker):
     user1 = login(client, faker)
     user2 = get_test_user(faker)
-    rt = faker.request_type_details(owners=[user2])
+    s = faker.service_details(owners=[user2])
 
-    request = get_test_request(faker, request_type=rt, current_status_type=RequestStatusType.get_created())
+    task = get_test_task(faker, service=s, current_status_type=TaskStatusType.get_created())
 
-    resp = _post_update_request_status(client, faker, request.id, RequestStatusType.get_done().id, faker.pystr(min_chars=5, max_chars=10))
+    resp = _post_update_task_status(client, faker, task.id, TaskStatusType.get_done().id, faker.pystr(min_chars=5, max_chars=10))
 
     assert resp.status_code == 403
 
@@ -87,6 +87,6 @@ def test__my_jobs__update_status__not_owner(client, faker):
 def test__my_jobs__update_status__not_owner(client, faker):
     user = login(client, faker)
 
-    resp = _post_update_request_status(client, faker, 999, RequestStatusType.get_done().id, faker.pystr(min_chars=5, max_chars=10))
+    resp = _post_update_task_status(client, faker, 999, TaskStatusType.get_done().id, faker.pystr(min_chars=5, max_chars=10))
 
     assert resp.status_code == 404

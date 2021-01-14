@@ -6,14 +6,14 @@ meta = MetaData()
 def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
-    rt = Table("request_type", meta, autoload=True)
+    s = Table("service", meta, autoload=True)
     u = Table("user", meta, autoload=True)
 
     t = Table(
-        "request_types_owners",
+        "services_owners",
         meta,
         Column("id", Integer, primary_key=True),
-        Column("request_type_id", Integer, ForeignKey(rt.c.id), index=True, nullable=False),
+        Column("service_id", Integer, ForeignKey(s.c.id), index=True, nullable=False),
         Column("user_id", Integer, ForeignKey(u.c.id), index=True, nullable=False),
     )
 
@@ -22,5 +22,5 @@ def upgrade(migrate_engine):
 
 def downgrade(migrate_engine):
     meta.bind = migrate_engine
-    t = Table("request_types_owners", meta, autoload=True)
+    t = Table("services_owners", meta, autoload=True)
     t.drop()
