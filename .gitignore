@@ -130,3 +130,4 @@ dmypy.json
 file_uploads
 file_upload
 database.sqlite3
+.vscode
