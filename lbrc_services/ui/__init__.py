@@ -1,7 +1,7 @@
-from flask import request as flask_request, abort, jsonify
+from flask import request, abort
 from flask_api import status
 from lbrc_flask.forms import SearchForm
-from lbrc_services.model import Task, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, ToDo, User
+from lbrc_services.model import Task, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, ToDo, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
 from flask import (
@@ -12,12 +12,9 @@ from flask import (
     send_file,
 )
 from flask_security import login_required, current_user
-from lbrc_flask.forms.dynamic import FormBuilder
-from wtforms import StringField
-from wtforms.validators import Length, DataRequired
 from sqlalchemy.orm import joinedload
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor
-from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm
+from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -37,7 +34,7 @@ def index():
 
 @blueprint.route("/my_requests")
 def my_requests():
-    search_form = TaskSearchForm(formdata=flask_request.args)
+    search_form = TaskSearchForm(formdata=request.args)
 
     tasks = _get_tasks(search_form=search_form, requester_id=current_user.id)
 
@@ -47,7 +44,7 @@ def my_requests():
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
     todo_form = EditToDoForm()
-    search_form = MyJobsSearchForm(formdata=flask_request.args)
+    search_form = MyJobsSearchForm(formdata=request.args)
     task_update_status_form = TaskUpdateStatusForm()
 
     if task_update_status_form.validate_on_submit():
@@ -71,7 +68,7 @@ def my_jobs():
         db.session.add(task)
         db.session.commit()
 
-        return redirect(url_for("ui.my_jobs", **flask_request.args))
+        return redirect(url_for("ui.my_jobs", **request.args))
 
     tasks = _get_tasks(search_form=search_form, owner_id=current_user.id, sort_asc=True)
 
@@ -135,18 +132,50 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
         )
 
 
+def save_task(task, form):
+    task.organisation_id=form.organisation_id.data
+    task.organisation_description=form.organisation_description.data
+    task.name=form.name.data
+
+    db.session.add(task)
+
+    for field_name, value in form.data.items():
+        field = task.service.get_field_for_field_name(field_name)
+
+        if not field:
+            continue
+
+        if type(value) is list:
+            values = value
+        else:
+            values = [value]
+
+        for v in values:
+
+            if field.field_type.is_file:
+                if v is not None:
+                    tf = TaskFile(task=task, field=field)
+                    tf.set_filename_and_save(v)
+                    db.session.add(tf)
+            else:
+                db.session.add(TaskData(task=task, field=field, value=v))
+
+
 @blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])
 def create_task(service_id):
     service = Service.query.get_or_404(service_id)
 
-    builder = FormBuilder()
-    builder.add_form_field('name', StringField('Name', validators=[Length(max=255), DataRequired()]))
-    builder.add_field_group(service.field_group)
-
-    form = builder.get_form()
+    form = get_create_task_form(service)
 
     if form.validate_on_submit():
-        task = Task(service=service, requestor=current_user, name=form.name.data, current_status_type=TaskStatusType.get_created())
+        task = Task(
+            service=service,
+            requestor=current_user,
+            current_status_type=TaskStatusType.get_created(),
+        )
+
+        save_task(task, form)
+
         task_status = TaskStatus(
             task=task,
             task_status_type=task.current_status_type,
@@ -154,29 +183,6 @@ def create_task(service_id):
         )
 
         db.session.add(task_status)
-        db.session.add(task)
-
-        for field_name, value in form.data.items():
-            field = service.get_field_for_field_name(field_name)
-
-            if not field:
-                continue
-
-            if type(value) is list:
-                values = value
-            else:
-                values = [value]
-
-            for v in values:
-
-                if field.field_type.is_file:
-                    if v is not None:
-                        tf = TaskFile(task=task, field=field)
-                        tf.set_filename_and_save(v)
-                        db.session.add(tf)
-                else:
-                    db.session.add(TaskData(task=task, field=field, value=v))
-
         db.session.commit()
 
         email(
@@ -190,7 +196,7 @@ def create_task(service_id):
 
         email(
             subject="{} Request".format(service.name),
-            message='New request has been created on your before for {}'.format(
+            message='New request has been created on your behalf for {}'.format(
                 service.name,
             ),
             recipients=[current_user.email],
@@ -198,7 +204,41 @@ def create_task(service_id):
 
         return redirect(url_for("ui.index"))
 
-    return render_template("ui/task/create.html", form=form, service=service)
+    return render_template("ui/task/create.html", form=form, service=service, other_organisation=Organisation.get_other(), allow_requestor_selection=current_user.service_owner)
+
+
+@blueprint.route("/task/<int:task_id>/edit", methods=["GET", "POST"])
+def edit_task(task_id):
+    task = Task.query.get_or_404(task_id)
+
+    form = get_create_task_form(task.service, task)
+
+    if form.validate_on_submit():
+
+        save_task(task, form)
+
+        db.session.commit()
+
+        email(
+            subject="{} Request Amended".format(task.service.name),
+            message="Request has been amended for {} by {}.".format(
+                task.service.name,
+                current_user.full_name,
+            ),
+            recipients=[r.email for r in task.service.owners],
+        )
+
+        email(
+            subject="{} Request".format(task.service.name),
+            message='Request has been amended {}'.format(
+                task.service.name,
+            ),
+            recipients=[current_user.email],
+        )
+
+        return redirect(request.args.get('prev', ''))
+
+    return render_template("ui/task/create.html", form=form, service=task.service, other_organisation=Organisation.get_other())
 
 
 @blueprint.route("/task/<int:task_id>/todo_list", methods=["GET", "POST"])
@@ -207,7 +247,7 @@ def task_todo_list(task_id):
     search_form = SearchForm()
     todo_form = EditToDoForm(task_id=task_id)
 
-    return render_template("ui/task/todo_list.html", search_form=search_form, todo_form=todo_form, task=task, prev=flask_request.args.get('prev', ''))
+    return render_template("ui/task/todo_list.html", search_form=search_form, todo_form=todo_form, task=task)
 
 
 @blueprint.route("/todo/save", methods=["POST"])
@@ -229,7 +269,7 @@ def task_save_todo():
 
 @blueprint.route("/todo/update_status", methods=["POST"])
 def todo_update_status():
-    data = flask_request.get_json()
+    data = request.get_json()
 
     todo = ToDo.query.get_or_404(data['todo_id'])
 

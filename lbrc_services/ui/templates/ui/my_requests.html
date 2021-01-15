@@ -1,12 +1,16 @@
 {% extends "ui/page.html" %}
-{% import "lbrc_flask/form_macros.html" as form_macros %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
 
 {% block content %}
 <section>
     <div class="page-header">
         <h1>My Requests</h1>
 
-        {{ form_macros.render_search(search_form, 'ui.my_requests', placeholder='enter search text - searches names') }}
+        {{ render_search(
+            search_form,
+            'ui.my_requests',
+            placeholder='enter search text - searches names',
+        ) }}
 
     </div>
 
@@ -41,13 +45,22 @@
                     </div>
     
                     <div class="col-5">
-                        <span class="float-right badge badge-primary">{{ t.current_status_type.name }}</span>
+                        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+                            <div class="btn-group mr-2" role="group">
+                                <a class="btn btn-primary" href="{{ url_for('ui.edit_task', task_id=t.id, prev=request.full_path) }}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                            <div class="btn-group mr-2" role="group">
+                                <a class="btn btn-primary" href="Javascript://">{{ t.current_status_type.name }}</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </li>
         {% endfor %}
     </ul>
 </section>
-{{ form_macros.render_pagination(tasks, 'ui.my_requests', search=search_form.search.data) }}
+{{ render_pagination(tasks, 'ui.my_requests', search=search_form.search.data) }}
 
 {% endblock %}

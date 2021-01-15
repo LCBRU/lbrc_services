@@ -8,6 +8,7 @@ meta = MetaData()
 def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
+    o = Table("organisation", meta, autoload=True)
     tst = Table("task_status_type", meta, autoload=True)
     s = Table("service", meta, autoload=True)
     u = Table("user", meta, autoload=True)
@@ -17,6 +18,8 @@ def upgrade(migrate_engine):
         meta,
         Column("id", Integer, primary_key=True),
         Column("name", NVARCHAR(255)),
+        Column("organisation_id", Integer, ForeignKey(o.c.id), index=True, nullable=False),
+        Column("organisation_description", NVARCHAR(255)),
         Column("service_id", Integer, ForeignKey(s.c.id), index=True, nullable=False),
         Column("requestor_id", Integer, ForeignKey(u.c.id), index=True, nullable=False),
         Column("current_status_type_id", Integer, ForeignKey(tst.c.id), nullable=False, index=True),

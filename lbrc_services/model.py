@@ -19,6 +19,10 @@ class User(BaseUser):
 
     owned_services = db.relationship("Service", lazy="joined", secondary=services_owners)
 
+    @property
+    def service_owner(self):
+        return len(self.owned_services) > 0
+
 
 class Service(AuditMixin, db.Model):
 
@@ -110,10 +114,36 @@ class TaskStatusType(db.Model):
     is_active = db.Column(db.Boolean)
 
 
+class Organisation(db.Model):
+
+    CARDIOVASCULAR = 'BRC Cardiovascular Theme'
+    LIFESTYLE = 'BRC Lifestyle Theme'
+    PRECICION = 'BRC Precision Medicine Theme'
+    RESPIRATORY = 'BRC Respiratory Theme'
+    OTHER = 'Other - please specify'
+
+    all_organisations = [CARDIOVASCULAR, LIFESTYLE, PRECICION, RESPIRATORY, OTHER]
+
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255))
+
+    @classmethod
+    def get_oragnisation(cls, name):
+        return Organisation.query.filter_by(name=name).one()
+
+    @classmethod
+    def get_other(cls):
+
+        return cls.get_oragnisation(Organisation.OTHER)
+
+
 class Task(AuditMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
+    organisation_id = db.Column(db.Integer, db.ForeignKey(Organisation.id))
+    organisation = db.relationship(Organisation, lazy="joined", backref='tasks')
+    organisation_description = db.Column(db.String(255))
     service_id = db.Column(db.Integer, db.ForeignKey(Service.id))
     service = db.relationship(Service, lazy="joined", backref='tasks')
     requestor_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
@@ -236,6 +266,14 @@ def init_model(app):
                         name=name,
                         is_complete=details['is_complete'],
                         is_active=details['is_active'],
+                    )
+                )
+
+        for name in Organisation.all_organisations:
+            if Organisation.query.filter(Organisation.name == name).count() == 0:
+                db.session.add(
+                    Organisation(
+                        name=name,
                     )
                 )
 

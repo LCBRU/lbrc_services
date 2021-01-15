@@ -5,7 +5,7 @@
 
 {{ render_nav_item('ui.my_requests', 'My Requests') }}
 
-{% if current_user.owned_services | length > 0 %}
+{% if current_user.service_owner %}
     {{ render_nav_item('ui.my_jobs', 'My Jobs') }}
 {% endif %}
 

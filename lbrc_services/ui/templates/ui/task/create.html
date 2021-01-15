@@ -11,18 +11,20 @@
             <div class="card-header">
                 <div>Create {{ service.name }} Request</div>
             </div>
-    
+
             <div class="card-body">
-    
+
                 <form id="request_form" method="POST" class="form panel-body" enctype="multipart/form-data">
                     <fieldset>
                         {{ form.hidden_tag() }}
-    
+
                         {% for f in form %}
-                            {{ formhelper.render_field(f) }}
+                            {% if f.name != 'requestor_id' or allow_requestor_selection %}
+                                {{ formhelper.render_field(f) }}
+                            {% endif %}
                         {% endfor %}
-    
-                        {{ formhelper.render_button_bar('ui.index', submit_label="Create") }}
+
+                        {{ formhelper.render_button_bar(cancel_url=previous_page, submit_label="Save") }}
                     </fieldset>                   
                 </form>
             </div>
@@ -51,9 +53,25 @@
 {% block js %}
 
 <script>
-    $("form#request_form").submit(function(e){
-        $('#progress_modal').modal('show');
+    function show_hide_org_desc(){
+        org = $('#organisation_id');
+        console.log(org)
+        org_desc = $('#organisation_description');
+        console.log(org_desc)
+
+        org_desc.prop('disabled', !(org.val() == '{{ other_organisation.id }}'));
+    }
+
+    $(document).ready(function(){
+        $("form#request_form").submit(function(e){
+            $('#progress_modal').modal('show');
+        });
+
+        $('#organisation_id').change(show_hide_org_desc);
+        show_hide_org_desc();
     });
+
+
 </script>
 
 {% endblock %}

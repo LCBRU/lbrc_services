@@ -1,9 +1,11 @@
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
-from wtforms import SelectField, TextAreaField
+from lbrc_flask.forms.dynamic import FormBuilder
+from lbrc_flask.security import current_user_id
+from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length
-from lbrc_services.model import TaskStatusType, Service, Task, User
+from lbrc_services.model import TaskStatusType, Service, Task, Organisation, User
 
 
 def _get_requestor_choices():
@@ -65,3 +67,23 @@ class EditToDoForm(FlashingForm):
     task_id = HiddenField()
     todo_id = HiddenField()
     description = TextAreaField("Description", validators=[Length(max=500)])
+
+
+def _get_organisation_choices():
+    orgs = Organisation.query.order_by(Organisation.name.asc()).all()
+
+    return [('', '')] + [(t.id, t.name) for t in orgs]
+
+
+def get_create_task_form(service, task=None):
+    users = User.query.order_by(User.last_name.asc(), User.first_name.asc()).all()
+    requestor_choices = [('', '')] + [(t.id, t.full_name) for t in users]
+
+    builder = FormBuilder()
+    builder.add_form_field('requestor_id', SelectField('Requesting User', default=current_user_id, choices=requestor_choices, validators=[DataRequired(message="Please choose a requesting user.")]))
+    builder.add_form_field('name', StringField('Name', validators=[Length(max=255), DataRequired()]))
+    builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired(message="Please choose an organisation.")]))
+    builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255)]))
+    builder.add_field_group(service.field_group)
+
+    return builder.get_form()(obj=task)
