@@ -133,9 +133,10 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
 
 
 def save_task(task, form):
-    task.organisation_id=form.organisation_id.data
-    task.organisation_description=form.organisation_description.data
-    task.name=form.name.data
+    task.requestor_id = form.requestor_id.data
+    task.organisation_id = form.organisation_id.data
+    task.organisation_description = form.organisation_description.data
+    task.name = form.name.data
 
     db.session.add(task)
 
@@ -170,7 +171,6 @@ def create_task(service_id):
     if form.validate_on_submit():
         task = Task(
             service=service,
-            requestor=current_user,
             current_status_type=TaskStatusType.get_created(),
         )
 

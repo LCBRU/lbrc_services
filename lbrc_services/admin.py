@@ -20,6 +20,15 @@ class ServiceView(AdminCustomView):
     column_searchable_list = [Service.name]
 
 
+class UserView(AdminCustomView):
+
+    column_searchable_list = column_list = form_columns = [
+        User.email,
+        User.first_name,
+        User.last_name,
+    ]
+
+
 def init_admin(app, title):
     flask_init_admin(
         app,
@@ -27,5 +36,6 @@ def init_admin(app, title):
         [
             ServiceView(Service, db.session),
             *get_dynamic_forms_admin_forms(),
+            UserView(User, db.session),
         ],
     )
