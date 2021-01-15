@@ -17,7 +17,7 @@ services_owners = db.Table(
 class User(BaseUser):
     __table_args__ = {'extend_existing': True}
 
-    owned_services = db.relationship("Service", secondary=services_owners)
+    owned_services = db.relationship("Service", lazy="joined", secondary=services_owners)
 
 
 class Service(AuditMixin, db.Model):
@@ -43,6 +43,7 @@ class TaskStatusType(db.Model):
     DONE = 'Done'
     AWAITING_INFORMATION = 'Awaiting Information'
     CANCELLED = 'Cancelled'
+    DECLINED = 'Declined'
 
     all_details = {
         CREATED: {
@@ -62,6 +63,10 @@ class TaskStatusType(db.Model):
             'is_active': False,
         },
         CANCELLED: {
+            'is_complete': True,
+            'is_active': False,
+        },
+        DECLINED: {
             'is_complete': True,
             'is_active': False,
         },
@@ -95,6 +100,10 @@ class TaskStatusType(db.Model):
     def get_cancelled(cls):
         return cls.get_task_status(TaskStatusType.CANCELLED)
 
+    @classmethod
+    def get_declined(cls):
+        return cls.get_task_status(TaskStatusType.DECLINED)
+
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
     is_complete = db.Column(db.Boolean)
@@ -106,9 +115,9 @@ class Task(AuditMixin, db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
     service_id = db.Column(db.Integer, db.ForeignKey(Service.id))
-    service = db.relationship(Service, backref='tasks')
+    service = db.relationship(Service, lazy="joined", backref='tasks')
     requestor_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    requestor = db.relationship(User, backref='tasks', foreign_keys=[requestor_id])
+    requestor = db.relationship(User, lazy="joined", backref='tasks', foreign_keys=[requestor_id])
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(TaskStatusType.id), nullable=False)
     current_status_type = db.relationship(TaskStatusType)
 
@@ -142,7 +151,7 @@ class TaskData(AuditMixin, db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
     task = db.relationship(Task, backref='data')
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
-    field = db.relationship(Field)
+    field = db.relationship(Field, lazy="joined")
 
     @property
     def formated_value(self):
@@ -157,7 +166,7 @@ class TaskFile(AuditMixin, db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
     task = db.relationship(Task, backref='files')
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
-    field = db.relationship(Field)
+    field = db.relationship(Field, lazy="joined")
 
     def set_filename_and_save(self, file):
         self.filename = file.filename

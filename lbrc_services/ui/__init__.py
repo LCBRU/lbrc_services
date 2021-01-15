@@ -46,7 +46,6 @@ def my_requests():
 
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
-
     todo_form = EditToDoForm()
     search_form = MyJobsSearchForm(formdata=flask_request.args)
     task_update_status_form = TaskUpdateStatusForm()
@@ -92,6 +91,7 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
     q = Task.query.options(
         joinedload(Task.data),
         joinedload(Task.files),
+        joinedload(Task.current_status_type),
     )
 
     if search_form.search.data:
@@ -105,12 +105,15 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
 
     if 'task_status_type_id' in search_form.data:
         option = search_form.data.get('task_status_type_id', 0) or 0
+
+        q = q.join(Task.current_status_type)
+
         if option == 0:
-            q = q.filter(Task.current_status_type_id.notin_([TaskStatusType.get_cancelled().id, TaskStatusType.get_done().id]))
+            q = q.filter(TaskStatusType.is_complete == False)
         elif option == -1:
-            q = q.filter(Task.current_status_type_id.in_([TaskStatusType.get_cancelled().id, TaskStatusType.get_done().id]))
+            q = q.filter(TaskStatusType.is_complete == True)
         elif option != -2:
-            q = q.filter(Task.current_status_type_id == option)
+            q = q.filter(TaskStatusType.id == option)
 
     if owner_id is not None:
         q = q.join(Task.service)

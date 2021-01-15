@@ -27,7 +27,7 @@ def _get_task_status_type_choices():
 
 
 def _get_combined_task_status_type_choices():
-    return [(0, 'Outstanding (not done or cancelled)'), (-1, 'Completed (done or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
+    return [(0, 'Outstanding (not done, declined or cancelled)'), (-1, 'Completed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
 
 
 class TaskSearchForm(SearchForm):

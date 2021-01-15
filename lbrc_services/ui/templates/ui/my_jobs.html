@@ -106,20 +106,6 @@
     <div id="showStatusHistoryModal_content"></div>
 {% endcall %}
 
-{% call render_modal('edit_todo_modal', 'To Do') %}
-    <form id="todo_form" method="POST" action="{{ url_for('ui.task_save_todo') }}" class="form panel-body" enctype="multipart/form-data">
-        <fieldset>
-            {{ todo_form.hidden_tag() }}
-
-            {% for f in todo_form %}
-                {{ render_field(f) }}
-            {% endfor %}
-
-            {{ render_button_bar(submit_label="Save") }}
-        </fieldset>
-    </form>
-{% endcall %}
-
 {% endblock %}
 
 {% block js %}
