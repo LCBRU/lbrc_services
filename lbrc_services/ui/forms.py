@@ -4,7 +4,7 @@ from lbrc_flask.forms.dynamic import FormBuilder
 from lbrc_flask.security import current_user_id
 from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.simple import HiddenField
-from wtforms.validators import DataRequired, Length
+from wtforms.validators import DataRequired, Length, ValidationError
 from lbrc_services.model import TaskStatusType, Service, Task, Organisation, User
 
 
@@ -74,16 +74,29 @@ def _get_organisation_choices():
 
     return [('', '')] + [(t.id, t.name) for t in orgs]
 
+def required_when_other_organisation(form, field):
+    if field.data and (not isinstance(field.data, str) or field.data.strip()):
+        return
+
+    if not form.organisation_id.data:
+        return
+    
+    if not form.organisation_id.data.isnumeric():
+        return
+
+    if int(form.organisation_id.data) == Organisation.get_other().id:
+        raise ValidationError('This field is required.')
+
 
 def get_create_task_form(service, task=None):
     users = User.query.order_by(User.last_name.asc(), User.first_name.asc()).all()
     requestor_choices = [('', '')] + [(t.id, t.full_name) for t in users]
 
     builder = FormBuilder()
-    builder.add_form_field('requestor_id', SelectField('Requesting User', default=current_user_id, choices=requestor_choices, validators=[DataRequired(message="Please choose a requesting user.")]))
+    builder.add_form_field('requestor_id', SelectField('Requesting User', default=current_user_id, choices=requestor_choices, validators=[DataRequired()]))
     builder.add_form_field('name', StringField('Name', validators=[Length(max=255), DataRequired()]))
-    builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired(message="Please choose an organisation.")]))
-    builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255)]))
+    builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired()]))
+    builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
     builder.add_field_group(service.field_group)
 
     return builder.get_form()(obj=task)

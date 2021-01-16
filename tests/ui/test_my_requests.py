@@ -91,4 +91,4 @@ def task_matches_li(task, li):
     assert li.find("h1").find(string=re.compile(task.service.name)) is not None
     assert li.find("h1").find(string=re.compile(task.name)) is not None
     assert li.find("h2").find(string=re.compile(task.requestor.full_name)) is not None
-    assert li.find("span", 'badge').find(string=re.compile(task.current_status_type.name)) is not None
+    assert li.find("a", string=re.compile(task.current_status_type.name)) is not None

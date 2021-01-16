@@ -1,5 +1,5 @@
 from faker.providers import BaseProvider
-from lbrc_services.model import RequestStatusType, User, Service, Task, TaskFile
+from lbrc_services.model import Organisation, TaskStatusType, User, Service, Task, TaskFile
 
 
 class LbrcServicesFakerProvider(BaseProvider):
@@ -29,30 +29,56 @@ class LbrcServicesFakerProvider(BaseProvider):
         return result
 
 
-    def task_details(self, name=None, service=None, requestor=None, current_status_type=None):
-        if name is None:
-            name = self.generator.pystr(min_chars=5, max_chars=10)
-
-        if service is None:
-            service = self.service_details()
-        
-        if requestor is None:
-            requestor = self.user_details()
+    def task_details(
+        self,
+        name=None,
+        service=None,
+        requestor=None,
+        current_status_type=None,
+        organisation=None,
+        organisation_description=None,
+    ):
+        result = Task()
 
         if current_status_type is None:
-            current_status_type = TaskStatusType.get_created()
+            result.current_status_type_id = TaskStatusType.get_created().id
+        else:
+            result.current_status_type_id = current_status_type.id
 
-        return Task(
-            name=name,
-            service=service,
-            requestor=requestor,
-            current_status_type=current_status_type,
-        )
+        if organisation is None:
+            result.organisation_id = Organisation.get_organisation(Organisation.CARDIOVASCULAR).id
+        else:
+            result.organisation_id = organisation.id
+
+        if name is None:
+            result.name = self.generator.pystr(min_chars=5, max_chars=10)
+        else:
+            result.name = name
+
+        if service is None:
+            result.service = self.service_details()
+        elif service.id is None:
+            result.service = service
+        else:
+            result.service_id = service.id
+        
+        if requestor is None:
+            result.requestor = self.user_details()
+        elif requestor.id is None:
+            result.requestor = requestor
+        else:
+            result.requestor_id = requestor.id
+
+        if organisation_description is None:
+            result.organisation_description = ''
+
+        return result
 
     def task_file_details(self, task=None):
         if task is None:
             task = self.task_details()
 
+        print(task)
         return TaskFile(
             filename=self.generator.pystr(min_chars=5, max_chars=10),
             local_filepath=self.generator.pystr(min_chars=5, max_chars=10),

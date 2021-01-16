@@ -9,7 +9,7 @@ def _url(task_file_id, task_id):
     return url_for('ui.download_task_file', task_id=task_id, task_file_id=task_file_id, _external=True)
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_send_file(app):
     with patch('lbrc_services.ui.send_file') as m:
         m.return_value = ''
