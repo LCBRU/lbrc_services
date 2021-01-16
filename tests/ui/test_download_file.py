@@ -1,3 +1,4 @@
+from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
 from unittest.mock import patch
 from tests import get_test_task, get_test_task_file, get_test_service
@@ -18,8 +19,7 @@ def mock_send_file(app):
 
 def test_url_requires_login_get(client, faker):
     tf = get_test_task_file(faker)
-    resp = client.get(_url(tf.id, tf.task.id))
-    assert resp.status_code == 302
+    assert__requires_login(client, 'ui.download_task_file', task_id=tf.id, task_file_id=tf.task.id)
 
 
 def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_send_file):

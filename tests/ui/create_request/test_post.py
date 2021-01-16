@@ -1,16 +1,13 @@
 from pathlib import Path
+from flask_api import status
+from tests.ui.create_request import _url
 import pytest
 from io import BytesIO
-from flask import url_for
 from tests import get_test_service
 from lbrc_services.model import Organisation, Task, TaskStatusType
-from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__error__required_field
+from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
 from lbrc_flask.pytest.helpers import get_test_field, get_test_field_group, login
 from lbrc_flask.forms.dynamic import FieldType
-from pprint import pprint as pp
-
-def _url(service_id):
-    return url_for('ui.create_task', service_id=service_id, _external=True)
 
 
 def get_test_field_of_type(faker, field_type, choices=None):
@@ -74,37 +71,16 @@ def _assert_task(expected_task, user, data=None, files=None):
         assert da.value == de['value']
 
 
-def test__get__requires_login(client, faker):
-    s = get_test_service(faker)
-    resp = client.get(_url(service_id=s.id))
-    assert resp.status_code == 302
-
-
 def test__post__requires_login(client, faker):
     s = get_test_service(faker)
-    resp = client.post(_url(service_id=s.id))
-    assert resp.status_code == 302
-
-
-def test__get__missing(client, faker):
-    user = login(client, faker)
-
-    resp = client.get(_url(service_id=999))
-    assert resp.status_code == 404
+    assert__requires_login(client, 'ui.create_task', post=True, service_id=s.id)
 
 
 def test__post__missing(client, faker):
     user = login(client, faker)
 
     resp = client.post(_url(service_id=999))
-    assert resp.status_code == 404
-
-
-@pytest.mark.app_crsf(True)
-def test__standards(client, faker):
-    s = get_test_service(faker)
-    assert__html_standards(client, faker, _url(service_id=s.id))
-    assert__form_standards(client, faker, _url(service_id=s.id))
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test__create_task__with_all_values(client, faker):
@@ -114,7 +90,7 @@ def test__create_task__with_all_values(client, faker):
 
     resp = _create_task_post(client, expected)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     _assert_task(expected, user)
 
 
@@ -125,7 +101,7 @@ def test__create_task__empty_name(client, faker):
 
     resp = _create_task_post(client, expected)
 
-    assert resp.status_code == 200
+    assert resp.status_code == status.HTTP_200_OK
     assert__error__required_field(resp.soup, "name")
 
 
@@ -137,7 +113,7 @@ def test__create_task__empty_organisation(client, faker):
 
     resp = _create_task_post(client, expected)
 
-    assert resp.status_code == 200
+    assert resp.status_code == status.HTTP_200_OK
     assert__error__required_field(resp.soup, "organisation")
 
 
@@ -149,7 +125,7 @@ def test__create_task__empty_requestor__uses_current_user(client, faker):
 
     resp = _create_task_post(client, expected)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     expected.requestor_id = user.id
     _assert_task(expected, user)
 
@@ -161,7 +137,7 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
 
     resp = _create_task_post(client, expected)
 
-    assert resp.status_code == 200
+    assert resp.status_code == status.HTTP_200_OK
     print(resp.soup)
     assert__error__required_field(resp.soup, "organisation description")
 
@@ -195,7 +171,7 @@ def test__create_task__fields(client, faker, field_type, value, expected_value):
 
     resp = _create_task_post(client, expected, field_data)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     _assert_task(expected, user, data=[
         {
             'field': f,
@@ -224,7 +200,7 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
 
     resp = _create_task_post(client, expected, field_data)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     _assert_task(expected, user, data=[
         {
             'field': f,
@@ -241,7 +217,7 @@ def test__upload__upload_FileField__no_file(client, faker):
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     _assert_task(expected, user)
 
 
@@ -271,7 +247,7 @@ def test__upload__upload_FileField(client, faker):
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected, field_data)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     _assert_task(expected, user, files=files)
 
 
@@ -283,7 +259,7 @@ def test__upload__upload_MultiFileField__no_file(client, faker):
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     _assert_task(expected, user)
 
 
@@ -322,5 +298,5 @@ def test__upload__upload_MultiFileField(client, faker, n):
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected, field_data)
 
-    assert resp.status_code == 302
+    assert__redirect(resp, endpoint='ui.index')
     _assert_task(expected, user, files=files)

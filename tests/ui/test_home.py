@@ -1,4 +1,5 @@
 import re
+from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
@@ -10,8 +11,7 @@ def _url(**kwargs):
 
 
 def test__get__requires_login(client):
-    resp = client.get(_url())
-    assert resp.status_code == 302
+    assert__requires_login(client, 'ui.index')
 
 
 @pytest.mark.parametrize(

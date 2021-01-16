@@ -4,7 +4,7 @@ from tests import get_test_user, get_test_task
 from lbrc_services.model import TaskStatusType, Task
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
-from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards
+from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
 
 
 def _url(**kwargs):
@@ -12,8 +12,7 @@ def _url(**kwargs):
 
 
 def test__post__requires_login(client):
-    resp = client.post(_url())
-    assert resp.status_code == 302
+    assert__requires_login(client, 'ui.my_jobs')
 
 
 @pytest.mark.app_crsf(True)
