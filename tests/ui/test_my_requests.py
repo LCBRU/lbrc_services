@@ -9,12 +9,12 @@ from tests import get_test_user
 from lbrc_flask.pytest.asserts import assert__html_standards, assert__requires_login
 
 
-def _url(**kwargs):
-    return url_for('ui.my_requests', _external=True, **kwargs)
+def _url(external=True, **kwargs):
+    return url_for('ui.my_requests', _external=external, **kwargs)
 
 
 def test__get__requires_login(client):
-    assert__requires_login(client, 'ui.my_requests')
+    assert__requires_login(client, _url(external=False))
 
 
 def test__standards(client, faker):

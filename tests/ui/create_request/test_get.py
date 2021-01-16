@@ -9,7 +9,7 @@ from flask_api import status
 
 def test__get__requires_login(client, faker):
     s = get_test_service(faker)
-    assert__requires_login(client, 'ui.create_task', service_id=s.id)
+    assert__requires_login(client, _url(s.id, external=False))
 
 
 def test__get__missing(client, faker):

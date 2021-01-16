@@ -73,7 +73,7 @@ def _assert_task(expected_task, user, data=None, files=None):
 
 def test__post__requires_login(client, faker):
     s = get_test_service(faker)
-    assert__requires_login(client, 'ui.create_task', post=True, service_id=s.id)
+    assert__requires_login(client, _url(service_id=s.id, external=False), post=True)
 
 
 def test__post__missing(client, faker):

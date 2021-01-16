@@ -9,13 +9,13 @@ from lbrc_flask.database import db
 from tests import get_test_task, get_test_user
 
 
-def _url(**kwargs):
-    return url_for('ui.task_status_history', _external=True, **kwargs)
+def _url(external=True, **kwargs):
+    return url_for('ui.task_status_history', _external=external, **kwargs)
 
 
 def test__get__requires_login(client, faker):
     task = get_test_task(faker)
-    assert__requires_login(client, 'ui.task_status_history', task_id=task.id)
+    assert__requires_login(client, _url(task_id=task.id, external=False))
 
 
 def test__status_history__not_owner_or_requestor(client, faker):

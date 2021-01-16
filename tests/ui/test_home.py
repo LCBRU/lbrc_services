@@ -6,12 +6,12 @@ from lbrc_flask.pytest.helpers import login
 from lbrc_flask.database import db
 
 
-def _url(**kwargs):
-    return url_for('ui.index', _external=True, **kwargs)
+def _url(external=True, **kwargs):
+    return url_for('ui.index', _external=external, **kwargs)
 
 
 def test__get__requires_login(client):
-    assert__requires_login(client, 'ui.index')
+    assert__requires_login(client, _url(external=False))
 
 
 @pytest.mark.parametrize(

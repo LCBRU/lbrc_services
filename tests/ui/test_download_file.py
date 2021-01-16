@@ -6,8 +6,8 @@ from lbrc_flask.pytest.helpers import login
 from flask import url_for
 
 
-def _url(task_file_id, task_id):
-    return url_for('ui.download_task_file', task_id=task_id, task_file_id=task_file_id, _external=True)
+def _url(task_file_id, task_id, external=True):
+    return url_for('ui.download_task_file', task_id=task_id, task_file_id=task_file_id, _external=external)
 
 
 @pytest.fixture(scope="function")
@@ -19,7 +19,7 @@ def mock_send_file(app):
 
 def test_url_requires_login_get(client, faker):
     tf = get_test_task_file(faker)
-    assert__requires_login(client, 'ui.download_task_file', task_id=tf.id, task_file_id=tf.task.id)
+    assert__requires_login(client, _url(tf.id, tf.task.id, external=False))
 
 
 def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_send_file):
