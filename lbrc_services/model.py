@@ -154,6 +154,10 @@ class Task(AuditMixin, CommonMixin, db.Model):
     current_status_type = db.relationship(TaskStatusType)
 
     @property
+    def long_name(self):
+        return "{}: {}".format(self.service.name, self.name)
+
+    @property
     def total_todos(self):
         return len(self.todos)
 
@@ -230,6 +234,16 @@ class ToDo(AuditMixin, CommonMixin, db.Model):
     COMPLETED = 'Completed'
     NOT_REQUIRED = 'Not Required'
 
+    _status_map = {
+        -1: NOT_REQUIRED,
+        0: OUTSTANDING,
+        1: COMPLETED,
+    }
+
+    @staticmethod
+    def get_status_code_from_name(name):
+        return {v: k for k, v in ToDo._status_map.items()}[name]
+
     id = db.Column(db.Integer(), primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
     task = db.relationship(Task, backref='todos')
@@ -238,11 +252,7 @@ class ToDo(AuditMixin, CommonMixin, db.Model):
 
     @property
     def status_name(self):
-        return {
-            -1: ToDo.NOT_REQUIRED,
-            0: ToDo.OUTSTANDING,
-            1: ToDo.COMPLETED,
-        }[self.status]
+        return ToDo._status_map[self.status]
 
     @property
     def is_outstanding(self):

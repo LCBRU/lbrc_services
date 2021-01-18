@@ -1,12 +1,12 @@
 {% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search, render_field, render_button_bar %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_field, render_button_bar, render_pagination %}
 {% from "lbrc_flask/modal_macros.html" import render_modal %}
 
 {% block content %}
 
 <section>
     <div class="page-header">
-        <h1>{{task.service.name}}: {{ task.name }}</h1>
+        <h1>{{task.long_name}}</h1>
         <h2>To Do List</h2>
 
         {{ render_search(
@@ -29,7 +29,7 @@
     </div>
 
     <ul class="list-group">
-        {% for t in task.todos %}
+        {% for t in todos.items %}
             <li class="list-group-item">
                 <div class="row">
                     <div class='col-1'>
@@ -51,6 +51,8 @@
         {% endfor %}
     </ul>
 </section>
+
+{{ render_pagination(todos, 'ui.task_todo_list', search=search_form.search.data, task_id=task.id) }}
 
 {% call render_modal('edit_todo_modal', 'To Do') %}
 <form id="todo_form" method="POST" action="{{ url_for('ui.task_save_todo', task_id=task.id) }}" class="form panel-body" enctype="multipart/form-data">

@@ -126,4 +126,10 @@ def task_matches_li(task, li):
     assert li.find("h1").find(string=re.compile(task.service.name)) is not None
     assert li.find("h1").find(string=re.compile(task.name)) is not None
     assert li.find("h2").find(string=re.compile(task.requestor.full_name)) is not None
+
+    assert len(li.select('a[href*="{}"]'.format(url_for('ui.edit_task', task_id=task.id, prev=_url(external=False))))) == 1
+    assert len(li.select('a[href*="{}"]'.format(url_for('ui.task_todo_list', task_id=task.id, prev=_url(external=False))))) == 1
+
     assert li.find("button", "btn").find(string=re.compile(task.current_status_type.name)) is not None
+    assert li.find("div", "dropdown-menu").find('a', string='Update Status') is not None
+    assert li.find("div", "dropdown-menu").find('a', string='Show History') is not None

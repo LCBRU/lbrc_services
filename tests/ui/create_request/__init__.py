@@ -1,3 +1,4 @@
+from lbrc_flask.database import db
 from tests import get_test_service
 from flask import url_for
 from lbrc_flask.pytest.helpers import get_test_field, get_test_field_group
@@ -15,3 +16,9 @@ def get_test_field_of_type(faker, field_type, choices=None):
     s = get_test_service(faker, field_group=fg)
     f = get_test_field(faker, field_group=fg, field_type=field_type, choices=choices)
     return s,f
+
+
+def get_test_task(faker, **kwargs):
+    t = faker.task_details(**kwargs)
+    db.sessions.add(t)
+    return t

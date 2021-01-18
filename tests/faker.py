@@ -1,5 +1,5 @@
 from faker.providers import BaseProvider
-from lbrc_services.model import Organisation, TaskStatusType, User, Service, Task, TaskFile
+from lbrc_services.model import Organisation, TaskStatusType, ToDo, User, Service, Task, TaskFile
 
 
 class LbrcServicesFakerProvider(BaseProvider):
@@ -78,10 +78,22 @@ class LbrcServicesFakerProvider(BaseProvider):
         if task is None:
             task = self.task_details()
 
-        print(task)
         return TaskFile(
             filename=self.generator.pystr(min_chars=5, max_chars=10),
             local_filepath=self.generator.pystr(min_chars=5, max_chars=10),
             task=task,
             field=self.generator.field_details()
+        )
+
+    def todo_details(self, task=None, description=None, status=None):
+        if task is None:
+            task = self.task_details()
+
+        if description is None:
+            description = self.generator.pystr(min_chars=5, max_chars=100)
+
+        return ToDo(
+            task=task,
+            description=description,
+            status=status,
         )

@@ -35,3 +35,10 @@ def get_test_user(faker, **kwargs):
     db.session.add(u)
 
     return u
+
+
+def get_test_todo(faker, **kwargs):
+    t = faker.todo_details()
+    db.session.add(t)
+
+    return t
