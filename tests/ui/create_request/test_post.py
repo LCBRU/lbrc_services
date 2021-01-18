@@ -1,20 +1,13 @@
 from pathlib import Path
 from flask_api import status
-from tests.ui.create_request import _url
+from tests.ui.create_request import _url, get_test_field_of_type
 import pytest
 from io import BytesIO
 from tests import get_test_service
 from lbrc_services.model import Organisation, Task, TaskStatusType
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
-from lbrc_flask.pytest.helpers import get_test_field, get_test_field_group, login
+from lbrc_flask.pytest.helpers import login
 from lbrc_flask.forms.dynamic import FieldType
-
-
-def get_test_field_of_type(faker, field_type, choices=None):
-    fg = get_test_field_group(faker)
-    s = get_test_service(faker, field_group=fg)
-    f = get_test_field(faker, field_group=fg, field_type=field_type, choices=choices)
-    return s,f
 
 
 def _create_task_post(client, task, field_data=None):
