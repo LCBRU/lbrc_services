@@ -1,7 +1,7 @@
 from flask import url_for
 from flask_api import status
 import pytest
-from tests import get_test_service, get_test_task, get_test_todo
+from tests import get_test_service, get_test_task, get_test_todo, get_test_user
 from lbrc_services.model import ToDo
 from lbrc_flask.pytest.asserts import assert__redirect, assert__requires_login
 from lbrc_flask.pytest.helpers import login
@@ -38,27 +38,25 @@ def test__post__requires_login(client, faker):
     assert__requires_login(client, _url(external=False), post=True)
 
 
-def test__update_post__todo_missing(client, faker):
-    user = login(client, faker)
-
-    task = get_test_task(faker)
+def test__update_post__todo_missing(client, faker, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
+    task = get_test_task(faker, service=s)
+    db.session.add(task)
     db.session.commit()
 
     resp = _update_todo_post(client, task_id=task.id, todo_id=9999, description=faker.pystr(min_chars=5, max_chars=100))
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test__create_post__task_missing(client, faker):
-    user = login(client, faker)
-
+def test__create_post__task_missing(client, faker, loggedin_user):
     resp = _create_todo_post(client, task_id=9999, description=faker.pystr(min_chars=5, max_chars=100))
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test__create_post__ok(client, faker):
-    user = login(client, faker)
-
-    task = get_test_task(faker)
+def test__create_post__ok(client, faker, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
+    task = get_test_task(faker, service=s)
+    db.session.add(task)
     db.session.commit()
 
     expected = faker.pystr(min_chars=5, max_chars=100)
@@ -73,10 +71,13 @@ def test__create_post__ok(client, faker):
     assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING)
 
 
-def test__update_post__ok(client, faker):
-    user = login(client, faker)
-
-    todo = get_test_todo(faker)
+def test__update_post__ok(client, faker, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
+    db.session.add(s)
+    task = get_test_task(faker, service=s)
+    db.session.add(task)
+    todo = get_test_todo(faker, task=task)
+    db.session.add(todo)
     db.session.commit()
 
     expected = faker.pystr(min_chars=5, max_chars=100)
@@ -89,3 +90,21 @@ def test__update_post__ok(client, faker):
     assert actual.id == todo.id
     assert actual.description == expected
     assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING)
+
+
+def test__update_post__not_owner(client, faker, loggedin_user):
+    user2 = get_test_user(faker)
+
+    s = faker.service_details(owners=[user2])
+    db.session.add(s)
+    task = get_test_task(faker, service=s)
+    todo = get_test_todo(faker, task=task)
+    db.session.commit()
+
+    print(task.id)
+    print(todo.id)
+
+    expected = faker.pystr(min_chars=5, max_chars=100)
+
+    resp = _update_todo_post(client, task_id=todo.task.id, todo_id=todo.id, description=expected)
+    assert resp.status_code == status.HTTP_403_FORBIDDEN

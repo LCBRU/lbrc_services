@@ -27,10 +27,9 @@ def test__standards(client, faker):
     ["mine", "others"],
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
 )
-def test__my_jobs(client, faker, mine, others):
-    user = login(client, faker)
+def test__my_jobs(client, faker, mine, others, loggedin_user):
     user2 = get_test_user(faker)
-    s1 = faker.service_details(owners=[user])
+    s1 = faker.service_details(owners=[loggedin_user])
     s2 = faker.service_details(owners=[user2])
 
     my_jobs = [faker.task_details(service=s) for s in repeat(s1, mine)]
@@ -43,9 +42,8 @@ def test__my_jobs(client, faker, mine, others):
     assert_results(resp, my_jobs)
 
 
-def test__my_jobs__search__name(client, faker):
-    user = login(client, faker)
-    s = faker.service_details(owners=[user])
+def test__my_jobs__search__name(client, faker, loggedin_user):
+    s = faker.service_details(owners=[loggedin_user])
 
     matching = faker.task_details(service=s, name='Mary')
     db.session.add(matching)
@@ -57,9 +55,8 @@ def test__my_jobs__search__name(client, faker):
     assert_results(resp, [matching])
 
 
-def test__my_jobs__search__task_status_type(client, faker):
-    user = login(client, faker)
-    s = faker.service_details(owners=[user])
+def test__my_jobs__search__task_status_type(client, faker, loggedin_user):
+    s = faker.service_details(owners=[loggedin_user])
 
     matching = faker.task_details(service=s, current_status_type=TaskStatusType.get_done())
     db.session.add(matching)
@@ -71,10 +68,9 @@ def test__my_jobs__search__task_status_type(client, faker):
     assert_results(resp, [matching])
 
 
-def test__my_jobs__search__service(client, faker):
-    user = login(client, faker)
-    s1 = faker.service_details(owners=[user])
-    s2 = faker.service_details(owners=[user])
+def test__my_jobs__search__service(client, faker, loggedin_user):
+    s1 = faker.service_details(owners=[loggedin_user])
+    s2 = faker.service_details(owners=[loggedin_user])
 
     matching = faker.task_details(service=s1)
     db.session.add(matching)
@@ -86,23 +82,8 @@ def test__my_jobs__search__service(client, faker):
     assert_results(resp, [matching])
 
 
-def test__my_jobs__search__requestor(client, faker):
-    user = login(client, faker)
-    s = faker.service_details(owners=[user])
-
-    matching = faker.task_details(service=s)
-    db.session.add(matching)
-    db.session.add(faker.task_details(service=s))
-    db.session.commit()
-
-    resp = client.get(_url(requestor_id=matching.requestor.id))
-
-    assert_results(resp, [matching])
-
-
-def test__my_jobs__update_status(client, faker):
-    user = login(client, faker)
-    s = faker.service_details(owners=[user])
+def test__my_jobs__search__requestor(client, faker, loggedin_user):
+    s = faker.service_details(owners=[loggedin_user])
 
     matching = faker.task_details(service=s)
     db.session.add(matching)

@@ -1,6 +1,7 @@
+from flask import url_for
 from pathlib import Path
 from flask_api import status
-from tests.ui.create_request import _url, get_test_field_of_type
+from tests.ui.request import get_test_field_of_type
 import pytest
 from io import BytesIO
 from tests import get_test_service
@@ -10,17 +11,30 @@ from lbrc_flask.pytest.helpers import login
 from lbrc_flask.forms.dynamic import FieldType
 
 
+def _url(service_id, external=True, prev=None):
+    if prev == None:
+        prev = url_for('ui.index', _external=True)
+
+    return url_for('ui.create_task', service_id=service_id, prev=prev, _external=external)
+
+
 def _create_task_post(client, task, field_data=None):
     if field_data is None:
         field_data = {}
 
+    data={
+        'name': task.name,
+        'organisation_id': task.organisation_id,
+        'organisation_description': task.organisation_description,
+        **field_data,
+    }
+
+    if task.requestor_id:
+        data['requestor_id'] = task.requestor_id
+
     return client.post(
         _url(service_id=task.service_id),
-        data={
-            'name': task.name,
-            'organisation_id': task.organisation_id,
-            **field_data,
-        },
+        data=data,
     )
 
 
@@ -42,7 +56,7 @@ def _assert_task(expected_task, user, data=None, files=None):
     assert len(a.status_history) == 1
     s = a.status_history[0]
     assert s.task == a
-    assert s.notes == ''
+    assert len(s.notes) > 0
     assert s.task_status_type == TaskStatusType.get_created()
 
     assert len(a.files) == len(files)
@@ -69,27 +83,21 @@ def test__post__requires_login(client, faker):
     assert__requires_login(client, _url(service_id=s.id, external=False), post=True)
 
 
-def test__post__missing(client, faker):
-    user = login(client, faker)
-
+def test__post__missing(client, faker, loggedin_user):
     resp = client.post(_url(service_id=999))
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test__create_task__with_all_values(client, faker):
-    user = login(client, faker)
-
+def test__create_task__with_all_values(client, faker, loggedin_user):
     expected = faker.task_details(service=get_test_service(faker))
 
     resp = _create_task_post(client, expected)
 
     assert__redirect(resp, endpoint='ui.index')
-    _assert_task(expected, user)
+    _assert_task(expected, loggedin_user)
 
 
-def test__create_task__empty_name(client, faker):
-    user = login(client, faker)
-
+def test__create_task__empty_name(client, faker, loggedin_user):
     expected = faker.task_details(service=get_test_service(faker), name='')
 
     resp = _create_task_post(client, expected)
@@ -98,9 +106,7 @@ def test__create_task__empty_name(client, faker):
     assert__error__required_field(resp.soup, "name")
 
 
-def test__create_task__empty_organisation(client, faker):
-    user = login(client, faker)
-
+def test__create_task__empty_organisation(client, faker, loggedin_user):
     expected = faker.task_details(service=get_test_service(faker))
     expected.organisation_id = None
 
@@ -110,28 +116,23 @@ def test__create_task__empty_organisation(client, faker):
     assert__error__required_field(resp.soup, "organisation")
 
 
-def test__create_task__empty_requestor__uses_current_user(client, faker):
-    user = login(client, faker)
-
+def test__create_task__empty_requestor__uses_current_user(client, faker, loggedin_user):
     expected = faker.task_details(service=get_test_service(faker))
     expected.requestor_id = None
 
     resp = _create_task_post(client, expected)
 
     assert__redirect(resp, endpoint='ui.index')
-    expected.requestor_id = user.id
-    _assert_task(expected, user)
+    expected.requestor_id = loggedin_user.id
+    _assert_task(expected, loggedin_user)
 
 
-def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker):
-    user = login(client, faker)
-
+def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, loggedin_user):
     expected = faker.task_details(service=get_test_service(faker), organisation=Organisation.get_other())
 
     resp = _create_task_post(client, expected)
 
     assert resp.status_code == status.HTTP_200_OK
-    print(resp.soup)
     assert__error__required_field(resp.soup, "organisation description")
 
 
@@ -150,9 +151,7 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
         (FieldType.TEXTAREA, 'This is the Mahomes magic', 'This is the Mahomes magic'),
     ],
 )
-def test__create_task__fields(client, faker, field_type, value, expected_value):
-    user = login(client, faker)
-
+def test__create_task__fields(client, faker, field_type, value, expected_value, loggedin_user):
     s, f = get_test_field_of_type(faker, FieldType._get_field_type(field_type))
 
     field_data = {}
@@ -165,7 +164,7 @@ def test__create_task__fields(client, faker, field_type, value, expected_value):
     resp = _create_task_post(client, expected, field_data)
 
     assert__redirect(resp, endpoint='ui.index')
-    _assert_task(expected, user, data=[
+    _assert_task(expected, loggedin_user, data=[
         {
             'field': f,
             'value': expected_value,
@@ -179,9 +178,7 @@ def test__create_task__fields(client, faker, field_type, value, expected_value):
         ('Hello|Yes', 'Hello', 'Hello'),
     ],
 )
-def test__create_task__radio_fields(client, faker, choices, value, expected_value):
-    user = login(client, faker)
-
+def test__create_task__radio_fields(client, faker, choices, value, expected_value, loggedin_user):
     s, f = get_test_field_of_type(faker, FieldType.get_radio(), choices=choices)
 
     field_data = {}
@@ -194,7 +191,7 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
     resp = _create_task_post(client, expected, field_data)
 
     assert__redirect(resp, endpoint='ui.index')
-    _assert_task(expected, user, data=[
+    _assert_task(expected, loggedin_user, data=[
         {
             'field': f,
             'value': expected_value,
@@ -202,21 +199,17 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
     ])
 
 
-def test__upload__upload_FileField__no_file(client, faker):
-    user = login(client, faker)
-
+def test__upload__upload_FileField__no_file(client, faker, loggedin_user):
     s, f = get_test_field_of_type(faker, FieldType.get_file())
 
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected)
 
     assert__redirect(resp, endpoint='ui.index')
-    _assert_task(expected, user)
+    _assert_task(expected, loggedin_user)
 
 
-def test__upload__upload_FileField(client, faker):
-    user = login(client, faker)
-
+def test__upload__upload_FileField(client, faker, loggedin_user):
     s, f = get_test_field_of_type(faker, FieldType.get_file())
 
     field_data = {}
@@ -241,19 +234,17 @@ def test__upload__upload_FileField(client, faker):
     resp = _create_task_post(client, expected, field_data)
 
     assert__redirect(resp, endpoint='ui.index')
-    _assert_task(expected, user, files=files)
+    _assert_task(expected, loggedin_user, files=files)
 
 
-def test__upload__upload_MultiFileField__no_file(client, faker):
-    user = login(client, faker)
-
+def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user):
     s, f = get_test_field_of_type(faker, FieldType.get_multifile())
 
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected)
 
     assert__redirect(resp, endpoint='ui.index')
-    _assert_task(expected, user)
+    _assert_task(expected, loggedin_user)
 
 
 @pytest.mark.parametrize(
@@ -263,9 +254,7 @@ def test__upload__upload_MultiFileField__no_file(client, faker):
         10,
     ],
 )
-def test__upload__upload_MultiFileField(client, faker, n):
-    user = login(client, faker)
-
+def test__upload__upload_MultiFileField(client, faker, n, loggedin_user):
     s, f = get_test_field_of_type(faker, FieldType.get_multifile())
 
     field_data = {
@@ -292,4 +281,4 @@ def test__upload__upload_MultiFileField(client, faker, n):
     resp = _create_task_post(client, expected, field_data)
 
     assert__redirect(resp, endpoint='ui.index')
-    _assert_task(expected, user, files=files)
+    _assert_task(expected, loggedin_user, files=files)

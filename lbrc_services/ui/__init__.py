@@ -13,7 +13,7 @@ from flask import (
 )
 from flask_security import login_required, current_user
 from sqlalchemy.orm import joinedload
-from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor
+from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
 
 
@@ -179,7 +179,7 @@ def create_task(service_id):
         task_status = TaskStatus(
             task=task,
             task_status_type=task.current_status_type,
-            notes='',
+            notes='Task created by {}'.format(current_user.full_name),
         )
 
         db.session.add(task_status)
@@ -208,6 +208,7 @@ def create_task(service_id):
 
 
 @blueprint.route("/task/<int:task_id>/edit", methods=["GET", "POST"])
+@must_be_task_owner_or_requestor("task_id")
 def edit_task(task_id):
     task = Task.query.get_or_404(task_id)
 
@@ -216,6 +217,12 @@ def edit_task(task_id):
     if form.validate_on_submit():
 
         save_task(task, form)
+
+        task_status = TaskStatus(
+            task=task,
+            task_status_type=task.current_status_type,
+            notes='Task updated by {}'.format(current_user.full_name),
+        )
 
         db.session.commit()
 
@@ -267,6 +274,7 @@ def _get_todos(task, search_form):
 
 
 @blueprint.route("/todo/save", methods=["POST"])
+@must_be_task_owner_or_requestor("task_id")
 def task_save_todo():
     form = EditToDoForm()
 
@@ -285,6 +293,7 @@ def task_save_todo():
 
 
 @blueprint.route("/todo/update_status", methods=["POST"])
+@must_be_todo_owner("todo_id")
 def todo_update_status():
     data = request.get_json()
 

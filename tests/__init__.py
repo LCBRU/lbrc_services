@@ -1,3 +1,4 @@
+from lbrc_services.model import TaskStatus
 from lbrc_flask.database import db
 
 
@@ -33,12 +34,14 @@ def get_test_service(faker, **kwargs):
 def get_test_user(faker, **kwargs):
     u = faker.user_details(**kwargs)
     db.session.add(u)
+    db.session.commit()
 
     return u
 
 
 def get_test_todo(faker, **kwargs):
-    t = faker.todo_details()
+    t = faker.todo_details(**kwargs)
     db.session.add(t)
+    db.session.commit()
 
     return t

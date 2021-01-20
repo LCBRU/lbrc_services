@@ -25,11 +25,10 @@ def test__standards(client, faker):
     ["mine", "others"],
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
 )
-def test__my_requests(client, faker, mine, others):
-    user = login(client, faker)
+def test__my_requests(client, faker, mine, others, loggedin_user):
     user2 = get_test_user(faker)
 
-    my_requests = [faker.task_details(requestor=u) for u in repeat(user, mine)]
+    my_requests = [faker.task_details(requestor=u) for u in repeat(loggedin_user, mine)]
     db.session.add_all(my_requests)
     db.session.add_all([faker.task_details(requestor=u) for u in repeat(user2, others)])
     db.session.commit()
@@ -39,12 +38,10 @@ def test__my_requests(client, faker, mine, others):
     assert_results(resp, my_requests)
 
 
-def test__my_requests__search__name(client, faker):
-    user = login(client, faker)
-
-    matching = faker.task_details(requestor=user, name='Mary')
+def test__my_requests__search__name(client, faker, loggedin_user):
+    matching = faker.task_details(requestor=loggedin_user, name='Mary')
     db.session.add(matching)
-    db.session.add(faker.task_details(requestor=user, name='Joseph'))
+    db.session.add(faker.task_details(requestor=loggedin_user, name='Joseph'))
     db.session.commit()
 
     resp = client.get(_url(search='ar'))
@@ -52,12 +49,10 @@ def test__my_requests__search__name(client, faker):
     assert_results(resp, [matching])
 
 
-def test__my_requests__search__task_status_type(client, faker):
-    user = login(client, faker)
-
-    matching = faker.task_details(requestor=user, current_status_type=TaskStatusType.get_done())
+def test__my_requests__search__task_status_type(client, faker, loggedin_user):
+    matching = faker.task_details(requestor=loggedin_user, current_status_type=TaskStatusType.get_done())
     db.session.add(matching)
-    db.session.add(faker.task_details(requestor=user, current_status_type=TaskStatusType.get_awaiting_information()))
+    db.session.add(faker.task_details(requestor=loggedin_user, current_status_type=TaskStatusType.get_awaiting_information()))
     db.session.commit()
 
     resp = client.get(_url(task_status_type_id=TaskStatusType.get_done().id))
@@ -65,12 +60,10 @@ def test__my_requests__search__task_status_type(client, faker):
     assert_results(resp, [matching])
 
 
-def test__my_requests__search__service(client, faker):
-    user = login(client, faker)
-
-    matching = faker.task_details(requestor=user)
+def test__my_requests__search__service(client, faker, loggedin_user):
+    matching = faker.task_details(requestor=loggedin_user)
     db.session.add(matching)
-    db.session.add(faker.task_details(requestor=user))
+    db.session.add(faker.task_details(requestor=loggedin_user))
     db.session.commit()
 
     resp = client.get(_url(service_id=matching.service.id))

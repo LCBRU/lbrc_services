@@ -27,9 +27,7 @@ def test__standards(client, faker):
     ["for_this_task", "for_other_tasks"],
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
 )
-def test__todos(client, faker, for_this_task, for_other_tasks):
-    user = login(client, faker)
-
+def test__todos(client, faker, for_this_task, for_other_tasks, loggedin_user):
     this_task = get_test_task(faker)
     other_task = get_test_task(faker)
 
@@ -46,9 +44,7 @@ def test__todos(client, faker, for_this_task, for_other_tasks):
 @pytest.mark.parametrize(
     ["status_code", "status_name"], ToDo._status_map.items(),
 )
-def test__todo__statuses(client, faker, status_code, status_name):
-    user = login(client, faker)
-
+def test__todo__statuses(client, faker, status_code, status_name, loggedin_user):
     task = get_test_task(faker)
 
     todo = faker.todo_details(task=task, status=status_code)
@@ -61,9 +57,7 @@ def test__todo__statuses(client, faker, status_code, status_name):
     assert_results(resp, [todo])
 
 
-def test__todo__search__name(client, faker):
-    user = login(client, faker)
-
+def test__todo__search__name(client, faker, loggedin_user):
     task = get_test_task(faker)
 
     matching = faker.todo_details(task=task, description="Mary")

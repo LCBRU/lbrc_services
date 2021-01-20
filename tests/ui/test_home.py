@@ -18,9 +18,7 @@ def test__get__requires_login(client):
     ["n"],
     [(0,), (1,), (2,), (10,)],
 )
-def test__services(client, faker, n):
-    user = login(client, faker)
-
+def test__services(client, faker, n, loggedin_user):
     services = [faker.service_details() for _ in range(n)]
     db.session.add_all(services)
     db.session.commit()

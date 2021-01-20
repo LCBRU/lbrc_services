@@ -22,10 +22,8 @@ def test_url_requires_login_get(client, faker):
     assert__requires_login(client, _url(tf.id, tf.task.id, external=False))
 
 
-def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_send_file):
-    user = login(client, faker)
-
-    s = get_test_service(faker, owners=[user])
+def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_send_file, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
     t = get_test_task(faker, service=s)
     tf = get_test_task_file(faker, task=t)
 
@@ -33,28 +31,22 @@ def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_sen
     assert resp.status_code == 200
 
 
-def test__must_be_task_file_owner_or_requestor__is_requestor(client, faker, mock_send_file):
-    user = login(client, faker)
-
-    t = get_test_task(faker, requestor=user)
+def test__must_be_task_file_owner_or_requestor__is_requestor(client, faker, mock_send_file, loggedin_user):
+    t = get_test_task(faker, requestor=loggedin_user)
     tf = get_test_task_file(faker, task=t)
 
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == 200
 
 
-def test__must_be_task_file_owner_or_requestor__is_neither(client, faker):
-    user = login(client, faker)
-
+def test__must_be_task_file_owner_or_requestor__is_neither(client, faker, loggedin_user):
     tf = get_test_task_file(faker)
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == 403
 
 
-def test__task_file__not_found(client, faker, mock_send_file):
-    user = login(client, faker)
-
-    s = get_test_service(faker, owners=[user])
+def test__task_file__not_found(client, faker, mock_send_file, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
     t = get_test_task(faker, service=s)
     tf = get_test_task_file(faker, task=t)
 
@@ -63,10 +55,8 @@ def test__task_file__not_found(client, faker, mock_send_file):
     assert resp.status_code == 404
 
 
-def test__task__not_found(client, faker, mock_send_file):
-    user = login(client, faker)
-
-    s = get_test_service(faker, owners=[user])
+def test__task__not_found(client, faker, mock_send_file, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
     t = get_test_task(faker, service=s)
     tf = get_test_task_file(faker, task=t)
 

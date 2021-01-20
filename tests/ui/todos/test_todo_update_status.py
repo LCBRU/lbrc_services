@@ -1,7 +1,7 @@
 from flask import url_for
 from flask_api import status
 import pytest
-from tests import get_test_service, get_test_todo
+from tests import get_test_service, get_test_task, get_test_todo
 from lbrc_services.model import ToDo
 from lbrc_flask.pytest.asserts import assert__requires_login
 from lbrc_flask.pytest.helpers import login
@@ -27,9 +27,7 @@ def test__post__requires_login(client, faker):
     assert__requires_login(client, _url(external=False), post=True)
 
 
-def test__post__missing(client, faker):
-    user = login(client, faker)
-
+def test__post__missing(client, faker, loggedin_user):
     resp = _update_status_post(client, todo_id=9999, action='check')
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
@@ -45,10 +43,12 @@ def test__post__missing(client, faker):
         (ToDo.NOT_REQUIRED, 'check', ToDo.COMPLETED),
     ],
 )
-def test__update_todo_status__correct_values(client, faker, starting_status, action, expect_status):
-    user = login(client, faker)
+def test__update_todo_status__correct_values(client, faker, starting_status, action, expect_status, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
+    task = get_test_task(faker, service=s)
 
-    todo = get_test_todo(faker, status=ToDo.get_status_code_from_name(starting_status))
+    todo = get_test_todo(faker, task=task, status=ToDo.get_status_code_from_name(starting_status))
+    db.session.add(todo)
     db.session.commit()
 
     resp = _update_status_post(client, todo_id=todo.id, action=action)
@@ -59,10 +59,12 @@ def test__update_todo_status__correct_values(client, faker, starting_status, act
     assert actual.status == ToDo.get_status_code_from_name(expect_status)
 
 
-def test__update_todo_status__invalid_action(client, faker):
-    user = login(client, faker)
+def test__update_todo_status__invalid_action(client, faker, loggedin_user):
+    s = get_test_service(faker, owners=[loggedin_user])
+    task = get_test_task(faker, service=s)
 
-    todo = get_test_todo(faker, status=ToDo.get_status_code_from_name(ToDo.OUTSTANDING))
+    todo = get_test_todo(faker, task=task, status=ToDo.get_status_code_from_name(ToDo.OUTSTANDING))
+    db.session.add(todo)
     db.session.commit()
 
     resp = _update_status_post(client, todo_id=todo.id, action='This is not correct')
@@ -71,3 +73,10 @@ def test__update_todo_status__invalid_action(client, faker):
     actual = ToDo.query.get(todo.id)
 
     assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING)
+
+
+def test__update_todo_status__not_owner(client, faker, loggedin_user):
+    todo = get_test_todo(faker)
+
+    resp = _update_status_post(client, todo_id=todo.id, action='check')
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
