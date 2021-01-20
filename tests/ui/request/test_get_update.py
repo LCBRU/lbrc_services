@@ -3,7 +3,7 @@ from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import get_test_field_of_type
 import pytest
-from tests import get_test_service, get_test_task
+from tests import get_test_owned_task, get_test_service, get_test_task, get_test_user
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
 from lbrc_flask.database import db
@@ -43,22 +43,16 @@ def test__get__is_requestor(client, faker, loggedin_user):
 
 
 def test__get__is_service_owner(client, faker, loggedin_user):
-    s_owned = faker.service_details(owners=[loggedin_user])
-    db.session.add(s_owned)
-    db.session.commit()
-    task = get_test_task(faker, service=s_owned)
+    task = get_test_owned_task(faker, owner=loggedin_user)
 
     resp = client.get(_url(task_id=task.id))
     assert resp.status_code == status.HTTP_200_OK
 
 
 def test__get__is_owner_of_other_service(client, faker, loggedin_user):
-    s = faker.service_details()
+    user2 = get_test_user(faker)
     s_owned = faker.service_details(owners=[loggedin_user])
-    db.session.add(s)
-    db.session.add(s_owned)
-    db.session.commit()
-    task = get_test_task(faker, service=s)
+    task = get_test_owned_task(faker, owner=user2)
 
     resp = client.get(_url(task_id=task.id))
     assert resp.status_code == status.HTTP_403_FORBIDDEN

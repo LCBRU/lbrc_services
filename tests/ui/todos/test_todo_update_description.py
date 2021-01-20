@@ -1,10 +1,9 @@
+from tests.ui.todos import get_test_owned_todo
 from flask import url_for
 from flask_api import status
-import pytest
-from tests import get_test_service, get_test_task, get_test_todo, get_test_user
+from tests import get_test_owned_task, get_test_task, get_test_todo, get_test_user
 from lbrc_services.model import ToDo
 from lbrc_flask.pytest.asserts import assert__redirect, assert__requires_login
-from lbrc_flask.pytest.helpers import login
 from lbrc_flask.database import db
 
 
@@ -34,15 +33,11 @@ def _create_todo_post(client, task_id, description):
 
 
 def test__post__requires_login(client, faker):
-    s = get_test_service(faker)
     assert__requires_login(client, _url(external=False), post=True)
 
 
 def test__update_post__todo_missing(client, faker, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    task = get_test_task(faker, service=s)
-    db.session.add(task)
-    db.session.commit()
+    task = get_test_owned_task(faker, owner=loggedin_user)
 
     resp = _update_todo_post(client, task_id=task.id, todo_id=9999, description=faker.pystr(min_chars=5, max_chars=100))
     assert resp.status_code == status.HTTP_404_NOT_FOUND
@@ -54,10 +49,7 @@ def test__create_post__task_missing(client, faker, loggedin_user):
 
 
 def test__create_post__ok(client, faker, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    task = get_test_task(faker, service=s)
-    db.session.add(task)
-    db.session.commit()
+    task = get_test_owned_task(faker, owner=loggedin_user)
 
     expected = faker.pystr(min_chars=5, max_chars=100)
 
@@ -72,13 +64,7 @@ def test__create_post__ok(client, faker, loggedin_user):
 
 
 def test__update_post__ok(client, faker, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    db.session.add(s)
-    task = get_test_task(faker, service=s)
-    db.session.add(task)
-    todo = get_test_todo(faker, task=task)
-    db.session.add(todo)
-    db.session.commit()
+    todo = get_test_owned_todo(faker, loggedin_user)
 
     expected = faker.pystr(min_chars=5, max_chars=100)
 

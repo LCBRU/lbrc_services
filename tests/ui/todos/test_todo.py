@@ -1,9 +1,8 @@
 from lbrc_services.model import ToDo
-from tests import get_test_task
+from tests import get_test_task, get_test_todo
 import pytest
 from flask import url_for
 from lbrc_flask.database import db
-from lbrc_flask.pytest.helpers import login
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
 
 
@@ -31,10 +30,8 @@ def test__todos(client, faker, for_this_task, for_other_tasks, loggedin_user):
     this_task = get_test_task(faker)
     other_task = get_test_task(faker)
 
-    this_task_todos = [faker.todo_details(task=this_task) for _ in range(for_this_task)]
-    db.session.add_all(this_task_todos)
-    db.session.add_all([faker.todo_details(task=other_task) for _ in range(for_other_tasks)])
-    db.session.commit()
+    this_task_todos = [get_test_todo(faker, task=this_task) for _ in range(for_this_task)]
+    other_task_todos = [get_test_todo(faker, task=other_task) for _ in range(for_other_tasks)]
 
     resp = client.get(_url(task_id=this_task.id))
 
@@ -45,14 +42,9 @@ def test__todos(client, faker, for_this_task, for_other_tasks, loggedin_user):
     ["status_code", "status_name"], ToDo._status_map.items(),
 )
 def test__todo__statuses(client, faker, status_code, status_name, loggedin_user):
-    task = get_test_task(faker)
+    todo = get_test_todo(faker, status=status_code)
 
-    todo = faker.todo_details(task=task, status=status_code)
-
-    db.session.add(todo)
-    db.session.commit()
-
-    resp = client.get(_url(task_id=task.id))
+    resp = client.get(_url(task_id=todo.task.id))
 
     assert_results(resp, [todo])
 
@@ -60,10 +52,8 @@ def test__todo__statuses(client, faker, status_code, status_name, loggedin_user)
 def test__todo__search__name(client, faker, loggedin_user):
     task = get_test_task(faker)
 
-    matching = faker.todo_details(task=task, description="Mary")
-    db.session.add(matching)
-    db.session.add(faker.todo_details(task=task, description='Joseph'))
-    db.session.commit()
+    matching = get_test_todo(faker, task=task, description="Mary")
+    un_matching = get_test_todo(faker, task=task, description="Joseph")
 
     resp = client.get(_url(task_id=task.id,search='ar'))
 

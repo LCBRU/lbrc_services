@@ -1,7 +1,7 @@
 from flask_api import status
 from flask import url_for
 from lbrc_services.model import TaskStatus, TaskStatusType
-from tests import get_test_task, get_test_user
+from tests import get_test_owned_task, get_test_task, get_test_user
 from lbrc_flask.pytest.asserts import assert__requires_login
 
 
@@ -25,9 +25,8 @@ def test__post__requires_login(client):
 
 
 def test__my_jobs__update_status(client, faker, loggedin_user):
-    s = faker.service_details(owners=[loggedin_user])
+    task = get_test_owned_task(faker, owner=loggedin_user)
 
-    task = get_test_task(faker, service=s)
     st = TaskStatusType.get_in_progress()
     notes = faker.pystr(min_chars=5, max_chars=10)
 
@@ -42,9 +41,9 @@ def test__my_jobs__update_status(client, faker, loggedin_user):
 
 def test__my_jobs__update_status__not_owner(client, faker, loggedin_user):
     user2 = get_test_user(faker)
-    s = faker.service_details(owners=[user2])
 
-    task = get_test_task(faker, service=s)
+    task = get_test_owned_task(faker, owner=user2)
+
     st = TaskStatusType.get_in_progress()
     notes = faker.pystr(min_chars=5, max_chars=10)
 

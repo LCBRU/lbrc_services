@@ -1,8 +1,7 @@
 from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
 from unittest.mock import patch
-from tests import get_test_task, get_test_task_file, get_test_service
-from lbrc_flask.pytest.helpers import login
+from tests import get_test_owned_task, get_test_task, get_test_task_file, get_test_service
 from flask import url_for
 
 
@@ -23,8 +22,7 @@ def test_url_requires_login_get(client, faker):
 
 
 def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_send_file, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    t = get_test_task(faker, service=s)
+    t = get_test_owned_task(faker, owner=loggedin_user)
     tf = get_test_task_file(faker, task=t)
 
     resp = client.get(_url(tf.id, tf.task.id))
@@ -46,8 +44,7 @@ def test__must_be_task_file_owner_or_requestor__is_neither(client, faker, logged
 
 
 def test__task_file__not_found(client, faker, mock_send_file, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    t = get_test_task(faker, service=s)
+    t = get_test_owned_task(faker, owner=loggedin_user)
     tf = get_test_task_file(faker, task=t)
 
     resp = client.get(_url(999, tf.task.id))
@@ -56,8 +53,7 @@ def test__task_file__not_found(client, faker, mock_send_file, loggedin_user):
 
 
 def test__task__not_found(client, faker, mock_send_file, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    t = get_test_task(faker, service=s)
+    t = get_test_owned_task(faker, owner=loggedin_user)
     tf = get_test_task_file(faker, task=t)
 
     resp = client.get(_url(tf.id, 999))

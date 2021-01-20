@@ -4,9 +4,8 @@ import pytest
 from itertools import cycle
 from lbrc_services.model import TaskStatus, TaskStatusType
 from flask import url_for
-from lbrc_flask.pytest.helpers import login
 from lbrc_flask.database import db
-from tests import get_test_task, get_test_user
+from tests import get_test_owned_task, get_test_task, get_test_user
 
 
 def _url(external=True, **kwargs):
@@ -20,9 +19,7 @@ def test__get__requires_login(client, faker):
 
 def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
     user2 = get_test_user(faker)
-    s = faker.service_details(owners=[user2])
-
-    task = get_test_task(faker, service=s)
+    task = get_test_owned_task(faker, owner=user2)
 
     resp = client.get(_url(task_id=task.id))
 
@@ -30,9 +27,7 @@ def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
 
 
 def test__status_history__missing(client, faker, loggedin_user):
-    s = faker.service_details(owners=[loggedin_user])
-
-    task = get_test_task(faker, service=s)
+    task = get_test_owned_task(faker, owner=loggedin_user)
 
     resp = client.get(_url(task_id=task.id + 1))
 
@@ -40,9 +35,7 @@ def test__status_history__missing(client, faker, loggedin_user):
 
 
 def test__status_history__is_owner(client, faker, loggedin_user):
-    s = faker.service_details(owners=[loggedin_user])
-
-    task = get_test_task(faker, service=s)
+    task = get_test_owned_task(faker, owner=loggedin_user)
 
     resp = client.get(_url(task_id=task.id))
 
@@ -62,10 +55,8 @@ def test__status_history__is_requestor(client, faker, loggedin_user):
     [(0,), (1,), (2,), (10,)],
 )
 def test__my_jobs__update_status(client, faker, n, loggedin_user):
-    s = faker.service_details(owners=[loggedin_user])
-
     actual_status = TaskStatusType.get_created()
-    task = get_test_task(faker, service=s, current_status_type=actual_status)
+    task = get_test_owned_task(faker, owner=loggedin_user, current_status_type=actual_status)
 
     statuses = cycle(TaskStatusType.query.all())
     history = []

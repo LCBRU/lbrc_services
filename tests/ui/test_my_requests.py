@@ -1,11 +1,8 @@
 import pytest
 import re
 from flask import url_for
-from itertools import repeat
-from lbrc_flask.database import db
-from lbrc_flask.pytest.helpers import login
 from lbrc_services.model import TaskStatusType
-from tests import get_test_user
+from tests import get_test_task, get_test_user
 from lbrc_flask.pytest.asserts import assert__html_standards, assert__requires_login
 
 
@@ -28,10 +25,8 @@ def test__standards(client, faker):
 def test__my_requests(client, faker, mine, others, loggedin_user):
     user2 = get_test_user(faker)
 
-    my_requests = [faker.task_details(requestor=u) for u in repeat(loggedin_user, mine)]
-    db.session.add_all(my_requests)
-    db.session.add_all([faker.task_details(requestor=u) for u in repeat(user2, others)])
-    db.session.commit()
+    my_requests = [get_test_task(faker, requestor=loggedin_user) for _ in range(mine)]
+    not_my_requests = [get_test_task(faker, requestor=user2) for _ in range(others)]
 
     resp = client.get(_url())
 
@@ -39,10 +34,8 @@ def test__my_requests(client, faker, mine, others, loggedin_user):
 
 
 def test__my_requests__search__name(client, faker, loggedin_user):
-    matching = faker.task_details(requestor=loggedin_user, name='Mary')
-    db.session.add(matching)
-    db.session.add(faker.task_details(requestor=loggedin_user, name='Joseph'))
-    db.session.commit()
+    matching = get_test_task(faker, requestor=loggedin_user, name='Mary')
+    non_matching = get_test_task(faker, requestor=loggedin_user, name='Joseph')
 
     resp = client.get(_url(search='ar'))
 
@@ -50,10 +43,8 @@ def test__my_requests__search__name(client, faker, loggedin_user):
 
 
 def test__my_requests__search__task_status_type(client, faker, loggedin_user):
-    matching = faker.task_details(requestor=loggedin_user, current_status_type=TaskStatusType.get_done())
-    db.session.add(matching)
-    db.session.add(faker.task_details(requestor=loggedin_user, current_status_type=TaskStatusType.get_awaiting_information()))
-    db.session.commit()
+    matching = get_test_task(faker, requestor=loggedin_user, current_status_type=TaskStatusType.get_done())
+    non_matching = get_test_task(faker, requestor=loggedin_user, current_status_type=TaskStatusType.get_awaiting_information())
 
     resp = client.get(_url(task_status_type_id=TaskStatusType.get_done().id))
 
@@ -61,10 +52,8 @@ def test__my_requests__search__task_status_type(client, faker, loggedin_user):
 
 
 def test__my_requests__search__service(client, faker, loggedin_user):
-    matching = faker.task_details(requestor=loggedin_user)
-    db.session.add(matching)
-    db.session.add(faker.task_details(requestor=loggedin_user))
-    db.session.commit()
+    matching = get_test_task(faker, requestor=loggedin_user)
+    non_matching = get_test_task(faker, requestor=loggedin_user)
 
     resp = client.get(_url(service_id=matching.service.id))
 

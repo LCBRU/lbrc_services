@@ -1,11 +1,10 @@
+from tests.ui.todos import get_test_owned_todo
 from flask import url_for
 from flask_api import status
 import pytest
-from tests import get_test_service, get_test_task, get_test_todo
+from tests import get_test_todo
 from lbrc_services.model import ToDo
 from lbrc_flask.pytest.asserts import assert__requires_login
-from lbrc_flask.pytest.helpers import login
-from lbrc_flask.database import db
 
 
 def _url(external=True):
@@ -23,7 +22,6 @@ def _update_status_post(client, todo_id, action):
 
 
 def test__post__requires_login(client, faker):
-    s = get_test_service(faker)
     assert__requires_login(client, _url(external=False), post=True)
 
 
@@ -44,12 +42,7 @@ def test__post__missing(client, faker, loggedin_user):
     ],
 )
 def test__update_todo_status__correct_values(client, faker, starting_status, action, expect_status, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    task = get_test_task(faker, service=s)
-
-    todo = get_test_todo(faker, task=task, status=ToDo.get_status_code_from_name(starting_status))
-    db.session.add(todo)
-    db.session.commit()
+    todo = get_test_owned_todo(faker, loggedin_user, status_name=starting_status)
 
     resp = _update_status_post(client, todo_id=todo.id, action=action)
     assert resp.status_code == status.HTTP_205_RESET_CONTENT
@@ -58,20 +51,13 @@ def test__update_todo_status__correct_values(client, faker, starting_status, act
 
     assert actual.status == ToDo.get_status_code_from_name(expect_status)
 
-
 def test__update_todo_status__invalid_action(client, faker, loggedin_user):
-    s = get_test_service(faker, owners=[loggedin_user])
-    task = get_test_task(faker, service=s)
-
-    todo = get_test_todo(faker, task=task, status=ToDo.get_status_code_from_name(ToDo.OUTSTANDING))
-    db.session.add(todo)
-    db.session.commit()
+    todo = get_test_owned_todo(faker, loggedin_user, status_name=ToDo.OUTSTANDING)
 
     resp = _update_status_post(client, todo_id=todo.id, action='This is not correct')
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
     actual = ToDo.query.get(todo.id)
-
     assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING)
 
 

@@ -4,10 +4,9 @@ from flask_api import status
 from tests.ui.request import get_test_field_of_type
 import pytest
 from io import BytesIO
-from tests import get_test_service, get_test_task
+from tests import get_test_task
 from lbrc_services.model import Organisation, Task, TaskStatusType
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
-from lbrc_flask.pytest.helpers import login
 from lbrc_flask.forms.dynamic import FieldType
 
 

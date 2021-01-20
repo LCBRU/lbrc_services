@@ -3,7 +3,6 @@ from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import get_test_field_of_type
 import pytest
 from tests import get_test_service
-from lbrc_flask.pytest.helpers import login
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
 from lbrc_flask.database import db
 from flask_api import status
@@ -51,11 +50,9 @@ def test__get__not_service_owner__cannot_select_requestor(client, faker, loggedi
 
 
 def test__get__service_owner__can_select_requestor(client, faker, loggedin_user):
-    s_owned = faker.service_details(owners=[loggedin_user])
-    db.session.add(s_owned)
-    db.session.commit()
-
+    s_owned = get_test_service(faker, owners=[loggedin_user])
     s = get_test_service(faker)
+
     resp = client.get(_url(service_id=s.id))
     assert resp.status_code == status.HTTP_200_OK
 
