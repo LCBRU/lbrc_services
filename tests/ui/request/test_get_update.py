@@ -3,10 +3,8 @@ from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import get_test_field_of_type
 import pytest
-from tests import get_test_owned_task, get_test_service, get_test_task, get_test_user
-from lbrc_flask.pytest.helpers import login
+from tests import get_test_owned_task, get_test_task, get_test_user
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
-from lbrc_flask.database import db
 from flask_api import status
 
 
@@ -62,8 +60,8 @@ def test__get__is_owner_of_other_service(client, faker, loggedin_user):
 def test__standards(client, faker, loggedin_user):
     task = get_test_task(faker, requestor=loggedin_user)
 
-    assert__html_standards(client, faker, _url(task_id=task.id))
-    assert__form_standards(client, faker, _url(task_id=task.id))
+    assert__html_standards(client, faker, _url(task_id=task.id), user=loggedin_user)
+    assert__form_standards(client, faker, _url(task_id=task.id), user=loggedin_user)
 
 
 def test__get__common_form_fields(client, faker, loggedin_user):

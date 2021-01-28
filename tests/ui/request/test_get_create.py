@@ -4,8 +4,9 @@ from tests.ui.request import get_test_field_of_type
 import pytest
 from tests import get_test_service
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
-from lbrc_flask.database import db
 from flask_api import status
+from lbrc_flask.pytest.helpers import login
+
 
 def _url(service_id, external=True, prev=None):
     if prev == None:
@@ -26,9 +27,9 @@ def test__get__missing(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__standards(client, faker, loggedin_user):
-    s = get_test_service(faker)
-    assert__html_standards(client, faker, _url(service_id=s.id))
-    assert__form_standards(client, faker, _url(service_id=s.id))
+    s = get_test_service(faker, owners=[loggedin_user])
+    assert__html_standards(client, faker, _url(service_id=s.id), user=loggedin_user)
+    assert__form_standards(client, faker, _url(service_id=s.id), user=loggedin_user)
 
 
 def test__get__common_form_fields(client, faker, loggedin_user):
