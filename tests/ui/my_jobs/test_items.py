@@ -2,13 +2,26 @@ import pytest
 import re
 from flask import url_for
 from lbrc_services.model import TaskStatusType
-from tests import get, get_test_owned_task, get_test_user
-from lbrc_flask.pytest.asserts import assert__requires_login
+from tests import lbrc_services_get, get_test_owned_task, get_test_user
+from lbrc_flask.pytest.asserts import assert__requires_login, assert__search_html
 from flask_api import status
-
+from lbrc_services.ui.forms import _get_combined_task_status_type_choices, _get_service_choices, _get_requestor_choices
+from lbrc_flask.pytest.asserts import assert__select
 
 def _url(external=True, **kwargs):
     return url_for('ui.my_jobs', _external=external, **kwargs)
+
+
+def _get(client, url, loggedin_user, has_form):
+    resp = lbrc_services_get(client, url, loggedin_user, has_form)
+
+    assert__search_html(resp.soup, clear_url=_url(external=False))
+
+    assert__select(soup=resp.soup, id='service_id', options=_get_service_choices())
+    assert__select(soup=resp.soup, id='task_status_type_id', options=_get_combined_task_status_type_choices())
+    assert__select(soup=resp.soup, id='requestor_id', options=_get_requestor_choices())
+
+    return resp
 
 
 def test__get__requires_login(client):
@@ -26,7 +39,7 @@ def test__my_jobs(client, faker, mine, others, loggedin_user):
     my_jobs = [get_test_owned_task(faker, owner=loggedin_user) for _ in range(mine)]
     others_jobs = [get_test_owned_task(faker, owner=user2) for _ in range(others)]
 
-    resp = get(client, _url(), loggedin_user, has_form=True)
+    resp = _get(client, _url(), loggedin_user, has_form=True)
 
     assert_results(resp, my_jobs)
 
@@ -36,7 +49,7 @@ def test__my_jobs__search__name(client, faker, loggedin_user):
     matching = get_test_owned_task(faker, name='Mary', owner=loggedin_user)
     non_matching = get_test_owned_task(faker, name='Joseph', owner=loggedin_user)
 
-    resp = get(client, _url(search='ar'), loggedin_user, has_form=True)
+    resp = _get(client, _url(search='ar'), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 
@@ -48,7 +61,7 @@ def test__my_jobs__search__task_status_type(client, faker, loggedin_user):
     matching = get_test_owned_task(faker, current_status_type=TaskStatusType.get_done(), owner=loggedin_user)
     non_matching = get_test_owned_task(faker, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user)
 
-    resp = get(client, _url(task_status_type_id=TaskStatusType.get_done().id), loggedin_user, has_form=True)
+    resp = _get(client, _url(task_status_type_id=TaskStatusType.get_done().id), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 
@@ -58,7 +71,7 @@ def test__my_jobs__search__service(client, faker, loggedin_user):
     matching = get_test_owned_task(faker, owner=loggedin_user)
     non_matching = get_test_owned_task(faker, owner=loggedin_user)
 
-    resp = get(client, _url(service_id=matching.service.id), loggedin_user, has_form=True)
+    resp = _get(client, _url(service_id=matching.service.id), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 
@@ -68,7 +81,7 @@ def test__my_jobs__search__requestor(client, faker, loggedin_user):
     matching = get_test_owned_task(faker, owner=loggedin_user)
     non_matching = get_test_owned_task(faker, owner=loggedin_user)
 
-    resp = get(client, _url(requestor_id=matching.requestor.id), loggedin_user, has_form=True)
+    resp = _get(client, _url(requestor_id=matching.requestor.id), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 

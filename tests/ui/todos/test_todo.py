@@ -1,5 +1,5 @@
 from lbrc_services.model import ToDo
-from tests import get, get_test_task, get_test_todo
+from tests import lbrc_services_get, get_test_task, get_test_todo
 import pytest
 from flask import url_for
 from lbrc_flask.pytest.asserts import assert__requires_login
@@ -26,7 +26,7 @@ def test__todos(client, faker, for_this_task, for_other_tasks, loggedin_user):
     this_task_todos = [get_test_todo(faker, task=this_task) for _ in range(for_this_task)]
     other_task_todos = [get_test_todo(faker, task=other_task) for _ in range(for_other_tasks)]
 
-    resp = get(client, _url(task_id=this_task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=this_task.id), loggedin_user, has_form=True)
 
     assert_results(resp, this_task_todos)
 
@@ -38,7 +38,7 @@ def test__todos(client, faker, for_this_task, for_other_tasks, loggedin_user):
 def test__todo__statuses(client, faker, status_code, status_name, loggedin_user):
     todo = get_test_todo(faker, status=status_code)
 
-    resp = get(client, _url(task_id=todo.task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=todo.task.id), loggedin_user, has_form=True)
 
     assert_results(resp, [todo])
 
@@ -50,7 +50,7 @@ def test__todo__search__name(client, faker, loggedin_user):
     matching = get_test_todo(faker, task=task, description="Mary")
     un_matching = get_test_todo(faker, task=task, description="Joseph")
 
-    resp = get(client, _url(task_id=task.id, search='ar'), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=task.id, search='ar'), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 

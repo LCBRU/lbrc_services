@@ -3,7 +3,7 @@ from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import get_test_field_of_type
 import pytest
-from tests import get, get_test_owned_task, get_test_task, get_test_user
+from tests import lbrc_services_get, get_test_owned_task, get_test_task, get_test_user
 from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
 from flask_api import status
 
@@ -37,7 +37,7 @@ def test__get__not_service_owner_or_requestor(client, faker, loggedin_user):
 def test__get__is_requestor(client, faker, loggedin_user):
     task = get_test_task(faker, requestor=loggedin_user)
 
-    resp = get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
 
 
@@ -45,7 +45,7 @@ def test__get__is_requestor(client, faker, loggedin_user):
 def test__get__is_service_owner(client, faker, loggedin_user):
     task = get_test_owned_task(faker, owner=loggedin_user)
 
-    resp = get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
 
 
@@ -62,7 +62,7 @@ def test__get__is_owner_of_other_service(client, faker, loggedin_user):
 def test__get__common_form_fields(client, faker, loggedin_user):
     task = get_test_task(faker, requestor=loggedin_user)
 
-    resp = get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
 
     assert resp.soup.find("select", id="organisation_id") is not None
@@ -80,7 +80,7 @@ def test__create_task__input_fields(client, faker, field_type_name, loggedin_use
     s, f = get_test_field_of_type(faker, ft)
     task = get_test_task(faker, service=s, requestor=loggedin_user)
 
-    resp = get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
 
     assert resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name) is not None
@@ -97,7 +97,7 @@ def test__create_task__input_fields(client, faker, field_type_name, loggedin_use
 def test__get__buttons(client, faker, endpoint, loggedin_user):
     task = get_test_task(faker, requestor=loggedin_user)
     url = url_for(endpoint)
-    resp = get(client, _url(task_id=task.id, prev=url), loggedin_user, has_form=True)
+    resp = lbrc_services_get(client, _url(task_id=task.id, prev=url), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
 
     assert resp.soup.find("a", href=url) is not None

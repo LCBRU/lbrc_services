@@ -3,7 +3,7 @@ from lbrc_flask.pytest.asserts import _assert_html_standards, _assert_basic_navi
 from flask import url_for
 
 
-def get(client, url, user, has_form=False):
+def lbrc_services_get(client, url, user, has_form=False):
     resp = client.get(url)
 
     _assert_html_standards(resp.soup)
