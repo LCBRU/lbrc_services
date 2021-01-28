@@ -6,6 +6,7 @@ from lbrc_services.model import TaskStatus, TaskStatusType
 from flask import url_for
 from lbrc_flask.database import db
 from tests import get_test_owned_task, get_test_task, get_test_user
+from flask_api import status
 
 
 def _url(external=True, **kwargs):
@@ -23,7 +24,7 @@ def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id))
 
-    assert resp.status_code == 403
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test__status_history__missing(client, faker, loggedin_user):
@@ -31,7 +32,7 @@ def test__status_history__missing(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id + 1))
 
-    assert resp.status_code == 404
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test__status_history__is_owner(client, faker, loggedin_user):
@@ -39,7 +40,7 @@ def test__status_history__is_owner(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id))
 
-    assert resp.status_code == 200
+    assert resp.status_code == status.HTTP_200_OK
 
 
 def test__status_history__is_requestor(client, faker, loggedin_user):
@@ -47,7 +48,7 @@ def test__status_history__is_requestor(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id))
 
-    assert resp.status_code == 200
+    assert resp.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.parametrize(
@@ -77,7 +78,7 @@ def test__my_jobs__update_status(client, faker, n, loggedin_user):
 
         resp = client.get(_url(task_id=task.id))
 
-        assert resp.status_code == 200
+        assert resp.status_code == status.HTTP_200_OK
         assert len(resp.soup.find_all("li", "list-group-item")) == len(history)
 
         for h, li in zip(reversed(history), resp.soup.find_all("li", "list-group-item")):

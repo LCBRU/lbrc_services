@@ -2,9 +2,9 @@ import pytest
 import re
 from flask import url_for
 from lbrc_services.model import TaskStatusType
-from tests import get_test_task, get_test_user
-from lbrc_flask.pytest.asserts import assert__html_standards, assert__requires_login
-
+from tests import get, get_test_task, get_test_user
+from lbrc_flask.pytest.asserts import assert__requires_login
+from flask_api import status
 
 def _url(external=True, **kwargs):
     return url_for('ui.my_requests', _external=external, **kwargs)
@@ -14,10 +14,7 @@ def test__get__requires_login(client):
     assert__requires_login(client, _url(external=False))
 
 
-def test__standards(client, faker):
-    assert__html_standards(client, faker, _url())
-
-
+@pytest.mark.app_crsf(True)
 @pytest.mark.parametrize(
     ["mine", "others"],
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
@@ -28,40 +25,43 @@ def test__my_requests(client, faker, mine, others, loggedin_user):
     my_requests = [get_test_task(faker, requestor=loggedin_user) for _ in range(mine)]
     not_my_requests = [get_test_task(faker, requestor=user2) for _ in range(others)]
 
-    resp = client.get(_url())
+    resp = get(client, _url(), loggedin_user, has_form=True)
 
     assert_results(resp, my_requests)
 
 
+@pytest.mark.app_crsf(True)
 def test__my_requests__search__name(client, faker, loggedin_user):
     matching = get_test_task(faker, requestor=loggedin_user, name='Mary')
     non_matching = get_test_task(faker, requestor=loggedin_user, name='Joseph')
 
-    resp = client.get(_url(search='ar'))
+    resp = get(client, _url(search='ar'), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 
 
+@pytest.mark.app_crsf(True)
 def test__my_requests__search__task_status_type(client, faker, loggedin_user):
     matching = get_test_task(faker, requestor=loggedin_user, current_status_type=TaskStatusType.get_done())
     non_matching = get_test_task(faker, requestor=loggedin_user, current_status_type=TaskStatusType.get_awaiting_information())
 
-    resp = client.get(_url(task_status_type_id=TaskStatusType.get_done().id))
+    resp = get(client, _url(task_status_type_id=TaskStatusType.get_done().id), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 
 
+@pytest.mark.app_crsf(True)
 def test__my_requests__search__service(client, faker, loggedin_user):
     matching = get_test_task(faker, requestor=loggedin_user)
     non_matching = get_test_task(faker, requestor=loggedin_user)
 
-    resp = client.get(_url(service_id=matching.service.id))
+    resp = get(client, _url(service_id=matching.service.id), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 
 
 def assert_results(resp, matches):
-    assert resp.status_code == 200
+    assert resp.status_code == status.HTTP_200_OK
     assert len(resp.soup.find_all("li", "list-group-item")) == len(matches)
 
     for u, li in zip(reversed(matches), resp.soup.find_all("li", "list-group-item")):

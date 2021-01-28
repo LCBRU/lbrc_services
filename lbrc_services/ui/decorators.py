@@ -47,13 +47,9 @@ def must_be_todo_owner(var_name):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            print('A' * 100)
-            print(var_name)
-            print(get_value_from_all_arguments(var_name))
             r = ToDo.query.options(
                 joinedload(ToDo.task).joinedload(Task.service).joinedload(Service.owners),
             ).get_or_404(get_value_from_all_arguments(var_name))
-            print('B' * 100)
 
             if current_user not in r.task.service.owners:
                 abort(403)

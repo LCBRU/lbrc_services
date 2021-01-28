@@ -1,9 +1,8 @@
 from lbrc_services.model import ToDo
-from tests import get_test_task, get_test_todo
+from tests import get, get_test_task, get_test_todo
 import pytest
 from flask import url_for
-from lbrc_flask.database import db
-from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
+from lbrc_flask.pytest.asserts import assert__requires_login
 
 
 def _url(external=True, **kwargs):
@@ -16,12 +15,6 @@ def test__get__requires_login(client, faker):
 
 
 @pytest.mark.app_crsf(True)
-def test__standards(client, faker):
-    t = get_test_task(faker)
-    assert__html_standards(client, faker, _url(task_id=t.id))
-    assert__form_standards(client, faker, _url(task_id=t.id))
-
-
 @pytest.mark.parametrize(
     ["for_this_task", "for_other_tasks"],
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
@@ -33,29 +26,31 @@ def test__todos(client, faker, for_this_task, for_other_tasks, loggedin_user):
     this_task_todos = [get_test_todo(faker, task=this_task) for _ in range(for_this_task)]
     other_task_todos = [get_test_todo(faker, task=other_task) for _ in range(for_other_tasks)]
 
-    resp = client.get(_url(task_id=this_task.id))
+    resp = get(client, _url(task_id=this_task.id), loggedin_user, has_form=True)
 
     assert_results(resp, this_task_todos)
 
 
+@pytest.mark.app_crsf(True)
 @pytest.mark.parametrize(
     ["status_code", "status_name"], ToDo._status_map.items(),
 )
 def test__todo__statuses(client, faker, status_code, status_name, loggedin_user):
     todo = get_test_todo(faker, status=status_code)
 
-    resp = client.get(_url(task_id=todo.task.id))
+    resp = get(client, _url(task_id=todo.task.id), loggedin_user, has_form=True)
 
     assert_results(resp, [todo])
 
 
+@pytest.mark.app_crsf(True)
 def test__todo__search__name(client, faker, loggedin_user):
     task = get_test_task(faker)
 
     matching = get_test_todo(faker, task=task, description="Mary")
     un_matching = get_test_todo(faker, task=task, description="Joseph")
 
-    resp = client.get(_url(task_id=task.id,search='ar'))
+    resp = get(client, _url(task_id=task.id, search='ar'), loggedin_user, has_form=True)
 
     assert_results(resp, [matching])
 

@@ -87,9 +87,6 @@ def test__update_post__not_owner(client, faker, loggedin_user):
     todo = get_test_todo(faker, task=task)
     db.session.commit()
 
-    print(task.id)
-    print(todo.id)
-
     expected = faker.pystr(min_chars=5, max_chars=100)
 
     resp = _update_todo_post(client, task_id=todo.task.id, todo_id=todo.id, description=expected)

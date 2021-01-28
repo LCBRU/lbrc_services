@@ -1,5 +1,24 @@
-from lbrc_services.model import TaskStatus
 from lbrc_flask.database import db
+from lbrc_flask.pytest.asserts import _assert_html_standards, _assert_basic_navigation, _assert_csrf_token
+from flask import url_for
+
+
+def get(client, url, user, has_form=False):
+    resp = client.get(url)
+
+    _assert_html_standards(resp.soup)
+    _assert_basic_navigation(resp.soup, user)
+
+    assert resp.soup.nav is not None
+    assert resp.soup.nav.find("a", href=url_for('ui.my_requests'), string="My Requests") is not None
+
+    if user.service_owner:
+        assert resp.soup.nav.find("a", href=url_for('ui.my_jobs'), string='My Jobs') is not None
+
+    if has_form:
+        _assert_csrf_token(resp.soup)
+
+    return resp
 
 
 def get_test_owned_task(faker, owner, **kwargs):

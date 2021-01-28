@@ -7,7 +7,6 @@ from io import BytesIO
 from tests import get_test_service
 from lbrc_services.model import Organisation, Task, TaskStatusType
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
-from lbrc_flask.pytest.helpers import login
 from lbrc_flask.forms.dynamic import FieldType
 
 
