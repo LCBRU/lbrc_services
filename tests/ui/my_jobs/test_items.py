@@ -2,11 +2,12 @@ import pytest
 import re
 from flask import url_for
 from lbrc_services.model import TaskStatusType
-from tests import lbrc_services_get, get_test_owned_task, get_test_user
+from tests import get_test_service, lbrc_services_get, get_test_owned_task, get_test_user, get_test_task
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__search_html
 from flask_api import status
 from lbrc_services.ui.forms import _get_combined_task_status_type_choices, _get_service_choices, _get_requestor_choices
-from lbrc_flask.pytest.asserts import assert__select
+from lbrc_flask.pytest.asserts import assert__select, assert__page_navigation
+
 
 def _url(external=True, **kwargs):
     return url_for('ui.my_jobs', _external=external, **kwargs)
@@ -105,3 +106,48 @@ def task_matches_li(task, li):
     assert li.find("button", "btn").find(string=re.compile(task.current_status_type.name)) is not None
     assert li.find("div", "dropdown-menu").find('a', string='Update Status') is not None
     assert li.find("div", "dropdown-menu").find('a', string='Show History') is not None
+
+
+@pytest.mark.parametrize(
+    "jobs",
+    [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
+)
+def test__my_jobs__pages(client, faker, jobs, loggedin_user):
+    my_jobs = [get_test_owned_task(faker, owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
+
+    assert__page_navigation(client, _url(external=False), jobs)
+
+
+@pytest.mark.parametrize(
+    "jobs",
+    [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
+)
+def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
+    matching = [get_test_owned_task(faker, name='Mary', owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
+    unmatching = [get_test_owned_task(faker, name='Joseph', owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
+
+    assert__page_navigation(client, _url(search='ar', external=False), jobs)
+
+
+@pytest.mark.parametrize(
+    "jobs",
+    [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
+)
+def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user):
+    matching = [get_test_owned_task(faker, current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
+    unmatching = [get_test_owned_task(faker, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
+
+    assert__page_navigation(client, _url(task_status_type_id=TaskStatusType.get_done().id, external=False), jobs)
+
+
+@pytest.mark.parametrize(
+    "jobs",
+    [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
+)
+def test__my_jobs__search__service__pages(client, faker, jobs, loggedin_user):
+    service1 = get_test_service(faker, owners=[loggedin_user])
+    service2 = get_test_service(faker, owners=[loggedin_user])
+    matching = [get_test_task(faker, service=service1, requestor=loggedin_user) for _ in range(jobs)]
+    unmatching = [get_test_task(faker, service=service2, requestor=loggedin_user) for _ in range(100)]
+
+    assert__page_navigation(client, _url(service_id=service1.id, external=False), jobs)

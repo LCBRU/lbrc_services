@@ -33,7 +33,7 @@
                                 <div class="col-12 col-md">
                                     <h3>Attachments</h3>
                                     <div>
-                                        {% for f in r.files %}
+                                        {% for f in t.files %}
                                             <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
                                         {% endfor %}
                                     </div>
@@ -88,7 +88,7 @@
     </ul>
 </section>
 
-{{ render_pagination(tasks, 'ui.my_jobs', search=search_form.search.data) }}
+{{ render_pagination(tasks, 'ui.my_jobs', form=search_form) }}
 
 {% call render_modal('updateStatusModal', 'Update Status') %}
     <p id="modal_description">Set new status for "<span id="task_name"></span>".</p>
