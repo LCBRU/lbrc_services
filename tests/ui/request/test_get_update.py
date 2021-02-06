@@ -1,10 +1,9 @@
 from lbrc_services.model import Task
 from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
-from tests.ui.request import get_test_field_of_type
 import pytest
-from tests import lbrc_services_get, get_test_owned_task, get_test_task, get_test_user
-from lbrc_flask.pytest.asserts import assert__form_standards, assert__html_standards, assert__requires_login
+from tests import lbrc_services_get
+from lbrc_flask.pytest.asserts import assert__requires_login
 from flask_api import status
 
 
@@ -16,7 +15,7 @@ def _url(task_id, external=True, prev=None):
 
 
 def test__get__requires_login(client, faker):
-    task = get_test_task(faker)
+    task = faker.get_test_task()
 
     assert__requires_login(client, _url(task.id, external=False))
 
@@ -27,7 +26,7 @@ def test__get__missing(client, faker, loggedin_user):
 
 
 def test__get__not_service_owner_or_requestor(client, faker, loggedin_user):
-    task = get_test_task(faker)
+    task = faker.get_test_task()
 
     resp = client.get(_url(task_id=task.id))
     assert resp.status_code == status.HTTP_403_FORBIDDEN
@@ -35,7 +34,7 @@ def test__get__not_service_owner_or_requestor(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__get__is_requestor(client, faker, loggedin_user):
-    task = get_test_task(faker, requestor=loggedin_user)
+    task = faker.get_test_task(requestor=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
@@ -43,16 +42,16 @@ def test__get__is_requestor(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__get__is_service_owner(client, faker, loggedin_user):
-    task = get_test_owned_task(faker, owner=loggedin_user)
+    task = faker.get_test_owned_task(owner=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
 
 
 def test__get__is_owner_of_other_service(client, faker, loggedin_user):
-    user2 = get_test_user(faker)
+    user2 = faker.get_test_user()
     s_owned = faker.service_details(owners=[loggedin_user])
-    task = get_test_owned_task(faker, owner=user2)
+    task = faker.get_test_owned_task(owner=user2)
 
     resp = client.get(_url(task_id=task.id))
     assert resp.status_code == status.HTTP_403_FORBIDDEN
@@ -60,7 +59,7 @@ def test__get__is_owner_of_other_service(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__get__common_form_fields(client, faker, loggedin_user):
-    task = get_test_task(faker, requestor=loggedin_user)
+    task = faker.get_test_task(requestor=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
@@ -77,8 +76,8 @@ def test__get__common_form_fields(client, faker, loggedin_user):
 )
 def test__create_task__input_fields(client, faker, field_type_name, loggedin_user):
     ft = FieldType._get_field_type(field_type_name)
-    s, f = get_test_field_of_type(faker, ft)
-    task = get_test_task(faker, service=s, requestor=loggedin_user)
+    s, f = faker.get_test_field_of_type(ft)
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
@@ -95,7 +94,7 @@ def test__create_task__input_fields(client, faker, field_type_name, loggedin_use
     ],
 )
 def test__get__buttons(client, faker, endpoint, loggedin_user):
-    task = get_test_task(faker, requestor=loggedin_user)
+    task = faker.get_test_task(requestor=loggedin_user)
     url = url_for(endpoint)
     resp = lbrc_services_get(client, _url(task_id=task.id, prev=url), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK

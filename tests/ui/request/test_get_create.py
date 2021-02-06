@@ -1,9 +1,8 @@
 from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
-from tests.ui.request import get_test_field_of_type
 import pytest
-from tests import lbrc_services_get, get_test_service
-from lbrc_flask.pytest.asserts import assert__form_standards, assert__requires_login
+from tests import lbrc_services_get
+from lbrc_flask.pytest.asserts import assert__requires_login
 from flask_api import status
 
 
@@ -15,7 +14,7 @@ def _url(service_id, external=True, prev=None):
 
 
 def test__get__requires_login(client, faker):
-    s = get_test_service(faker)
+    s = faker.get_test_service()
     assert__requires_login(client, _url(s.id, external=False))
 
 
@@ -25,7 +24,7 @@ def test__get__missing(client, faker, loggedin_user):
 
 
 def test__get__common_form_fields(client, faker, loggedin_user):
-    s = get_test_service(faker)
+    s = faker.get_test_service()
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
     assert resp.status_code == status.HTTP_200_OK
 
@@ -35,7 +34,7 @@ def test__get__common_form_fields(client, faker, loggedin_user):
 
 
 def test__get__not_service_owner__cannot_select_requestor(client, faker, loggedin_user):
-    s = get_test_service(faker)
+    s = faker.get_test_service()
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
     assert resp.status_code == status.HTTP_200_OK
 
@@ -43,8 +42,8 @@ def test__get__not_service_owner__cannot_select_requestor(client, faker, loggedi
 
 
 def test__get__service_owner__can_select_requestor(client, faker, loggedin_user):
-    s_owned = get_test_service(faker, owners=[loggedin_user])
-    s = get_test_service(faker)
+    s_owned = faker.get_test_service(owners=[loggedin_user])
+    s = faker.get_test_service()
 
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
     assert resp.status_code == status.HTTP_200_OK
@@ -57,7 +56,7 @@ def test__get__service_owner__can_select_requestor(client, faker, loggedin_user)
 )
 def test__create_task__input_fields(client, faker, field_type_name, loggedin_user):
     ft = FieldType._get_field_type(field_type_name)
-    s, f = get_test_field_of_type(faker, ft)
+    s, f = faker.get_test_field_of_type(ft)
 
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
     assert resp.status_code == status.HTTP_200_OK
@@ -73,7 +72,7 @@ def test__create_task__input_fields(client, faker, field_type_name, loggedin_use
     ],
 )
 def test__get__buttons(client, faker, endpoint, loggedin_user):
-    s = get_test_service(faker)
+    s = faker.get_test_service()
     url = url_for(endpoint)
 
     resp = lbrc_services_get(client, _url(service_id=s.id, prev=url), loggedin_user)

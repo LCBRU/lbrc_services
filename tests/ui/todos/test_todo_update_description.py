@@ -1,7 +1,5 @@
-from tests.ui.todos import get_test_owned_todo
 from flask import url_for
 from flask_api import status
-from tests import get_test_owned_task, get_test_task, get_test_todo, get_test_user
 from lbrc_services.model import ToDo
 from lbrc_flask.pytest.asserts import assert__redirect, assert__requires_login
 from lbrc_flask.database import db
@@ -37,7 +35,7 @@ def test__post__requires_login(client, faker):
 
 
 def test__update_post__todo_missing(client, faker, loggedin_user):
-    task = get_test_owned_task(faker, owner=loggedin_user)
+    task = faker.get_test_owned_task(owner=loggedin_user)
 
     resp = _update_todo_post(client, task_id=task.id, todo_id=9999, description=faker.pystr(min_chars=5, max_chars=100))
     assert resp.status_code == status.HTTP_404_NOT_FOUND
@@ -49,7 +47,7 @@ def test__create_post__task_missing(client, faker, loggedin_user):
 
 
 def test__create_post__ok(client, faker, loggedin_user):
-    task = get_test_owned_task(faker, owner=loggedin_user)
+    task = faker.get_test_owned_task(owner=loggedin_user)
 
     expected = faker.pystr(min_chars=5, max_chars=100)
 
@@ -64,7 +62,7 @@ def test__create_post__ok(client, faker, loggedin_user):
 
 
 def test__update_post__ok(client, faker, loggedin_user):
-    todo = get_test_owned_todo(faker, loggedin_user)
+    todo = faker.get_test_owned_todo(loggedin_user)
 
     expected = faker.pystr(min_chars=5, max_chars=100)
 
@@ -79,12 +77,12 @@ def test__update_post__ok(client, faker, loggedin_user):
 
 
 def test__update_post__not_owner(client, faker, loggedin_user):
-    user2 = get_test_user(faker)
+    user2 = faker.get_test_user()
 
     s = faker.service_details(owners=[user2])
     db.session.add(s)
-    task = get_test_task(faker, service=s)
-    todo = get_test_todo(faker, task=task)
+    task = faker.get_test_task(service=s)
+    todo = faker.get_test_todo(task=task)
     db.session.commit()
 
     expected = faker.pystr(min_chars=5, max_chars=100)

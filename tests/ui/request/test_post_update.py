@@ -1,10 +1,8 @@
 from flask import url_for
 from pathlib import Path
 from flask_api import status
-from tests.ui.request import get_test_field_of_type
 import pytest
 from io import BytesIO
-from tests import get_test_task
 from lbrc_services.model import Organisation, Task, TaskStatusType
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
 from lbrc_flask.forms.dynamic import FieldType
@@ -73,7 +71,7 @@ def _assert_task(expected_task, user, data=None, files=None):
 
 
 def test__post__requires_login(client, faker):
-    task = get_test_task(faker)
+    task = faker.get_test_task()
 
     assert__requires_login(client, _url(task_id=task.id, external=False), post=True)
 
@@ -84,7 +82,7 @@ def test__post__missing(client, faker, loggedin_user):
 
 
 def test__create_task__with_all_values(client, faker, loggedin_user):
-    task = get_test_task(faker, requestor=loggedin_user)
+    task = faker.get_test_task(requestor=loggedin_user)
 
     resp = _edit_task_post(client, task)
 
@@ -93,7 +91,7 @@ def test__create_task__with_all_values(client, faker, loggedin_user):
 
 
 def test__create_task__empty_name(client, faker, loggedin_user):
-    task = get_test_task(faker, requestor=loggedin_user)
+    task = faker.get_test_task(requestor=loggedin_user)
     task.name = ''
 
     resp = _edit_task_post(client, task)
@@ -103,7 +101,7 @@ def test__create_task__empty_name(client, faker, loggedin_user):
 
 
 def test__create_task__empty_organisation(client, faker, loggedin_user):
-    task = get_test_task(faker, requestor=loggedin_user)
+    task = faker.get_test_task(requestor=loggedin_user)
     task.organisation_id = None
 
     resp = _edit_task_post(client, task)
@@ -113,7 +111,7 @@ def test__create_task__empty_organisation(client, faker, loggedin_user):
 
 
 def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, loggedin_user):
-    task = get_test_task(faker, requestor=loggedin_user)
+    task = faker.get_test_task(requestor=loggedin_user)
     task.organisation_id = Organisation.get_other().id
     task.organisation_description = ''
 
@@ -139,14 +137,14 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
     ],
 )
 def test__create_task__fields(client, faker, field_type, value, expected_value, loggedin_user):
-    s, f = get_test_field_of_type(faker, FieldType._get_field_type(field_type))
+    s, f = faker.get_test_field_of_type(FieldType._get_field_type(field_type))
 
     field_data = {}
 
     if value is not None:
         field_data[f.field_name] = value
 
-    task = get_test_task(faker, service=s, requestor=loggedin_user)
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
 
     resp = _edit_task_post(client, task, field_data)
 
@@ -166,14 +164,14 @@ def test__create_task__fields(client, faker, field_type, value, expected_value, 
     ],
 )
 def test__create_task__radio_fields(client, faker, choices, value, expected_value, loggedin_user):
-    s, f = get_test_field_of_type(faker, FieldType.get_radio(), choices=choices)
+    s, f = faker.get_test_field_of_type(FieldType.get_radio(), choices=choices)
 
     field_data = {}
 
     if value is not None:
         field_data[f.field_name] = value
 
-    task = get_test_task(faker, service=s, requestor=loggedin_user)
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
 
     resp = _edit_task_post(client, task, field_data)
 
@@ -187,9 +185,9 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
 
 
 def test__upload__upload_FileField__no_file(client, faker, loggedin_user):
-    s, f = get_test_field_of_type(faker, FieldType.get_file())
+    s, f = faker.get_test_field_of_type(FieldType.get_file())
 
-    task = get_test_task(faker, service=s, requestor=loggedin_user)
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
     resp = _edit_task_post(client, task)
 
     assert__redirect(resp, endpoint='ui.index')
@@ -197,7 +195,7 @@ def test__upload__upload_FileField__no_file(client, faker, loggedin_user):
 
 
 def test__upload__upload_FileField(client, faker, loggedin_user):
-    s, f = get_test_field_of_type(faker, FieldType.get_file())
+    s, f = faker.get_test_field_of_type(FieldType.get_file())
 
     field_data = {}
 
@@ -217,7 +215,7 @@ def test__upload__upload_FileField(client, faker, loggedin_user):
         }
     ]
 
-    task = get_test_task(faker, service=s, requestor=loggedin_user)
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
     resp = _edit_task_post(client, task, field_data)
 
     assert__redirect(resp, endpoint='ui.index')
@@ -225,9 +223,9 @@ def test__upload__upload_FileField(client, faker, loggedin_user):
 
 
 def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user):
-    s, f = get_test_field_of_type(faker, FieldType.get_multifile())
+    s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
-    task = get_test_task(faker, service=s, requestor=loggedin_user)
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
     resp = _edit_task_post(client, task)
 
     assert__redirect(resp, endpoint='ui.index')
@@ -242,7 +240,7 @@ def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user):
     ],
 )
 def test__upload__upload_MultiFileField(client, faker, n, loggedin_user):
-    s, f = get_test_field_of_type(faker, FieldType.get_multifile())
+    s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
     field_data = {
         f.field_name: [],
@@ -264,7 +262,7 @@ def test__upload__upload_MultiFileField(client, faker, n, loggedin_user):
             'content': content,
         })
 
-    task = get_test_task(faker, service=s, requestor=loggedin_user)
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
     resp = _edit_task_post(client, task, field_data)
 
     assert__redirect(resp, endpoint='ui.index')

@@ -1,7 +1,6 @@
 from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
 from unittest.mock import patch
-from tests import get_test_owned_task, get_test_task, get_test_task_file, get_test_service
 from flask import url_for
 from flask_api import status
 
@@ -18,35 +17,35 @@ def mock_send_file(app):
 
 
 def test_url_requires_login_get(client, faker):
-    tf = get_test_task_file(faker)
+    tf = faker.get_test_task_file()
     assert__requires_login(client, _url(tf.id, tf.task.id, external=False))
 
 
 def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_send_file, loggedin_user):
-    t = get_test_owned_task(faker, owner=loggedin_user)
-    tf = get_test_task_file(faker, task=t)
+    t = faker.get_test_owned_task(owner=loggedin_user)
+    tf = faker.get_test_task_file(task=t)
 
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == status.HTTP_200_OK
 
 
 def test__must_be_task_file_owner_or_requestor__is_requestor(client, faker, mock_send_file, loggedin_user):
-    t = get_test_task(faker, requestor=loggedin_user)
-    tf = get_test_task_file(faker, task=t)
+    t = faker.get_test_task(requestor=loggedin_user)
+    tf = faker.get_test_task_file(task=t)
 
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == status.HTTP_200_OK
 
 
 def test__must_be_task_file_owner_or_requestor__is_neither(client, faker, loggedin_user):
-    tf = get_test_task_file(faker)
+    tf = faker.get_test_task_file()
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test__task_file__not_found(client, faker, mock_send_file, loggedin_user):
-    t = get_test_owned_task(faker, owner=loggedin_user)
-    tf = get_test_task_file(faker, task=t)
+    t = faker.get_test_owned_task(owner=loggedin_user)
+    tf = faker.get_test_task_file(task=t)
 
     resp = client.get(_url(999, tf.task.id))
 
@@ -54,8 +53,8 @@ def test__task_file__not_found(client, faker, mock_send_file, loggedin_user):
 
 
 def test__task__not_found(client, faker, mock_send_file, loggedin_user):
-    t = get_test_owned_task(faker, owner=loggedin_user)
-    tf = get_test_task_file(faker, task=t)
+    t = faker.get_test_owned_task(owner=loggedin_user)
+    tf = faker.get_test_task_file(task=t)
 
     resp = client.get(_url(tf.id, 999))
 

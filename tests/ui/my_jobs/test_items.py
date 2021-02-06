@@ -2,7 +2,7 @@ import pytest
 import re
 from flask import url_for
 from lbrc_services.model import TaskStatusType
-from tests import get_test_service, lbrc_services_get, get_test_owned_task, get_test_user, get_test_task
+from tests import lbrc_services_get
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__search_html
 from flask_api import status
 from lbrc_services.ui.forms import _get_combined_task_status_type_choices, _get_service_choices, _get_requestor_choices
@@ -35,10 +35,10 @@ def test__get__requires_login(client):
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
 )
 def test__my_jobs(client, faker, mine, others, loggedin_user):
-    user2 = get_test_user(faker)
+    user2 = faker.get_test_user()
 
-    my_jobs = [get_test_owned_task(faker, owner=loggedin_user) for _ in range(mine)]
-    others_jobs = [get_test_owned_task(faker, owner=user2) for _ in range(others)]
+    my_jobs = [faker.get_test_owned_task(owner=loggedin_user) for _ in range(mine)]
+    others_jobs = [faker.get_test_owned_task(owner=user2) for _ in range(others)]
 
     resp = _get(client, _url(), loggedin_user, has_form=True)
 
@@ -47,8 +47,8 @@ def test__my_jobs(client, faker, mine, others, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__name(client, faker, loggedin_user):
-    matching = get_test_owned_task(faker, name='Mary', owner=loggedin_user)
-    non_matching = get_test_owned_task(faker, name='Joseph', owner=loggedin_user)
+    matching = faker.get_test_owned_task(name='Mary', owner=loggedin_user)
+    non_matching = faker.get_test_owned_task(name='Joseph', owner=loggedin_user)
 
     resp = _get(client, _url(search='ar'), loggedin_user, has_form=True)
 
@@ -59,8 +59,8 @@ def test__my_jobs__search__name(client, faker, loggedin_user):
 def test__my_jobs__search__task_status_type(client, faker, loggedin_user):
     s = faker.service_details(owners=[loggedin_user])
 
-    matching = get_test_owned_task(faker, current_status_type=TaskStatusType.get_done(), owner=loggedin_user)
-    non_matching = get_test_owned_task(faker, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user)
+    matching = faker.get_test_owned_task(current_status_type=TaskStatusType.get_done(), owner=loggedin_user)
+    non_matching = faker.get_test_owned_task(current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user)
 
     resp = _get(client, _url(task_status_type_id=TaskStatusType.get_done().id), loggedin_user, has_form=True)
 
@@ -69,8 +69,8 @@ def test__my_jobs__search__task_status_type(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__service(client, faker, loggedin_user):
-    matching = get_test_owned_task(faker, owner=loggedin_user)
-    non_matching = get_test_owned_task(faker, owner=loggedin_user)
+    matching = faker.get_test_owned_task(owner=loggedin_user)
+    non_matching = faker.get_test_owned_task(owner=loggedin_user)
 
     resp = _get(client, _url(service_id=matching.service.id), loggedin_user, has_form=True)
 
@@ -79,8 +79,8 @@ def test__my_jobs__search__service(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__requestor(client, faker, loggedin_user):
-    matching = get_test_owned_task(faker, owner=loggedin_user)
-    non_matching = get_test_owned_task(faker, owner=loggedin_user)
+    matching = faker.get_test_owned_task(owner=loggedin_user)
+    non_matching = faker.get_test_owned_task(owner=loggedin_user)
 
     resp = _get(client, _url(requestor_id=matching.requestor.id), loggedin_user, has_form=True)
 
@@ -113,7 +113,7 @@ def task_matches_li(task, li):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__pages(client, faker, jobs, loggedin_user):
-    my_jobs = [get_test_owned_task(faker, owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
+    my_jobs = [faker.get_test_owned_task(owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
 
     assert__page_navigation(client, _url(external=False), jobs)
 
@@ -123,8 +123,8 @@ def test__my_jobs__pages(client, faker, jobs, loggedin_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
-    matching = [get_test_owned_task(faker, name='Mary', owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
-    unmatching = [get_test_owned_task(faker, name='Joseph', owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
+    matching = [faker.get_test_owned_task(name='Mary', owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
+    unmatching = [faker.get_test_owned_task(name='Joseph', owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
 
     assert__page_navigation(client, _url(search='ar', external=False), jobs)
 
@@ -134,8 +134,8 @@ def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user):
-    matching = [get_test_owned_task(faker, current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
-    unmatching = [get_test_owned_task(faker, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
+    matching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
+    unmatching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
 
     assert__page_navigation(client, _url(task_status_type_id=TaskStatusType.get_done().id, external=False), jobs)
 
@@ -145,9 +145,9 @@ def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__service__pages(client, faker, jobs, loggedin_user):
-    service1 = get_test_service(faker, owners=[loggedin_user])
-    service2 = get_test_service(faker, owners=[loggedin_user])
-    matching = [get_test_task(faker, service=service1, requestor=loggedin_user) for _ in range(jobs)]
-    unmatching = [get_test_task(faker, service=service2, requestor=loggedin_user) for _ in range(100)]
+    service1 = faker.get_test_service(owners=[loggedin_user])
+    service2 = faker.get_test_service(owners=[loggedin_user])
+    matching = [faker.get_test_task(service=service1, requestor=loggedin_user) for _ in range(jobs)]
+    unmatching = [faker.get_test_task(service=service2, requestor=loggedin_user) for _ in range(100)]
 
     assert__page_navigation(client, _url(service_id=service1.id, external=False), jobs)

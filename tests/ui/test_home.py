@@ -1,5 +1,5 @@
 import re
-from tests import lbrc_services_get, get_test_service
+from tests import lbrc_services_get
 from flask_api import status
 from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
@@ -19,7 +19,7 @@ def test__get__requires_login(client):
     [(0,), (1,), (2,), (10,)],
 )
 def test__services(client, faker, n, loggedin_user):
-    services = [get_test_service(faker) for _ in range(n)]
+    services = [faker.get_test_service() for _ in range(n)]
 
     resp = lbrc_services_get(client, _url(), loggedin_user)
 

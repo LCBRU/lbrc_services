@@ -25,4 +25,3 @@ def faker():
     result.add_provider(LbrcServicesFakerProvider)
 
     yield result
-
