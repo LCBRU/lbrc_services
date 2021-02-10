@@ -131,3 +131,4 @@ file_uploads
 file_upload
 database.sqlite3
 .vscode
+*.code-workspace
