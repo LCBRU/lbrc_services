@@ -112,7 +112,7 @@ def get_create_task_form(service, task=None):
         dt.organisation_description = task.organisation_description
 
         for td in task.data:
-            setattr(dt, td.field.field_name, td.value)
+            setattr(dt, td.field.field_name, td.data_value)
 
     result = builder.get_form()(obj=dt)
 

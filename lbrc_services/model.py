@@ -185,13 +185,17 @@ class TaskData(AuditMixin, CommonMixin, db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     value = db.Column(db.UnicodeText())
     task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
-    task = db.relationship(Task, backref='data')
+    task = db.relationship(Task, backref=backref('data', cascade='all, delete-orphan'))
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
     field = db.relationship(Field, lazy="joined")
 
     @property
     def formated_value(self):
         return self.field.format_value(self.value)
+
+    @property
+    def data_value(self):
+        return self.field.data_value(self.value)
 
 
 class TaskFile(AuditMixin, CommonMixin, db.Model):
@@ -200,7 +204,7 @@ class TaskFile(AuditMixin, CommonMixin, db.Model):
     filename = db.Column(db.UnicodeText())
     local_filepath = db.Column(db.UnicodeText())
     task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
-    task = db.relationship(Task, backref='files')
+    task = db.relationship(Task, backref=backref('files', cascade='all, delete-orphan'))
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
     field = db.relationship(Field, lazy="joined")
 

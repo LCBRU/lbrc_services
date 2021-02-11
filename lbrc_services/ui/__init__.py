@@ -139,6 +139,7 @@ def save_task(task, form):
     task.organisation_description = form.organisation_description.data
     task.name = form.name.data
 
+    task.data.clear()
     db.session.add(task)
 
     for field_name, value in form.data.items():
@@ -152,17 +153,15 @@ def save_task(task, form):
         else:
             values = [value]
 
-        task.files[:] = []
-        task.data[:] = []
-
         for v in values:
             if field.field_type.is_file:
                 if v is not None:
                     tf = TaskFile(task=task, field=field)
                     tf.set_filename_and_save(v)
-                    db.session.add(tf)
+                    task.files.append(tf)
             else:
-                db.session.add(TaskData(task=task, field=field, value=v))
+                td = TaskData(task=task, field=field, value=v)
+                task.data.append(td)
 
 
 @blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])

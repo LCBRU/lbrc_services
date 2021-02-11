@@ -9,9 +9,12 @@ class FakerFile():
         self.content = content
         self.filename = filename
 
+    def file(self):
+        return BytesIO(self.content.encode('utf-8'))
+
     def file_tuple(self):
         return (
-            BytesIO(self.content.encode('utf-8')),
+            self.file(),
             self.filename
         )
 
@@ -106,6 +109,7 @@ class LbrcServicesFakerProvider(BaseProvider):
         elif task.id is None:
             result.task = task
         else:
+            result.task = task
             result.task_id = task.id
 
         if field is None:
@@ -174,8 +178,17 @@ class LbrcServicesFakerProvider(BaseProvider):
         return r
 
 
-    def get_test_task_file(self, **kwargs):
+    def get_test_task_file(self, fake_file=None, **kwargs):
         r = self.task_file_details(**kwargs)
+
+        if fake_file is None:
+            fake_file = FakerFile(self.generator.text(), r.filename)
+
+        filepath = r._new_local_filepath(r.filename)
+        r.local_filepath = str(filepath)
+        f = open(filepath, "a")
+        f.write(fake_file.content)
+        f.close()
 
         db.session.add(r)
         db.session.commit()

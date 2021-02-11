@@ -132,7 +132,6 @@ def test__update_task__radio_fields(client, faker, choices, original_value, valu
     task = faker.get_test_task(service=s, requestor=loggedin_user)
     orig = faker.get_test_task_data(task=task, field=f, value=original_value)
 
-    ic(value, field_data)
     resp = _edit_task_post(client, task, field_data)
 
     assert__redirect(resp, endpoint='ui.index')
@@ -142,31 +141,40 @@ def test__update_task__radio_fields(client, faker, choices, original_value, valu
 def test__update_task__upload_FileField__no_file(client, faker, loggedin_user):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
+    files=[]
+
     task = faker.get_test_task(service=s, requestor=loggedin_user)
-    orig = faker.get_test_task_file(task=task, field=f)
+
+    orig1 = faker.fake_file()
+    faker.get_test_task_file(task=task, field=f, fake_file=orig1, filename=orig1.filename)
+    files.append({'field': f, 'file': orig1})
 
     resp = _edit_task_post(client, task)
 
     assert__redirect(resp, endpoint='ui.index')
-    assert__task(task, loggedin_user)
+    assert__task(task, loggedin_user, files=files)
 
 
 def test__update_task__upload_FileField(client, faker, loggedin_user):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
     field_data = {}
+    files = []
 
     fake_file = faker.fake_file()
 
     field_data[f.field_name] = fake_file.file_tuple()
 
-    files = [{
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
+
+    orig1 = faker.fake_file()
+    faker.get_test_task_file(task=task, field=f, fake_file=orig1, filename=orig1.filename)
+    files.append({'field': f, 'file': orig1})
+
+    files.append({
         'field': f,
         'file': fake_file,
-    }]
-
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
-    orig = faker.get_test_task_file(task=task, field=f)
+    })
 
     resp = _edit_task_post(client, task, field_data)
 
@@ -177,14 +185,22 @@ def test__update_task__upload_FileField(client, faker, loggedin_user):
 def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_user):
     s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
+    files = []
+
     task = faker.get_test_task(service=s, requestor=loggedin_user)
-    orig = faker.get_test_task_file(task=task, field=f)
-    orig2 = faker.get_test_task_file(task=task, field=f)
+
+    orig1 = faker.fake_file()
+    faker.get_test_task_file(task=task, field=f, fake_file=orig1, filename=orig1.filename)
+    files.append({'field': f, 'file': orig1})
+
+    orig2 = faker.fake_file()
+    faker.get_test_task_file(task=task, field=f, fake_file=orig1, filename=orig1.filename)
+    files.append({'field': f, 'file': orig1})
 
     resp = _edit_task_post(client, task)
 
     assert__redirect(resp, endpoint='ui.index')
-    assert__task(task, loggedin_user)
+    assert__task(task, loggedin_user, files=files)
 
 
 @pytest.mark.parametrize(
@@ -202,6 +218,16 @@ def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user):
     }
     files = []
 
+    task = faker.get_test_task(service=s, requestor=loggedin_user)
+
+    orig1 = faker.fake_file()
+    faker.get_test_task_file(task=task, field=f, fake_file=orig1, filename=orig1.filename)
+    files.append({'field': f, 'file': orig1})
+
+    orig2 = faker.fake_file()
+    faker.get_test_task_file(task=task, field=f, fake_file=orig1, filename=orig1.filename)
+    files.append({'field': f, 'file': orig1})
+
     for _ in range(n):
         fake_file = faker.fake_file()
 
@@ -211,10 +237,6 @@ def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user):
             'field': f,
             'file': fake_file,
         })
-
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
-    orig = faker.get_test_task_file(task=task, field=f)
-    orig2 = faker.get_test_task_file(task=task, field=f)
 
     resp = _edit_task_post(client, task, field_data)
 
