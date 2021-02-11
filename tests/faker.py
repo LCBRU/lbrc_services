@@ -1,9 +1,25 @@
 from faker.providers import BaseProvider
-from lbrc_services.model import Organisation, TaskStatusType, ToDo, User, Service, Task, TaskFile
+from lbrc_services.model import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
+from io import BytesIO
+
+
+class FakerFile():
+    def __init__(self, content, filename):
+        self.content = content
+        self.filename = filename
+
+    def file_tuple(self):
+        return (
+            BytesIO(self.content.encode('utf-8')),
+            self.filename
+        )
 
 
 class LbrcServicesFakerProvider(BaseProvider):
+    def fake_file(self):
+        return FakerFile(self.generator.text(), self.generator.file_name(extension='pdf'))
+
     def user_details(self):
         u = User(
             first_name=self.generator.first_name(),
@@ -75,16 +91,55 @@ class LbrcServicesFakerProvider(BaseProvider):
 
         return result
 
-    def task_file_details(self, task=None):
-        if task is None:
-            task = self.task_details()
+    def task_file_details(self, task=None, field=None, filename=None):
 
-        return TaskFile(
-            filename=self.generator.pystr(min_chars=5, max_chars=10),
+        if filename is None:
+            filename = self.generator.pystr(min_chars=5, max_chars=10)
+
+        result = TaskFile(
+            filename=filename,
             local_filepath=self.generator.pystr(min_chars=5, max_chars=10),
-            task=task,
-            field=self.generator.field_details()
         )
+
+        if task is None:
+            result.task = self.task_details()
+        elif task.id is None:
+            result.task = task
+        else:
+            result.task_id = task.id
+
+        if field is None:
+            result.field = self.generator.field_details()
+        elif field.id is None:
+            result.field = field
+        else:
+            result.field_id = field.id
+
+        return result
+
+    def task_data_details(self, task=None, field=None, value=None):
+        result = TaskData()
+
+        if task is None:
+            result.task = self.task_details()
+        elif task.id is None:
+            result.task = task
+        else:
+            result.task_id = task.id
+
+        if field is None:
+            result.field = self.generator.field_details()
+        elif field.id is None:
+            result.field = task
+        else:
+            result.field_id = field.id
+
+        if value is None:
+            result.value = self.generator.pystr(min_chars=5, max_chars=100)
+        else:
+            result.value = value
+        
+        return result
 
     def todo_details(self, task=None, description=None, status=None):
         if task is None:
@@ -168,3 +223,12 @@ class LbrcServicesFakerProvider(BaseProvider):
         s = self.get_test_service(field_group=fg)
         f = self.generator.get_test_field(field_group=fg, field_type=field_type, choices=choices)
         return s,f
+
+
+    def get_test_task_data(self, **kwargs):
+        td = self.task_data_details(**kwargs)
+        db.session.add(td)
+        db.session.commit()
+
+        return td
+

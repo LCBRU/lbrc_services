@@ -6,6 +6,7 @@ from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError
 from lbrc_services.model import TaskStatusType, Service, Task, Organisation, User
+from icecream import ic
 
 
 def _get_requestor_choices():
@@ -99,4 +100,20 @@ def get_create_task_form(service, task=None):
     builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
     builder.add_field_group(service.field_group)
 
-    return builder.get_form()(obj=task)
+    class DynamicTask:
+        pass
+
+    dt = DynamicTask()
+
+    if task is not None:
+        dt.id = task.id
+        dt.name = task.name
+        dt.organisation_id = task.organisation_id
+        dt.organisation_description = task.organisation_description
+
+        for td in task.data:
+            setattr(dt, td.field.field_name, td.value)
+
+    result = builder.get_form()(obj=dt)
+
+    return result

@@ -15,6 +15,7 @@ from flask_security import login_required, current_user
 from sqlalchemy.orm import joinedload
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
+from icecream import ic
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -151,8 +152,10 @@ def save_task(task, form):
         else:
             values = [value]
 
-        for v in values:
+        task.files[:] = []
+        task.data[:] = []
 
+        for v in values:
             if field.field_type.is_file:
                 if v is not None:
                     tf = TaskFile(task=task, field=field)
