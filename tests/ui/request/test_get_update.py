@@ -139,7 +139,6 @@ def test__update_task__radio_field__Value(client, faker, loggedin_user):
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
     assert resp.status_code == status.HTTP_200_OK
 
-    ic(ft.html_tag)
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
     assert actual is not None
 

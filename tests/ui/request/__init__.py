@@ -39,13 +39,10 @@ def assert__task(expected_task, user, data=None, files=None):
     for da, de in zip(a.data, data):
         assert da.task == a
         assert da.field == de['field']
-        ic(da.value, de['value'])
         assert da.value == de['value']
 
 
 def post_task(client, url, task, field_data=None):
-    ic(field_data)
-
     if field_data is None:
         field_data = {}
 
@@ -58,7 +55,5 @@ def post_task(client, url, task, field_data=None):
 
     if task.requestor_id:
         data['requestor_id'] = task.requestor_id
-
-    ic(data)
 
     return client.post(url, data=data)
