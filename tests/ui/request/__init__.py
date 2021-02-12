@@ -1,6 +1,5 @@
 from lbrc_services.model import Task, TaskStatusType
 from pathlib import Path
-from icecream import ic
 
 
 def assert__task(expected_task, user, data=None, files=None):

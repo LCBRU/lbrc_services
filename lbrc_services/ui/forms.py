@@ -6,7 +6,6 @@ from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError
 from lbrc_services.model import TaskStatusType, Service, Task, Organisation, User
-from icecream import ic
 
 
 def _get_requestor_choices():

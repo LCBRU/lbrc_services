@@ -15,7 +15,6 @@ from flask_security import login_required, current_user
 from sqlalchemy.orm import joinedload
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
-from icecream import ic
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")

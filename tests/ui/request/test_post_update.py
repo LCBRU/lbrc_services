@@ -5,7 +5,6 @@ from lbrc_services.model import Organisation
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
 from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import assert__task, post_task
-from icecream import ic
 
 
 def _url(task_id, external=True, prev=None):
