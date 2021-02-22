@@ -16,7 +16,6 @@ from sqlalchemy.orm import joinedload
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
 from lbrc_flask.security.ldap import Ldap
-from ldap import SCOPE_SUBTREE
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -39,7 +38,10 @@ def ldap():
     l = Ldap()
     l.login_nonpriv()
 
-    result = l.search('(uid=rab63)')
+    result = l.search('({}={}})'.format(
+        current_app.config.get('LDAP_FIELDNAME_USERID', None),
+        current_app.config.get('LDAP_USER', None),
+    ))
     return "Result X: {}".format(result)
 
 
