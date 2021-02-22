@@ -47,7 +47,11 @@ def ldap():
 
 @blueprint.route("/user_search", methods=["GET", "POST"])
 def user_search():
-    print('A jubilee and a half')
+
+    data = request.get_json()
+    q = data['q']
+    print(q)
+
     result = {
         "results": [
             {
