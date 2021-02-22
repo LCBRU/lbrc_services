@@ -36,13 +36,13 @@ def index():
 
 @blueprint.route("/ldap")
 def ldap():
-    # l = Ldap()
-    # l.login(
-    #     username=current_app.config.get('LDAP_USER', None),
-    #     password=current_app.config.get('LDAP_PASSWORD', None),
-    # )
+    l = Ldap()
+    result = l.login(
+        username=current_app.config.get('LDAP_USER', None),
+        password=current_app.config.get('LDAP_PASSWORD', None),
+    )
     # result = l.ldap.search_s(current_app.config.get('LDAP_BASEDN', None), SCOPE_SUBTREE, '(uid=rab63)')
-    return "Result: {}".format(current_app.config.get('LDAP_PASSWORD', None))
+    return "Result: {}".format(result)
 
 
 @blueprint.route("/my_requests")
