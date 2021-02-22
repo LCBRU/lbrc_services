@@ -69,11 +69,11 @@ def user_search():
     #     ],
     # }
 
-    for u in l.search_name(q):
-        results.append({
-            'id': u['username'],
-            'text': '{} {}'.format(u['given_name'], u['surname']),
-        })
+        for u in l.search_name(q):
+            results.append({
+                'id': u['username'],
+                'text': '{} {}'.format(u['given_name'], u['surname']),
+            })
 
 
     return {'results': results}
