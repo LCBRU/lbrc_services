@@ -52,8 +52,14 @@
 
 {% block js %}
 <script type="text/javascript">
+    search_url = '{{ url_for('user_search') }}';
+
     $(document).ready(function() {
-        $('select#requestor_id').select2();
+        $('select#requestor_id').select2({
+            ajax: {
+                url=search_url,
+            }
+        });
     });
 </script>
 

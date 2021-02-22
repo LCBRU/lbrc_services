@@ -45,6 +45,27 @@ def ldap():
     return "LDAP Result: {}".format(result)
 
 
+@blueprint.route("/user_search")
+def user_search():
+    return """
+    {
+  "results": [
+    {
+      "id": 1,
+      "text": "Option 1"
+    },
+    {
+      "id": 2,
+      "text": "Option 2"
+    }
+  ],
+  "pagination": {
+    "more": true
+  }
+}
+"""
+
+
 @blueprint.route("/my_requests")
 def my_requests():
     search_form = TaskSearchForm(formdata=request.args)
