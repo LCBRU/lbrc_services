@@ -52,11 +52,11 @@ def user_search():
     q = get_value_from_all_arguments('q')
     results = []
 
-    if q and len(q) > 3:
+    if q and len(q) > 1:
         l = Ldap()
         l.login_nonpriv()
 
-        users = sorted(l.search_name(q), key=lambda u: (u['surname'], u['given_name']))
+        users = sorted(l.search_user(q), key=lambda u: (u['surname'], u['given_name']))
 
         for u in users:
             results.append({
