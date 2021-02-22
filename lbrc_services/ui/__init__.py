@@ -50,22 +50,31 @@ def ldap():
 def user_search():
 
     q = get_value_from_all_arguments('q')
-    print(q)
+    results = []
 
-    result = {
-        "results": [
-            {
-            "id": 1,
-            "text": "Option 1"
-            },
-            {
-            "id": 2,
-            "text": "Option 2"
-            }
-        ],
-    }
+    if q:
+        l = Ldap()
+        l.login_nonpriv()
 
-    return result
+        result = l.search('({}={})'.format(
+            current_app.config.get('LDAP_FIELDNAME_USERID', None),
+            current_app.config.get('LDAP_TEST_USER', None),
+        ))
+
+    # result = {
+    #     "results": [
+    #         {
+    #         "id": 1,
+    #         "text": "Option 1"
+    #         },
+    #         {
+    #         "id": 2,
+    #         "text": "Option 2"
+    #         }
+    #     ],
+    # }
+
+    return {'results': results}
 
 
 @blueprint.route("/my_requests")
