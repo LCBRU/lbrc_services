@@ -22,12 +22,19 @@ class ServiceView(AdminCustomView):
 
 class UserView(AdminCustomView):
 
-    column_searchable_list = column_list = form_columns = [
+    column_searchable_list = column_list = [
+        User.username,
+        User.email,
+        User.first_name,
+        User.last_name,
+        User.ldap_user,
+    ]
+    form_columns = [
+        User.username,
         User.email,
         User.first_name,
         User.last_name,
     ]
-
 
 def init_admin(app, title):
     flask_init_admin(
