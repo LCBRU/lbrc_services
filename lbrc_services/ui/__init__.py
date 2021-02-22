@@ -59,9 +59,6 @@ def user_search():
             "text": "Option 2"
             }
         ],
-        "pagination": {
-            "more": True
-        }
     }
 
     return result
