@@ -42,7 +42,7 @@ def ldap():
         current_app.config.get('LDAP_FIELDNAME_USERID', None),
         current_app.config.get('LDAP_TEST_USER', None),
     ))
-    return "Result X: {}".format(result)
+    return "LDAP Result: {}".format(result)
 
 
 @blueprint.route("/my_requests")
