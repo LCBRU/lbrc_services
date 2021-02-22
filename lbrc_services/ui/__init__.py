@@ -42,7 +42,7 @@ def ldap():
     #     password=current_app.config.get('LDAP_PASSWORD', None),
     # )
     # result = l.ldap.search_s(current_app.config.get('LDAP_BASEDN', None), SCOPE_SUBTREE, '(uid=rab63)')
-    return "Result: {}".format(current_app.config.get('LDAP_USER', None))
+    return "Result: {}".format(current_app.config.get('LDAP_PASSWORD', None))
 
 
 @blueprint.route("/my_requests")
