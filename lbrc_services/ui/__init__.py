@@ -16,6 +16,7 @@ from sqlalchemy.orm import joinedload
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
 from lbrc_flask.security.ldap import Ldap
+from lbrc_flask.requests import get_value_from_all_arguments
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -48,8 +49,7 @@ def ldap():
 @blueprint.route("/user_search", methods=["GET", "POST"])
 def user_search():
 
-    data = request.get_json()
-    q = data['q']
+    q = get_value_from_all_arguments('q')
     print(q)
 
     result = {
