@@ -56,13 +56,17 @@ def user_search():
         l = Ldap()
         l.login_nonpriv()
 
-        print(q)
+        users = l.search_name(q)
 
-        for u in l.search_name(q):
-            print(u)
+        for u in users:
             results.append({
                 'id': u['username'],
-                'text': '{} {}'.format(u['given_name'], u['surname']),
+                'text': '{} {} ({})'.format(
+                    u['given_name'],
+                    u['surname'],
+                    u['username'],
+                ),
+
             })
 
 
