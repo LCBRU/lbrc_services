@@ -37,10 +37,7 @@ def index():
 @blueprint.route("/ldap")
 def ldap():
     l = Ldap()
-    result = l.login(
-        username=current_app.config.get('LDAP_USER', None),
-        password=current_app.config.get('LDAP_PASSWORD', None),
-    )
+    result = l.login_nonpriv()
     # result = l.ldap.search_s(current_app.config.get('LDAP_BASEDN', None), SCOPE_SUBTREE, '(uid=rab63)')
     return "Result: {}".format(result)
 
