@@ -19,8 +19,10 @@
                         {{ form.hidden_tag() }}
 
                         {% for f in form %}
-                            {% if f.name != 'requestor_id' or allow_requestor_selection %}
+                            {% if f.name != 'requestor_id' %}
                                 {{ formhelper.render_field(f) }}
+                            {% elif f.name == 'requestor_id' and allow_requestor_selection %}
+                                {{ formhelper.render_field(f, class='no_select') }}
                             {% endif %}
                         {% endfor %}
 
