@@ -38,7 +38,7 @@ def ldap():
     l = Ldap()
     l.login_nonpriv()
 
-    result = l.search('({}={}})'.format(
+    result = l.search('({}={})'.format(
         current_app.config.get('LDAP_FIELDNAME_USERID', None),
         current_app.config.get('LDAP_USER', None),
     ))
