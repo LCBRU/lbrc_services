@@ -1,4 +1,4 @@
-from flask import request, abort
+from flask import request, abort, current_app
 from flask_api import status
 from lbrc_flask.forms import SearchForm
 from lbrc_services.model import Task, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, ToDo, User
@@ -15,6 +15,8 @@ from flask_security import login_required, current_user
 from sqlalchemy.orm import joinedload
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
+from lbrc_flask.security.ldap import Ldap
+from ldap import SCOPE_SUBTREE
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -30,6 +32,17 @@ def before_request():
 @blueprint.route("/")
 def index():
     return render_template("ui/index.html", services=Service.query.all())
+
+
+@blueprint.route("/ldap")
+def ldap():
+    l = Ldap()
+    l.login(
+        username=current_app.config.get('LDAP_USER', None),
+        password=current_app.config.get('LDAP_PASSWORD', None),
+    )
+    result = l.ldap.search_s(current_app.config.get('LDAP_BASEDN', None), SCOPE_SUBTREE, '(uid=rab63)')
+    return "Result: {}".format(result)
 
 
 @blueprint.route("/my_requests")
