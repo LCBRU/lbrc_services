@@ -40,7 +40,7 @@ def ldap():
     l.login_nonpriv()
 
     result = l.search('(uid=rab63)')
-    return "Result: {}".format(result)
+    return "Result X: {}".format(result)
 
 
 @blueprint.route("/my_requests")
