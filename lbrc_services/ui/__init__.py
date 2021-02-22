@@ -56,11 +56,6 @@ def user_search():
         l = Ldap()
         l.login_nonpriv()
 
-        result = l.search('({}={})'.format(
-            current_app.config.get('LDAP_FIELDNAME_USERID', None),
-            current_app.config.get('LDAP_TEST_USER', None),
-        ))
-
     # result = {
     #     "results": [
     #         {
@@ -73,6 +68,13 @@ def user_search():
     #         }
     #     ],
     # }
+
+    for u in l.search_name(q):
+        results.append({
+            'id': u['username'],
+            'text': '{} {}'.format(u['given_name'], u['surname']),
+        })
+
 
     return {'results': results}
 
