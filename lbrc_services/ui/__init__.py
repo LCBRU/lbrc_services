@@ -56,20 +56,10 @@ def user_search():
         l = Ldap()
         l.login_nonpriv()
 
-    # result = {
-    #     "results": [
-    #         {
-    #         "id": 1,
-    #         "text": "Option 1"
-    #         },
-    #         {
-    #         "id": 2,
-    #         "text": "Option 2"
-    #         }
-    #     ],
-    # }
+        print(q)
 
         for u in l.search_name(q):
+            print(u)
             results.append({
                 'id': u['username'],
                 'text': '{} {}'.format(u['given_name'], u['surname']),
