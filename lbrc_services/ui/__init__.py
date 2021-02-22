@@ -40,7 +40,7 @@ def ldap():
 
     result = l.search('({}={})'.format(
         current_app.config.get('LDAP_FIELDNAME_USERID', None),
-        current_app.config.get('LDAP_USER', None),
+        current_app.config.get('LDAP_TEST_USER', None),
     ))
     return "Result X: {}".format(result)
 
