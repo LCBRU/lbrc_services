@@ -57,9 +57,9 @@
     search_url = "{{ url_for('ui.user_search') }}";
 
     $(document).ready(function() {
-        $('select#requestor_id').select2({
+        $('#requestor_id').select2({
             ajax: {
-                url=search_url,
+                url: search_url,
                 dataType: 'json',
             }
         });
