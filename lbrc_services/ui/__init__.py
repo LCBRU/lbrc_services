@@ -47,23 +47,23 @@ def ldap():
 
 @blueprint.route("/user_search")
 def user_search():
-    return """
-    {
-  "results": [
-    {
-      "id": 1,
-      "text": "Option 1"
-    },
-    {
-      "id": 2,
-      "text": "Option 2"
+    result = {
+        "results": [
+            {
+            "id": 1,
+            "text": "Option 1"
+            },
+            {
+            "id": 2,
+            "text": "Option 2"
+            }
+        ],
+        "pagination": {
+            "more": True
+        }
     }
-  ],
-  "pagination": {
-    "more": true
-  }
-}
-"""
+
+    return result
 
 
 @blueprint.route("/my_requests")
