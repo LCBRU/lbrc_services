@@ -60,6 +60,7 @@
         $('select#requestor_id').select2({
             ajax: {
                 url=search_url,
+                dataType: 'json',
             }
         });
     });
