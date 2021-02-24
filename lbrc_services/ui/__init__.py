@@ -46,7 +46,7 @@ def ldap():
     return "LDAP Result: {}".format(result)
 
 
-@blueprint.route("/user_search", methods=["GET", "POST"])
+@blueprint.route("/user_search", methods=["POST"])
 def user_search():
 
     q = get_value_from_all_arguments('q')
