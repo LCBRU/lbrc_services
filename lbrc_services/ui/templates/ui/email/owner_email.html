@@ -1,14 +1,56 @@
 <html>
+    <head>
+        <style>
+            html, body {
+                background-color: #f1f1f1;
+                color: #193e72;
+                font-family: Lato;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }            
+
+            h1 {
+                height: 120px;
+                line-height: 120px;
+                text-align: right;
+                vertical-align: middle;
+                font-size: 40px;
+                font-weight: bold;
+            }
+
+            a {
+                color: #46a86c;
+            }
+
+            a:hover {
+                color: #2D8F53;
+                text-decoration: none;
+            }
+
+            dt {
+                font-weight: bold;
+                display: inline-block
+            }
+
+            dd {
+                margin-bottom: 10px;
+                display: inline-block
+            }
+
+
+        </style>
+    </head>
     <body>
         <h1>{{ task.service.name }} request {{ context }}</h1>
 
-        <a href="{{ url_for('ui.edit_task', task_id=task.id, _external=True) }}">{{ task.name }}</a>
-
         <dl>
             <dt>Name</dt>
-            <dd><a href="{{ url_for('ui.edit_task', task_id=task.id) }}">{{ task.name }}</a></dd>
+            <dd><a href="{{ url_for('ui.edit_task', task_id=task.id, _external=True) }}">{{ task.name }}</a></dd>
             <dt>Requestor</dt>
             <dd><a href='mailto:{{ task.requestor.email}}'>{{ task.requestor.full_name }}</a></dd>
-          </dl>
+            <dt>Current Status</dt>
+            <dd>{{ task.current_status_type.name }}</dd>
+        </dl>
     </body>
 </html>
