@@ -13,13 +13,15 @@ services_owners = db.Table(
     "services_owners",
     db.Column("service_id", db.Integer(), db.ForeignKey("service.id")),
     db.Column("user_id", db.Integer(), db.ForeignKey("user.id")),
+
+
 )
 
 
 class User(BaseUser):
     __table_args__ = {'extend_existing': True}
 
-    owned_services = db.relationship("Service", lazy="joined", secondary=services_owners)
+    owned_services = db.relationship("Service", lazy="joined", secondary=services_owners, backref='owners')
 
     @property
     def service_owner(self):
@@ -32,7 +34,6 @@ class Service(AuditMixin, CommonMixin, db.Model):
     name = db.Column(db.String(255))
     field_group_id = db.Column(db.Integer, db.ForeignKey(FieldGroup.id))
     field_group = db.relationship(FieldGroup)
-    owners = db.relationship(User, secondary=services_owners)
 
     def __str__(self):
         return self.name
