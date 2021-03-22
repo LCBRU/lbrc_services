@@ -179,7 +179,7 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
         )
 
 
-def save_task(task, form):
+def save_task(task, form, context):
     task.requestor_id = form.requestor_id.data
     task.organisation_id = form.organisation_id.data
     task.organisation_description = form.organisation_description.data
@@ -209,6 +209,35 @@ def save_task(task, form):
                 td = TaskData(task=task, field=field, value=v)
                 task.data.append(td)
 
+    task_status = TaskStatus(
+        task=task,
+        task_status_type=task.current_status_type,
+        notes='Task {} by {}'.format(context, current_user.full_name),
+    )
+
+    db.session.add(task_status)
+    db.session.commit()
+
+    email(
+        subject="{} Request {}".format(task.service.name, context),
+        message="Request has been {} for {} by {}.".format(
+            context,
+            task.service.name,
+            current_user.full_name,
+        ),
+        recipients=[r.email for r in task.service.owners],
+    )
+
+    email(
+        subject="{} Request".format(task.service.name),
+        message='Request has been {} on your behalf for {}'.format(
+            context,
+            task.service.name,
+        ),
+        recipients=[task.requestor.email],
+    )
+
+
 
 @blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])
 def create_task(service_id):
@@ -222,33 +251,7 @@ def create_task(service_id):
             current_status_type=TaskStatusType.get_created(),
         )
 
-        save_task(task, form)
-
-        task_status = TaskStatus(
-            task=task,
-            task_status_type=task.current_status_type,
-            notes='Task created by {}'.format(current_user.full_name),
-        )
-
-        db.session.add(task_status)
-        db.session.commit()
-
-        email(
-            subject="{} New Request".format(service.name),
-            message="A new request has been created for {} by {}.".format(
-                service.name,
-                current_user.full_name,
-            ),
-            recipients=[r.email for r in service.owners],
-        )
-
-        email(
-            subject="{} Request".format(service.name),
-            message='New request has been created on your behalf for {}'.format(
-                service.name,
-            ),
-            recipients=[current_user.email],
-        )
+        save_task(task, form, 'created')
 
         return redirect(url_for("ui.index"))
 
@@ -264,32 +267,7 @@ def edit_task(task_id):
 
     if form.validate_on_submit():
 
-        save_task(task, form)
-
-        task_status = TaskStatus(
-            task=task,
-            task_status_type=task.current_status_type,
-            notes='Task updated by {}'.format(current_user.full_name),
-        )
-
-        db.session.commit()
-
-        email(
-            subject="{} Request Amended".format(task.service.name),
-            message="Request has been amended for {} by {}.".format(
-                task.service.name,
-                current_user.full_name,
-            ),
-            recipients=[r.email for r in task.service.owners],
-        )
-
-        email(
-            subject="{} Request".format(task.service.name),
-            message='Request has been amended {}'.format(
-                task.service.name,
-            ),
-            recipients=[current_user.email],
-        )
+        save_task(task, form, 'updated')
 
         return redirect(request.args.get('prev', ''))
 
