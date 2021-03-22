@@ -44,7 +44,7 @@
             <dd><a href='mailto:{{ task.requestor.email}}'>{{ task.requestor.full_name }}</a></dd>
             <dt>Current Status</dt>
             <dd>{{ task.current_status_type.name }}</dd>
-            <dt>{{ context }}</dt>
+            <dt>{{ context.capitalize() }}</dt>
             <dd>{{ task.last_update_date | datetime_format }}</dd>
         </dl>
     </body>
