@@ -2,6 +2,7 @@ from faker.providers import BaseProvider
 from lbrc_services.model import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
 from io import BytesIO
+from pathlib import Path
 
 
 class FakerFile():
@@ -185,6 +186,7 @@ class LbrcServicesFakerProvider(BaseProvider):
             fake_file = FakerFile(self.generator.text(), r.filename)
 
         filepath = r._new_local_filepath(r.filename)
+        filepath.parents[0].mkdir(parents=True, exist_ok=True)
         r.local_filepath = str(filepath)
         f = open(filepath, "a")
         f.write(fake_file.content)

@@ -9,8 +9,8 @@ from lbrc_services.model import TaskStatusType, Service, Task, Organisation, Use
 
 
 def _get_requestor_choices():
-    service_ids = Service.query.with_entities(Service.id.distinct()).join(Service.owners).filter(User.id == current_user.id).subquery()
-    requestor_ids = Task.query.with_entities(Task.requestor_id.distinct()).filter(Task.service_id.in_(service_ids)).subquery()
+    service_ids = Service.query.with_entities(Service.id.distinct()).join(Service.owners).filter(User.id == current_user.id)
+    requestor_ids = Task.query.with_entities(Task.requestor_id.distinct()).filter(Task.service_id.in_(service_ids))
     submitters = sorted(User.query.filter(User.id.in_(requestor_ids)).all(), key=lambda u: u.full_name)
 
     return [(0, 'All')] + [(u.id, u.full_name) for u in submitters]
@@ -24,7 +24,6 @@ def _get_service_choices():
 
 def _get_task_status_type_choices():
     task_status_types = TaskStatusType.query.order_by(TaskStatusType.name.asc()).all()
-
     return [(rt.id, rt.name) for rt in task_status_types]
 
 

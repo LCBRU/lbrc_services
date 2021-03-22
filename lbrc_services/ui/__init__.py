@@ -113,7 +113,13 @@ def my_jobs():
 
     tasks = _get_tasks(search_form=search_form, owner_id=current_user.id, sort_asc=True)
 
-    return render_template("ui/my_jobs.html", tasks=tasks, search_form=search_form, todo_form=todo_form, task_update_status_form=task_update_status_form)
+    return render_template(
+        "ui/my_jobs.html",
+        tasks=tasks,
+        search_form=search_form,
+        todo_form=todo_form,
+        task_update_status_form=task_update_status_form,
+    )
 
 
 @blueprint.route("/task/<int:task_id>/status_history")
