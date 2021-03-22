@@ -226,6 +226,7 @@ def save_task(task, form, context):
             current_user.full_name,
         ),
         recipients=[r.email for r in task.service.owners],
+        html_template='ui/email/owner_email.html'
     )
 
     email(
