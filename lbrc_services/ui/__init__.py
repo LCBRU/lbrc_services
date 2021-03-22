@@ -238,6 +238,9 @@ def save_task(task, form, context):
             task.service.name,
         ),
         recipients=[task.requestor.email],
+        html_template='ui/email/requestor_email.html',
+        context=context,
+        task=task,
     )
 
 
