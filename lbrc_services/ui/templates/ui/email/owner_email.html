@@ -2,7 +2,6 @@
     <head>
         <style>
             html, body {
-                background-color: #f1f1f1;
                 color: #193e72;
                 font-family: Lato;
                 height: 100%;
@@ -45,6 +44,8 @@
             <dd><a href='mailto:{{ task.requestor.email}}'>{{ task.requestor.full_name }}</a></dd>
             <dt>Current Status</dt>
             <dd>{{ task.current_status_type.name }}</dd>
+            <dt>{{ context }}</dt>
+            <dd>{{ task.last_update_date | datetime_format }}</dd>
         </dl>
     </body>
 </html>
