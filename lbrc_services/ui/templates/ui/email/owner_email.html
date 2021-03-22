@@ -2,11 +2,13 @@
     <body>
         <h1>{{ task.service.name }} request {{ context }}</h1>
 
+        <a href="{{ url_for('ui.edit_task', task_id=task.id, _external=True) }}">{{ task.name }}</a>
+
         <dl>
             <dt>Name</dt>
             <dd><a href="{{ url_for('ui.edit_task', task_id=task.id) }}">{{ task.name }}</a></dd>
             <dt>Requestor</dt>
-            <dd><a href='mailto:{{ task.requestor.email}}'>{{ task.requestor.fillname }}</a></dd>
+            <dd><a href='mailto:{{ task.requestor.email}}'>{{ task.requestor.full_name }}</a></dd>
           </dl>
     </body>
 </html>
