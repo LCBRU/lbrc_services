@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 file_uploads
 file_upload
+test_file_uploads
 database.sqlite3
 .vscode
 *.code-workspace

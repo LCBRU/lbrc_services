@@ -45,7 +45,7 @@ def test__update_task__empty_name(client, faker, loggedin_user):
     resp = _edit_task_post(client, task)
 
     assert resp.status_code == status.HTTP_200_OK
-    assert__error__required_field(resp.soup, "name")
+    assert__error__required_field(resp.soup, "request title")
 
 
 def test__update_task__empty_organisation(client, faker, loggedin_user):

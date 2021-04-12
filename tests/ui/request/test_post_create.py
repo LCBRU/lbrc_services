@@ -43,7 +43,7 @@ def test__create_task__empty_name(client, faker, loggedin_user):
     resp = _create_task_post(client, expected)
 
     assert resp.status_code == status.HTTP_200_OK
-    assert__error__required_field(resp.soup, "name")
+    assert__error__required_field(resp.soup, "request title")
 
 
 def test__create_task__empty_organisation(client, faker, loggedin_user):
