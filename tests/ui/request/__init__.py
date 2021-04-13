@@ -1,5 +1,36 @@
+import pytest
 from lbrc_services.model import Task, TaskStatusType
 from pathlib import Path
+from unittest.mock import patch
+
+
+@pytest.fixture(scope="function")
+def mock_email():
+    with patch('lbrc_services.ui.email') as mock:
+        yield mock
+
+
+def _get_actual_task():
+    actuals = Task.query.all()
+    assert len(actuals) == 1
+    return actuals[0]   
+
+
+def assert_emails_sent(mock_email, context, user):
+    task = _get_actual_task()
+
+    mock_email.assert_any_call(
+        subject="{} Request {}".format(task.service.name, context),
+        message="Request has been {} for {} by {}.".format(
+            context,
+            task.service.name,
+            user.full_name,
+        ),
+        recipients=task.notification_email_addresses,
+        html_template='ui/email/owner_email.html',
+        context=context,
+        task=task,
+    )
 
 
 def assert__task(expected_task, user, data=None, files=None):
@@ -8,9 +39,8 @@ def assert__task(expected_task, user, data=None, files=None):
     if files is None:
         files = []
 
-    actuals = Task.query.all()
-    assert len(actuals) == 1
-    a = actuals[0]
+    a = _get_actual_task()
+
     assert a.name == expected_task.name
     assert a.organisation_id == expected_task.organisation_id
     assert a.organisation_description == expected_task.organisation_description

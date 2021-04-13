@@ -4,7 +4,8 @@ import pytest
 from lbrc_services.model import Organisation
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
 from lbrc_flask.forms.dynamic import FieldType
-from tests.ui.request import assert__task, post_task
+from tests.ui.request import assert__task, post_task, assert_emails_sent, mock_email
+from unittest.mock import patch
 
 
 def _url(task_id, external=True, prev=None):
@@ -29,11 +30,12 @@ def test__post__missing(client, faker, loggedin_user):
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test__update_task__with_all_values(client, faker, loggedin_user):
+def test__update_task__with_all_values(client, faker, loggedin_user, mock_email):
     task = faker.get_test_task(requestor=loggedin_user)
 
     resp = _edit_task_post(client, task)
 
+    assert_emails_sent(mock_email, context='updated', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(task, loggedin_user)
 
@@ -84,7 +86,7 @@ def test__update_task__empty_organisation_description__when_organisation_is_othe
         (FieldType.TEXTAREA, 'Tom Brady', 'This is the Mahomes magic', 'This is the Mahomes magic'),
     ],
 )
-def test__update_task__fields(client, faker, field_type, original_value, value, expected_value, loggedin_user):
+def test__update_task__fields(client, faker, field_type, original_value, value, expected_value, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType._get_field_type(field_type))
 
     field_data = {}
@@ -103,6 +105,7 @@ def test__update_task__fields(client, faker, field_type, original_value, value, 
 
     resp = _edit_task_post(client, task, field_data)
 
+    assert_emails_sent(mock_email, context='updated', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(task, loggedin_user, data=data)
 
@@ -114,7 +117,7 @@ def test__update_task__fields(client, faker, field_type, original_value, value, 
         ('Hello|Yes', 'Yes', 'Hello', 'Hello'),
     ],
 )
-def test__update_task__radio_fields(client, faker, choices, original_value, value, expected_value, loggedin_user):
+def test__update_task__radio_fields(client, faker, choices, original_value, value, expected_value, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_radio(), choices=choices)
 
     field_data = {}
@@ -133,11 +136,12 @@ def test__update_task__radio_fields(client, faker, choices, original_value, valu
 
     resp = _edit_task_post(client, task, field_data)
 
+    assert_emails_sent(mock_email, context='updated', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(task, loggedin_user, data=data)
 
 
-def test__update_task__upload_FileField__no_file(client, faker, loggedin_user):
+def test__update_task__upload_FileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
     files=[]
@@ -150,11 +154,12 @@ def test__update_task__upload_FileField__no_file(client, faker, loggedin_user):
 
     resp = _edit_task_post(client, task)
 
+    assert_emails_sent(mock_email, context='updated', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(task, loggedin_user, files=files)
 
 
-def test__update_task__upload_FileField(client, faker, loggedin_user):
+def test__update_task__upload_FileField(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
     field_data = {}
@@ -177,11 +182,12 @@ def test__update_task__upload_FileField(client, faker, loggedin_user):
 
     resp = _edit_task_post(client, task, field_data)
 
+    assert_emails_sent(mock_email, context='updated', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(task, loggedin_user, files=files)
 
 
-def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_user):
+def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
     files = []
@@ -198,6 +204,7 @@ def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_us
 
     resp = _edit_task_post(client, task)
 
+    assert_emails_sent(mock_email, context='updated', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(task, loggedin_user, files=files)
 
@@ -209,7 +216,7 @@ def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_us
         10,
     ],
 )
-def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user):
+def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
     field_data = {
@@ -239,5 +246,6 @@ def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user):
 
     resp = _edit_task_post(client, task, field_data)
 
+    assert_emails_sent(mock_email, context='updated', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(task, loggedin_user, files=files)

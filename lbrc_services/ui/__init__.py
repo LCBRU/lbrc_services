@@ -225,24 +225,11 @@ def save_task(task, form, context):
             task.service.name,
             current_user.full_name,
         ),
-        recipients=[r.email for r in task.service.owners],
+        recipients=task.notification_email_addresses,
         html_template='ui/email/owner_email.html',
         context=context,
         task=task,
     )
-
-    email(
-        subject="{} Request".format(task.service.name),
-        message='Request has been {} on your behalf for {}'.format(
-            context,
-            task.service.name,
-        ),
-        recipients=[task.requestor.email],
-        html_template='ui/email/requestor_email.html',
-        context=context,
-        task=task,
-    )
-
 
 
 @blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])

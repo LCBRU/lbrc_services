@@ -33,9 +33,12 @@ class LbrcServicesFakerProvider(BaseProvider):
         )
         return u
 
-    def service_details(self, owners=None, name=None, field_group=None):
+    def service_details(self, owners=None, name=None, field_group=None, generic_recipients=None, suppress_owner_email=False):
         if name is None:
             name = self.generator.pystr(min_chars=5, max_chars=10)
+
+        if generic_recipients is None:
+            generic_recipients = self.generator.email()
 
         if field_group is None:
             field_group = self.generator.field_group_details()
@@ -43,6 +46,8 @@ class LbrcServicesFakerProvider(BaseProvider):
         result = Service(
             name=name,
             field_group=field_group,
+            generic_recipients=generic_recipients,
+            suppress_owner_email=suppress_owner_email,
         )
 
         result.owners = owners or []

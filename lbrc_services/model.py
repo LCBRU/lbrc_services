@@ -1,5 +1,6 @@
 import uuid
 import pathlib
+import re
 from flask import current_app
 from sqlalchemy.orm import backref
 from werkzeug.utils import secure_filename
@@ -32,6 +33,8 @@ class Service(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
+    generic_recipients = db.Column(db.String(255))
+    suppress_owner_email = db.Column(db.Boolean)
     field_group_id = db.Column(db.Integer, db.ForeignKey(FieldGroup.id))
     field_group = db.relationship(FieldGroup)
 
@@ -41,6 +44,10 @@ class Service(AuditMixin, CommonMixin, db.Model):
     def get_field_for_field_name(self, field_name):
         if self.field_group:
             return self.field_group.get_field_for_field_name(field_name)
+
+    @property
+    def notification_email_addresses(self):
+        return list(filter(len, [r.email for r in self.owners if not self.suppress_owner_email] + re.split(r'[;,\s]+', self.generic_recipients or '')))
 
 
 class TaskStatusType(db.Model, CommonMixin):
@@ -169,6 +176,10 @@ class Task(AuditMixin, CommonMixin, db.Model):
     @property
     def complete_todos(self):
         return len([t for t in self.todos if t.is_complete])
+
+    @property
+    def notification_email_addresses(self):
+        return self.service.notification_email_addresses + [self.requestor.email]
 
 
 class TaskStatus(AuditMixin, CommonMixin, db.Model):

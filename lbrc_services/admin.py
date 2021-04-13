@@ -16,6 +16,8 @@ class ServiceView(AdminCustomView):
         Service.name,
         "field_group",
         "owners",
+        Service.generic_recipients,
+        Service.suppress_owner_email,
     ]
     column_searchable_list = [Service.name]
 

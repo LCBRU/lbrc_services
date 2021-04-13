@@ -4,7 +4,7 @@ import pytest
 from lbrc_services.model import Organisation
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
 from lbrc_flask.forms.dynamic import FieldType
-from tests.ui.request import assert__task, post_task
+from tests.ui.request import assert__task, post_task, assert_emails_sent, mock_email
 
 
 def _url(service_id, external=True, prev=None):
@@ -28,11 +28,12 @@ def test__post__missing(client, faker, loggedin_user):
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test__create_task__with_all_values(client, faker, loggedin_user):
+def test__create_task__with_all_values(client, faker, loggedin_user, mock_email):
     expected = faker.task_details(service=faker.get_test_service())
 
     resp = _create_task_post(client, expected)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(expected, loggedin_user)
 
@@ -56,12 +57,13 @@ def test__create_task__empty_organisation(client, faker, loggedin_user):
     assert__error__required_field(resp.soup, "organisation")
 
 
-def test__create_task__empty_requestor__uses_current_user(client, faker, loggedin_user):
+def test__create_task__empty_requestor__uses_current_user(client, faker, loggedin_user, mock_email):
     expected = faker.task_details(service=faker.get_test_service())
     expected.requestor_id = None
 
     resp = _create_task_post(client, expected)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     expected.requestor_id = loggedin_user.id
     assert__task(expected, loggedin_user)
@@ -91,7 +93,7 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
         (FieldType.TEXTAREA, 'This is the Mahomes magic', 'This is the Mahomes magic'),
     ],
 )
-def test__create_task__fields(client, faker, field_type, value, expected_value, loggedin_user):
+def test__create_task__fields(client, faker, field_type, value, expected_value, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType._get_field_type(field_type))
 
     field_data = {}
@@ -103,6 +105,7 @@ def test__create_task__fields(client, faker, field_type, value, expected_value, 
 
     resp = _create_task_post(client, expected, field_data)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(expected, loggedin_user, data=[
         {
@@ -118,7 +121,7 @@ def test__create_task__fields(client, faker, field_type, value, expected_value, 
         ('Hello|Yes', 'Hello', 'Hello'),
     ],
 )
-def test__create_task__radio_fields(client, faker, choices, value, expected_value, loggedin_user):
+def test__create_task__radio_fields(client, faker, choices, value, expected_value, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_radio(), choices=choices)
 
     field_data = {}
@@ -130,6 +133,7 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
 
     resp = _create_task_post(client, expected, field_data)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(expected, loggedin_user, data=[
         {
@@ -139,17 +143,18 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
     ])
 
 
-def test__upload__upload_FileField__no_file(client, faker, loggedin_user):
+def test__upload__upload_FileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(expected, loggedin_user)
 
 
-def test__upload__upload_FileField(client, faker, loggedin_user):
+def test__upload__upload_FileField(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
     field_data = {}
@@ -168,16 +173,18 @@ def test__upload__upload_FileField(client, faker, loggedin_user):
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected, field_data)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(expected, loggedin_user, files=files)
 
 
-def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user):
+def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(expected, loggedin_user)
 
@@ -189,7 +196,7 @@ def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user):
         10,
     ],
 )
-def test__upload__upload_MultiFileField(client, faker, n, loggedin_user):
+def test__upload__upload_MultiFileField(client, faker, n, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
     field_data = {
@@ -210,5 +217,6 @@ def test__upload__upload_MultiFileField(client, faker, n, loggedin_user):
     expected = faker.task_details(service=s)
     resp = _create_task_post(client, expected, field_data)
 
+    assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
     assert__task(expected, loggedin_user, files=files)
