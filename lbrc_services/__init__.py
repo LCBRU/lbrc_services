@@ -13,7 +13,7 @@ def create_app(config=Config):
     app = Flask(__name__)
     app.config.from_object(config)
 
-    TITLE = 'Services'
+    TITLE = 'Requests'
 
     with app.app_context():
         init_lbrc_flask(app, TITLE)
