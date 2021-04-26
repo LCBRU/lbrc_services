@@ -12,8 +12,14 @@ class ServiceView(AdminCustomView):
         field_group=dict(query_factory=lambda: FieldGroup.query.order_by(FieldGroup.name)),
         owners=dict(query_factory=lambda: User.query.order_by(User.last_name, User.first_name, User.email)),
     )
+    column_list = [
+        Service.name,
+        "field_group",
+        "owners",
+    ]
     form_columns = [
         Service.name,
+        Service.introduction,
         "field_group",
         "owners",
         Service.generic_recipients,

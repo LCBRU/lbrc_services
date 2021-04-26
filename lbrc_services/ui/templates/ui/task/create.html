@@ -14,6 +14,8 @@
 
             <div class="card-body">
 
+                {{ service.introduction | markdown }}
+    
                 <form id="request_form" method="POST" class="form panel-body" enctype="multipart/form-data">
                     <fieldset>
                         {{ form.hidden_tag() }}

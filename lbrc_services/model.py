@@ -37,6 +37,7 @@ class Service(AuditMixin, CommonMixin, db.Model):
     suppress_owner_email = db.Column(db.Boolean)
     field_group_id = db.Column(db.Integer, db.ForeignKey(FieldGroup.id))
     field_group = db.relationship(FieldGroup)
+    introduction = db.Column(db.UnicodeText())
 
     def __str__(self):
         return self.name
