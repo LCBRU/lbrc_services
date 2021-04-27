@@ -161,6 +161,8 @@ class Task(AuditMixin, CommonMixin, db.Model):
     requestor = db.relationship(User, lazy="joined", backref='tasks', foreign_keys=[requestor_id])
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(TaskStatusType.id), nullable=False)
     current_status_type = db.relationship(TaskStatusType)
+    current_assigned_user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    current_assigned_user = db.relationship(User, foreign_keys=[current_assigned_user_id])
 
     @property
     def long_name(self):
@@ -190,7 +192,17 @@ class TaskStatus(AuditMixin, CommonMixin, db.Model):
     task = db.relationship(Task, backref="status_history")
     notes = db.Column(db.String(255))
     task_status_type_id = db.Column(db.Integer, db.ForeignKey(TaskStatusType.id), nullable=False)
-    task_status_type = db.relationship(TaskStatusType)
+    task_status_type = db.relationship(TaskStatusType, backref="assigned_tasks")
+
+
+class TaskAssignedUser(AuditMixin, CommonMixin, db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey(Task.id), nullable=False)
+    task = db.relationship(Task, backref="assigned_user_history")
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user = db.relationship(User)
+    notes = db.Column(db.String(255))
 
 
 class TaskData(AuditMixin, CommonMixin, db.Model):

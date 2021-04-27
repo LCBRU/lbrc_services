@@ -27,6 +27,11 @@ def _get_task_status_type_choices():
     return [(rt.id, rt.name) for rt in task_status_types]
 
 
+def _get_task_assigned_user_choices():
+    owners = User.query.join(User.owned_services).all()
+    return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
+
+
 def _get_combined_task_status_type_choices():
     return [(0, 'Outstanding (not done, declined or cancelled)'), (-1, 'Completed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
 
@@ -49,6 +54,17 @@ class MyJobsSearchForm(TaskSearchForm):
         super().__init__(**kwargs)
 
         self.requestor_id.choices = _get_requestor_choices()
+
+
+class TaskUpdateAssignedUserForm(FlashingForm):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.assigned_user.choices = _get_task_assigned_user_choices()
+
+    task_id = HiddenField()
+    assigned_user = SelectField("Assigned User", validators=[DataRequired()])
+    notes = TextAreaField("Notes", validators=[Length(max=500)])
 
 
 class TaskUpdateStatusForm(FlashingForm):

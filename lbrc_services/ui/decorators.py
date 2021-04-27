@@ -25,6 +25,24 @@ def must_be_task_file_owner_or_requestor(var_name):
     return decorator
 
 
+def must_be_task_owner(var_name):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            r = Task.query.options(
+                joinedload(Task.service).joinedload(Service.owners),
+            ).get_or_404(get_value_from_all_arguments(var_name))
+
+            if current_user not in r.service.owners:
+                abort(403)
+
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 def must_be_task_owner_or_requestor(var_name):
     def decorator(f):
         @wraps(f)

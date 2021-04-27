@@ -45,12 +45,12 @@
                     <div class="col-5">
                         <div class="clearfix">
                             <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
-                                <div class="btn-group mr-2" role="group">
+                                <div class="btn-group mr-1" role="group">
                                     <a class="btn btn-primary" href="{{ url_for('ui.edit_task', task_id=t.id, prev=request.full_path) }}">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 </div>
-                                <div class="btn-group mr-2" role="group">
+                                <div class="btn-group mr-1" role="group">
                                     <a class="btn btn-primary" href="{{ url_for('ui.task_todo_list', task_id=t.id, prev=request.full_path) }}">
                                         <i class="fas fa-clipboard-check"></i>
                                         {% if t.required_todos > 0 %}
@@ -58,8 +58,28 @@
                                         {% endif %}
                                     </a>
                                 </div>
+                                <div class="btn-group mr-1" role="group">
+                                    <button id="btnGroupAssignedUser" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ t.current_assigned_user.full_name | default_if_none('Unassigned') }}
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="btnGroupAssignedUser">
+                                        <a class="dropdown-item"
+                                            data-toggle="modal"
+                                            data-task-id="{{ t.id }}"
+                                            data-current-assigned-user-id="{{ t.current_assigned_user.id }}"
+                                            data-name="{{ t.name }}"
+                                            data-target="#updateAssignedUserModal"
+                                            href="#">Assign to User</a>
+                                        <a class="dropdown-item"
+                                            data-toggle="modal"
+                                            data-task-id="{{ t.id }}"
+                                            data-name="{{ t.name }}"
+                                            data-target="#showAssignedUserHistoryModal"
+                                            href="#">Show History</a>
+                                    </div>
+                                </div>
                                 <div class="btn-group" role="group">
-                                    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         {{ t.current_status_type.name }}
                                     </button>
                                     <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -92,7 +112,7 @@
 
 {% call render_modal('updateStatusModal', 'Update Status') %}
     <p id="modal_description">Set new status for "<span id="task_name"></span>".</p>
-    <form id="task_status_form" method="POST" class="form panel-body" enctype="multipart/form-data">
+    <form id="task_status_form" action="{{ url_for('ui.task_update_status') }}" method="POST" class="form panel-body" enctype="multipart/form-data">
         <fieldset>
             {{ task_update_status_form.hidden_tag() }}
 
@@ -105,10 +125,31 @@
     </form>
 {% endcall %}
 
+{% call render_modal('updateAssignedUserModal', 'Update Assigned User') %}
+    <p id="modal_description">Set assigned user for "<span id="task_name"></span>".</p>
+    <form id="task_update_assigned_user_form" action="{{ url_for('ui.update_assigned_user') }}" method="POST" class="form panel-body" enctype="multipart/form-data">
+        <fieldset>
+            {{ task_update_assigned_user_form.hidden_tag() }}
+
+            {% for f in task_update_assigned_user_form %}
+                {{ render_field(f) }}
+            {% endfor %}
+
+            {{ render_button_bar('ui.my_jobs', submit_label="Save") }}
+        </fieldset>
+    </form>
+{% endcall %}
+
 {% call render_modal('showStatusHistoryModal', 'Status History') %}
     <p id="modal_description">Status history for "<span id="task_name"></span>".</p>
 
     <div id="showStatusHistoryModal_content"></div>
+{% endcall %}
+
+{% call render_modal('showAssignedUserHistoryModal', 'Assignment History') %}
+    <p id="modal_description">Assignment history for "<span id="task_name"></span>".</p>
+
+    <div id="showAssignedUserHistoryModal_content"></div>
 {% endcall %}
 
 {% endblock %}
@@ -132,6 +173,21 @@
     });
 
     $(document).ready(function(){
+        $('#updateAssignedUserModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var task_id = button.data('task-id');
+            var current_assigned_user_id = button.data('current-assigned-user-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#task_name').text(name);
+
+            modal.find("#assigned_user").val(current_assigned_user_id);
+            modal.find("#task_id").val(task_id);
+        });
+    });
+
+    $(document).ready(function(){
         $('#showStatusHistoryModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
             var task_id = button.data('task-id');
@@ -146,6 +202,29 @@
             callback = function(m) {
                 return function (data) {
                     m.find('#showStatusHistoryModal_content').html(data);
+                }
+            }
+
+            $.get(url, callback(modal));
+
+        });
+    });
+
+    $(document).ready(function(){
+        $('#showAssignedUserHistoryModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var task_id = button.data('task-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#task_name').text(name);
+
+            url = "{{ request.script_root | safe }}" + '/task/' + task_id + '/assignment_history';
+            modal.find('#showAssignedUserHistoryModal_content').html('');
+
+            callback = function(m) {
+                return function (data) {
+                    m.find('#showAssignedUserHistoryModal_content').html(data);
                 }
             }
 

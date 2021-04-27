@@ -1,7 +1,7 @@
 from flask import request, abort, current_app
 from flask_api import status
 from lbrc_flask.forms import SearchForm
-from lbrc_services.model import Task, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, ToDo, User
+from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, ToDo, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
 from flask import (
@@ -13,8 +13,8 @@ from flask import (
 )
 from flask_security import login_required, current_user
 from sqlalchemy.orm import joinedload
-from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner
-from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form
+from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner, must_be_task_owner
+from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form, TaskUpdateAssignedUserForm
 from lbrc_flask.security.ldap import Ldap
 from lbrc_flask.requests import get_value_from_all_arguments
 
@@ -84,15 +84,25 @@ def my_requests():
 
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
-    todo_form = EditToDoForm()
     search_form = MyJobsSearchForm(formdata=request.args)
+    tasks = _get_tasks(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+
+    return render_template(
+        "ui/my_jobs.html",
+        tasks=tasks,
+        search_form=search_form,
+        task_update_status_form=TaskUpdateStatusForm(),
+        task_update_assigned_user_form=TaskUpdateAssignedUserForm(),
+    )
+
+
+@blueprint.route("/task/update_status", methods=["POST"])
+@must_be_task_owner("task_id")
+def task_update_status():
     task_update_status_form = TaskUpdateStatusForm()
 
     if task_update_status_form.validate_on_submit():
         task = Task.query.get_or_404(task_update_status_form.task_id.data)
-
-        if not current_user in task.service.owners:
-            abort(403)
 
         status_type = TaskStatusType.query.get_or_404(task_update_status_form.status.data)
 
@@ -109,17 +119,31 @@ def my_jobs():
         db.session.add(task)
         db.session.commit()
 
-        return redirect(url_for("ui.my_jobs", **request.args))
+    return redirect(url_for("ui.my_jobs", **request.args))
 
-    tasks = _get_tasks(search_form=search_form, owner_id=current_user.id, sort_asc=True)
 
-    return render_template(
-        "ui/my_jobs.html",
-        tasks=tasks,
-        search_form=search_form,
-        todo_form=todo_form,
-        task_update_status_form=task_update_status_form,
-    )
+@blueprint.route("/task/update_assigned_user", methods=["POST"])
+@must_be_task_owner("task_id")
+def update_assigned_user():
+    task_update_assigned_user_form = TaskUpdateAssignedUserForm()
+
+    if task_update_assigned_user_form.validate_on_submit():
+        task = Task.query.get_or_404(task_update_assigned_user_form.task_id.data)
+
+        tau = TaskAssignedUser(
+            task=task,
+            user_id=task_update_assigned_user_form.assigned_user.data,
+            notes=task_update_assigned_user_form.notes.data,
+        )
+
+        db.session.add(tau)
+
+        task.current_assigned_user_id = task_update_assigned_user_form.assigned_user.data
+
+        db.session.add(task)
+        db.session.commit()
+
+    return redirect(url_for("ui.my_jobs", **request.args))
 
 
 @blueprint.route("/task/<int:task_id>/status_history")
@@ -128,6 +152,14 @@ def task_status_history(task_id):
     task_statuses = TaskStatus.query.filter(TaskStatus.task_id == task_id).order_by(TaskStatus.created_date.desc()).all()
 
     return render_template("ui/_task_status_history.html", task_statuses=task_statuses)
+
+
+@blueprint.route("/task/<int:task_id>/assignment_history")
+@must_be_task_owner_or_requestor("task_id")
+def task_assignment_history(task_id):
+    task_assignments = TaskAssignedUser.query.filter(TaskAssignedUser.task_id == task_id).order_by(TaskAssignedUser.created_date.desc()).all()
+
+    return render_template("ui/_task_assignment_history.html", task_assignments=task_assignments)
 
 
 def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
