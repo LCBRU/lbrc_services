@@ -32,6 +32,11 @@ def _get_task_assigned_user_choices():
     return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
 
 
+def _get_task_assigned_user_search_choices():
+    owners = User.query.join(User.owned_services).all()
+    return [(-2, 'Mine and Unassigned'), (-1, 'All'), (0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
+
+
 def _get_combined_task_status_type_choices():
     return [(0, 'Outstanding (not done, declined or cancelled)'), (-1, 'Completed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
 
@@ -39,12 +44,14 @@ def _get_combined_task_status_type_choices():
 class TaskSearchForm(SearchForm):
     service_id = SelectField('Service', coerce=int, choices=[])
     task_status_type_id = SelectField('Status', coerce=int, choices=[])
+    assigned_user_id = SelectField('Assigned User', coerce=int, choices=[], default=-2)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.service_id.choices = _get_service_choices()
         self.task_status_type_id.choices = _get_combined_task_status_type_choices()
+        self.assigned_user_id.choices = _get_task_assigned_user_search_choices()
 
 
 class MyJobsSearchForm(TaskSearchForm):

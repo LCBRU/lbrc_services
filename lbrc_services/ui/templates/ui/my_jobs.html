@@ -16,7 +16,7 @@
         {% for t in tasks.items %}
             <li class="list-group-item">
                 <div class='summary_details row'>
-                    <div class="col-7">
+                    <div class="col-12 col-xl-7">
                         <header>
                             <h1>{{t.service.name}}: {{ t.name }}</h1>
                             <h2>For <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
@@ -42,7 +42,7 @@
                         </div>
                     </div>
 
-                    <div class="col-5">
+                    <div class="col-12 col-xl-5">
                         <div class="clearfix">
                             <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
                                 <div class="btn-group mr-1" role="group">
@@ -182,8 +182,24 @@
             var modal = $(this);
             modal.find('#task_name').text(name);
 
+            url = `{{ request.script_root | safe }}/task/${task_id}/assigned_user_options`;
+
+            fetch(url).then(function(response) {
+                response.json().then(function(data){
+                    let option_html = '';
+
+                    for (let u of data.results) {
+                        option_html += `<option value="${u.id}">${u.name}</option>`;
+                    }
+
+                    let assigned_user_select = document.getElementById('assigned_user')
+                    assigned_user_select.innerHTML = option_html;
+                })
+            })
+
             modal.find("#assigned_user").val(current_assigned_user_id);
             modal.find("#task_id").val(task_id);
+
         });
     });
 

@@ -1,6 +1,7 @@
 from flask import request, abort, current_app
 from flask_api import status
 from lbrc_flask.forms import SearchForm
+from lbrc_flask.security import current_user_id
 from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, ToDo, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
@@ -13,6 +14,7 @@ from flask import (
 )
 from flask_security import login_required, current_user
 from sqlalchemy.orm import joinedload
+from sqlalchemy import or_
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner, must_be_task_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form, TaskUpdateAssignedUserForm
 from lbrc_flask.security.ldap import Ldap
@@ -46,7 +48,7 @@ def ldap():
     return "LDAP Result: {}".format(result)
 
 
-@blueprint.route("/user_search", methods=["POST"])
+@blueprint.route("/user_search")
 def user_search():
 
     q = get_value_from_all_arguments('q')
@@ -69,8 +71,15 @@ def user_search():
 
             })
 
-
     return {'results': results}
+
+
+@blueprint.route("/task/<int:task_id>/assigned_user_options")
+def task_assigned_user_options(task_id):
+
+    task = Task.query.get_or_404(task_id)
+
+    return {'results': [{'id': 0, 'name': 'Unassigned'}] + [{'id': o.id, 'name': o.full_name} for o in task.service.owners]}
 
 
 @blueprint.route("/my_requests")
@@ -178,6 +187,24 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
 
     if search_form.data.get('requestor_id', 0) not in (0, "0", None):
         q = q.filter(Task.requestor_id == search_form.data['requestor_id'])
+
+    assigned_user_id = search_form.data.get('assigned_user_id', 0)
+
+    if assigned_user_id == -2:
+        q = q.filter(or_(
+            Task.current_assigned_user_id == 0,
+            Task.current_assigned_user_id == None,
+            Task.current_assigned_user_id == current_user_id(),
+        ))
+    elif assigned_user_id == -1:
+        pass
+    elif assigned_user_id in (0, "0", None):
+        q = q.filter(or_(
+            Task.current_assigned_user_id == 0,
+            Task.current_assigned_user_id == None,
+        ))
+    else:
+        q = q.filter(Task.current_assigned_user_id == assigned_user_id)
 
     if 'task_status_type_id' in search_form.data:
         option = search_form.data.get('task_status_type_id', 0) or 0
