@@ -112,7 +112,7 @@
 
 {% call render_modal('updateStatusModal', 'Update Status') %}
     <p id="modal_description">Set new status for "<span id="task_name"></span>".</p>
-    <form id="task_status_form" action="{{ url_for('ui.task_update_status') }}" method="POST" class="form panel-body" enctype="multipart/form-data">
+    <form id="task_status_form" action="{{ url_for('ui.task_update_status') }}" method="POST" enctype="multipart/form-data">
         <fieldset>
             {{ task_update_status_form.hidden_tag() }}
 

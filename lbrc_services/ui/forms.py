@@ -55,7 +55,7 @@ class TaskSearchForm(SearchForm):
 
 
 class MyJobsSearchForm(TaskSearchForm):
-    requestor_id = SelectField('Requesterd By', coerce=int, choices=[])
+    requestor_id = SelectField('Requesterd By', coerce=int, choices=[], render_kw={'class': 'select2 form-control'})
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
