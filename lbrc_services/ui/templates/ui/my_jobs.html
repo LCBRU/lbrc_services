@@ -8,9 +8,21 @@
     <div class="page-header">
         <h1>My Jobs</h1>
 
-        {{ render_search(search_form, 'ui.my_jobs', placeholder='enter search text - searches names') }}
-
+        {{ render_search(
+            search_form,
+            'ui.my_jobs',
+            placeholder='enter search text - searches names',
+            buttons=[
+                {
+                    'id': 'export',
+                    'text': 'Export',
+                    'endpoint': 'ui.my_jobs_export',
+                    'add_form_fields': True,
+                },
+            ],
+        ) }}
     </div>
+
 
     <ul class="list-group">
         {% for t in tasks.items %}

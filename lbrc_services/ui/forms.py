@@ -3,6 +3,7 @@ from flask_login import current_user
 from lbrc_flask.forms.dynamic import FormBuilder
 from lbrc_flask.security import current_user_id
 from wtforms import SelectField, TextAreaField, StringField
+from wtforms.fields.html5 import DateField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError
 from lbrc_services.model import TaskStatusType, Service, Task, Organisation, User
@@ -45,6 +46,8 @@ class TaskSearchForm(SearchForm):
     service_id = SelectField('Service', coerce=int, choices=[])
     task_status_type_id = SelectField('Status', coerce=int, choices=[])
     assigned_user_id = SelectField('Assigned User', coerce=int, choices=[], default=-2)
+    created_date_from = DateField('Requested From', format='%Y-%m-%d')
+    created_date_to = DateField('Requested Until', format='%Y-%m-%d')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -1,7 +1,7 @@
-from flask import request, abort, current_app
 from flask_api import status
 from lbrc_flask.forms import SearchForm
 from lbrc_flask.security import current_user_id
+from lbrc_flask.security.ldap import Ldap
 from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, ToDo, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
@@ -11,15 +11,16 @@ from flask import (
     redirect,
     url_for,
     send_file,
+    request,
+    current_app,
 )
 from flask_security import login_required, current_user
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 from .decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_todo_owner, must_be_task_owner
 from .forms import EditToDoForm, MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form, TaskUpdateAssignedUserForm
-from lbrc_flask.security.ldap import Ldap
 from lbrc_flask.requests import get_value_from_all_arguments
-
+from lbrc_flask.export import excel_download
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
 
@@ -34,18 +35,6 @@ def before_request():
 @blueprint.route("/")
 def index():
     return render_template("ui/index.html", services=Service.query.all())
-
-
-@blueprint.route("/ldap")
-def ldap():
-    l = Ldap()
-    l.login_nonpriv()
-
-    result = l.search('({}={})'.format(
-        current_app.config.get('LDAP_FIELDNAME_USERID', None),
-        current_app.config.get('LDAP_TEST_USER', None),
-    ))
-    return "LDAP Result: {}".format(result)
 
 
 @blueprint.route("/user_search")
@@ -86,7 +75,13 @@ def task_assigned_user_options(task_id):
 def my_requests():
     search_form = TaskSearchForm(formdata=request.args)
 
-    tasks = _get_tasks(search_form=search_form, requester_id=current_user.id)
+    q = _get_tasks_query(search_form=search_form, requester_id=current_user.id)
+
+    tasks = q.paginate(
+            page=search_form.page.data,
+            per_page=5,
+            error_out=False,
+        )
 
     return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form)
 
@@ -94,7 +89,13 @@ def my_requests():
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
     search_form = MyJobsSearchForm(formdata=request.args)
-    tasks = _get_tasks(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+
+    tasks = q.paginate(
+            page=search_form.page.data,
+            per_page=5,
+            error_out=False,
+        )
 
     return render_template(
         "ui/my_jobs.html",
@@ -103,6 +104,46 @@ def my_jobs():
         task_update_status_form=TaskUpdateStatusForm(),
         task_update_assigned_user_form=TaskUpdateAssignedUserForm(),
     )
+
+
+@blueprint.route("/my_jobs/export")
+def my_jobs_export():
+    search_form = MyJobsSearchForm(formdata=request.args)
+    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+
+    # Use of dictionary instead of set to maintain order of headers
+    headers = {
+        'name': None,
+        'organisation': None,
+        'organisation description': None,
+        'service': None,
+        'requestor': None,
+        'status': None,
+        'assigned to': None,
+    }
+
+    task_details = []
+
+    for t in q.all():
+        td = {}
+        task_details.append(td)
+
+        td['name'] = t.name
+        td['organisation'] = t.organisation.name
+        td['organisation_description'] = t.organisation_description
+        td['service'] = t.service.name
+        td['requestor'] = t.requestor.full_name
+        td['status'] = t.current_status_type.name
+
+        if t.current_assigned_user:
+            td['assigned to'] = t.current_assigned_user.full_name
+
+        for d in t.data:
+            headers[d.field.get_label()] = None
+
+            td[d.field.get_label()] = d.formated_value
+            
+    return excel_download('My Jobs', headers.keys(), task_details)
 
 
 @blueprint.route("/task/update_status", methods=["POST"])
@@ -171,7 +212,7 @@ def task_assignment_history(task_id):
     return render_template("ui/_task_assignment_history.html", task_assignments=task_assignments)
 
 
-def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
+def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=False):
 
     q = Task.query.options(
         joinedload(Task.data),
@@ -187,6 +228,12 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
 
     if search_form.data.get('requestor_id', 0) not in (0, "0", None):
         q = q.filter(Task.requestor_id == search_form.data['requestor_id'])
+
+    if search_form.data.get('created_date_from', None):
+        q = q.filter(Task.created_date >= search_form.data['created_date_from'])
+
+    if search_form.data.get('created_date_to', None):
+        q = q.filter(Task.created_date <= search_form.data['created_date_to'])
 
     assigned_user_id = search_form.data.get('assigned_user_id', 0)
 
@@ -231,11 +278,7 @@ def _get_tasks(search_form, owner_id=None, requester_id=None, sort_asc=False):
     else:
         q = q.order_by(Task.created_date.desc())
 
-    return q.paginate(
-            page=search_form.page.data,
-            per_page=5,
-            error_out=False,
-        )
+    return q
 
 
 def save_task(task, form, context):
