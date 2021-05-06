@@ -4,3 +4,6 @@ sqlalchemy-migrate
 flask-api
 pymysql
 openpyxl
+pygal
+lxml
+python-dateutil

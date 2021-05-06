@@ -7,6 +7,20 @@ from lbrc_flask.requests import get_value_from_all_arguments
 from lbrc_services.model import TaskFile, Task, Service, ToDo
 
 
+def must_own_a_service():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.service_owner:
+                abort(403)
+
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 def must_be_task_file_owner_or_requestor(var_name):
     def decorator(f):
         @wraps(f)
