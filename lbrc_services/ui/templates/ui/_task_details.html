@@ -84,26 +84,27 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <dl class="col-12 col-md">
-                        {% for d in t.data %}
-                            <dt>{{ d.field.field_name }}</dt>
-                            <dd>{{ d.formated_value | blank_if_none }}</dd>
-                        {% endfor %}
-                    </dl>
-                
-                    {% if t.files | length > 0 %}
-                        <div class="col-12 col-md">
-                            <h3>Attachments</h3>
-                            <div>
-                                {% for f in t.files %}
-                                    <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
+                <dl>
+                    {% for field_name, files in t.files | groupby("field.field_name") %}
+                        <dt>{{ field_name }}</dt>
+                        <dd>
+                            {% for f in files %}
+                                <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}">
+                                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                                    {{ f.filename }}
+                                </a>
+                            {% endfor %}
+                        </dd>
+                    {% endfor %}
+                </dl>
 
+                <dl>
+                    {% for d in t.data %}
+                        <dt>{{ d.field.field_name }}</dt>
+                        <dd>{{ d.formated_value | blank_if_none }}</dd>
+                    {% endfor %}
+                </dl>
+                
             </div>
         </li>
     {% endfor %}
