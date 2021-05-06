@@ -5,9 +5,17 @@
 <section>
     <h1>Reports</h1>
 
-    <img src="{{ url_for('ui.tasks_requested_by_month') }}" alt="Tasks Requested by Month">
-    <img src="{{ url_for('ui.tasks_by_current_status') }}" alt="Tasks by Current Status">
-    <img src="{{ url_for('ui.tasks_by_organisation') }}" alt="Tasks by Organisation">
+    <figure>
+        <embed type="image/svg+xml" src="{{ url_for('ui.tasks_requested_by_month') }}" alt="Tasks Requested by Month" />
+    </figure>
+
+    <figure>
+        <embed type="image/svg+xml" src="{{ url_for('ui.tasks_by_current_status') }}" alt="Tasks by Current Status" />
+    </figure>
+
+    <figure>
+        <embed type="image/svg+xml" src="{{ url_for('ui.tasks_by_organisation') }}" alt="Tasks by Organisation" />
+    </figure>
 
 </section>
 
