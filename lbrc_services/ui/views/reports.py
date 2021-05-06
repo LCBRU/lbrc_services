@@ -4,7 +4,7 @@ from pygal.style import Style
 from collections import Counter
 from dateutil.rrule import rrule, MONTHLY
 from datetime import date
-from flask import render_template
+from flask import render_template, current_app
 from flask_security import current_user
 from lbrc_services.model import Task, Service, TaskStatusType
 from sqlalchemy.sql import func
@@ -19,7 +19,7 @@ def reports():
 
 
 def sqlalchemy_format_date():
-    print(db.session.bind.dialect.name)
+    current_app.logger.error(db.session.bind.dialect.name)
     return None
 
 @blueprint.route("/reports/service_tasks_requested_by_month")
@@ -31,7 +31,7 @@ def service_tasks_requested_by_month():
     tasks = Task.query.with_entities(
         Service.name,
         Task.created_date,
-        func.strftime('%b %Y',Task.created_date),
+        # func.strftime('%b %Y',Task.created_date),
     ).join(
         Task.service,
     ).filter(
