@@ -18,20 +18,21 @@ def reports():
     return render_template("ui/reports.html")
 
 
-def sqlalchemy_format_date():
-    current_app.logger.error(db.session.bind.dialect.name)
-    return None
+def sqlalchemy_format_date(field, format):
+    if db.session.bind.dialect.name == 'sqlite':
+        return func.strftime(format, field)
+    elif db.session.bind.dialect.name == 'mysql':
+        return func.date_format(field, format)
+
 
 @blueprint.route("/reports/service_tasks_requested_by_month")
 @must_own_a_service()
 def service_tasks_requested_by_month():
 
-    date_formatter = sqlalchemy_format_date()
-
     tasks = Task.query.with_entities(
         Service.name,
         Task.created_date,
-        # func.strftime('%b %Y',Task.created_date),
+        sqlalchemy_format_date(Task.created_date, '%b %Y')
     ).join(
         Task.service,
     ).filter(
