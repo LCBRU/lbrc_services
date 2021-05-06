@@ -2,7 +2,7 @@ from dateutil.rrule import rrule, MONTHLY
 from datetime import date
 from flask import render_template
 from flask_security import current_user
-from lbrc_services.model import Task, Service, TaskStatusType
+from lbrc_services.model import Task, Service, TaskStatusType, Organisation
 from lbrc_flask.database import dialect_date_format_string, dialect_format_date
 from ..decorators import must_own_a_service
 from .. import blueprint
@@ -16,9 +16,9 @@ def reports():
     return render_template("ui/reports.html")
 
 
-@blueprint.route("/reports/service_tasks_requested_by_month")
+@blueprint.route("/reports/tasks_requested_by_month")
 @must_own_a_service()
-def service_tasks_requested_by_month():
+def tasks_requested_by_month():
     date_format_string = dialect_date_format_string('%b %Y')
 
     tasks = Task.query.with_entities(
@@ -42,20 +42,32 @@ def service_tasks_requested_by_month():
         until=date(max_date.year, max_date.month, 1),
     )]
 
-    return grouped_bar_chart('Service Tasks Requested by Month', buckets, tasks)
+    return grouped_bar_chart('Tasks Requested by Month', buckets, tasks)
 
 
-@blueprint.route("/reports/service_tasks_by_current_status")
+@blueprint.route("/reports/tasks_by_current_status")
 @must_own_a_service()
-def service_tasks_by_current_status():
+def tasks_by_current_status():
+    return count_by_category_for_service_barchart('Tasks by Current Status', TaskStatusType.name, joins=[Task.current_status_type])
+
+
+@blueprint.route("/reports/tasks_by_organisation")
+@must_own_a_service()
+def tasks_by_organisation():
+    return count_by_category_for_service_barchart('Tasks by Organisation', Organisation.name, joins=[Task.organisation])
+
+
+def count_by_category_for_service_barchart(title, category_name_field, joins=None):
+
+    if joins is None:
+        joins = []
+    else:
+        joins = joins + [Task.service]
 
     tasks = Task.query.with_entities(
         Service.name,
-        TaskStatusType.name,
-    ).join(
-        Task.service,
-        Task.current_status_type,
-    ).filter(
+        category_name_field,
+    ).join(*joins).filter(
         Task.service_id.in_([u.id for u in current_user.owned_services])
     ).order_by(
         Service.name,
@@ -64,4 +76,4 @@ def service_tasks_by_current_status():
 
     buckets = {t[1] for t in tasks}
 
-    return grouped_bar_chart('Service Tasks by Current Status', buckets, tasks)
+    return grouped_bar_chart(title, buckets, tasks)
