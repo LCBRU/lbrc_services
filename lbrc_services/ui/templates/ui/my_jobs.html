@@ -1,6 +1,7 @@
 {% extends "ui/page.html" %}
 {% from "lbrc_flask/form_macros.html" import render_search, render_pagination, render_field, render_button_bar %}
 {% from "lbrc_flask/modal_macros.html" import render_modal %}
+{% from "ui/_task_details.html" import render_tasks_list %}
 
 {% block content %}
 
@@ -23,101 +24,8 @@
         ) }}
     </div>
 
+    {{ render_tasks_list(tasks, show_owner_controls=True) }}
 
-    <ul class="list-group">
-        {% for t in tasks.items %}
-            <li class="list-group-item">
-                <div class='summary_details row'>
-                    <div class="col-12 col-xl-7">
-                        <header>
-                            <h1>{{t.service.name}}: {{ t.name }}</h1>
-                            <h2>For <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
-                        </header>
-                        <div class="row">
-                            <dl class="col-12 col-md">
-                                {% for d in t.data %}
-                                    <dt>{{ d.field.field_name }}</dt>
-                                    <dd>{{ d.formated_value | blank_if_none }}</dd>
-                                {% endfor %}
-                            </dl>
-
-                            {% if t.files | length > 0 %}
-                                <div class="col-12 col-md">
-                                    <h3>Attachments</h3>
-                                    <div>
-                                        {% for f in t.files %}
-                                            <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> {{ f.filename }}</a>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-xl-5">
-                        <div class="clearfix">
-                            <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
-                                <div class="btn-group mr-1" role="group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.edit_task', task_id=t.id, prev=request.full_path) }}">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </div>
-                                <div class="btn-group mr-1" role="group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.task_todo_list', task_id=t.id, prev=request.full_path) }}">
-                                        <i class="fas fa-clipboard-check"></i>
-                                        {% if t.required_todos > 0 %}
-                                            <span>({{t.complete_todos}} / {{t.required_todos}})</span>
-                                        {% endif %}
-                                    </a>
-                                </div>
-                                <div class="btn-group mr-1" role="group">
-                                    <button id="btnGroupAssignedUser" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        {{ t.current_assigned_user.full_name | default_if_none('Unassigned') }}
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="btnGroupAssignedUser">
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-current-assigned-user-id="{{ t.current_assigned_user.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#updateAssignedUserModal"
-                                            href="#">Assign to User</a>
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#showAssignedUserHistoryModal"
-                                            href="#">Show History</a>
-                                    </div>
-                                </div>
-                                <div class="btn-group" role="group">
-                                    <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        {{ t.current_status_type.name }}
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-current-status-type-id="{{ t.current_status_type.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#updateStatusModal"
-                                            href="#">Update Status</a>
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#showStatusHistoryModal"
-                                            href="#">Show History</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
 </section>
 
 {{ render_pagination(tasks, 'ui.my_jobs', form=search_form) }}
