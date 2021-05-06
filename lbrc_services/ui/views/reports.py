@@ -32,8 +32,8 @@ def report_by_date():
         Task.created_date,
     ).all()
 
-    min_date = min([t['created_date'] for t in tasks])
-    max_date = max([t['created_date'] for t in tasks])
+    min_date = min([t[1] for t in tasks])
+    max_date = max([t[1] for t in tasks])
 
     buckets = list(rrule(
         MONTHLY,
@@ -45,8 +45,8 @@ def report_by_date():
     chart.title = 'Service Tasks by Requested Month'
     chart.x_labels = [b.strftime('%b %Y') for b in buckets]
 
-    for service_name, service_tasks in groupby(tasks, lambda t: t['name']):
-        count = Counter([(t['created_date'].year, t['created_date'].month) for t in service_tasks])
+    for service_name, service_tasks in groupby(tasks, lambda t: t[0]):
+        count = Counter([(t[1].year, t[1].month) for t in service_tasks])
         month_range_count = {
             d.strftime('%b %Y'): count.get((d.year, d.month), 0)
             for d in buckets}
