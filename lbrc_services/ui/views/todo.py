@@ -54,7 +54,7 @@ def task_save_todo():
         db.session.add(todo)
         db.session.commit()
 
-    return redirect(url_for("ui.task_todo_list", task_id=form.task_id.data))
+    return redirect(url_for("ui.task_todo_list", task_id=form.task_id.data, prev=request.args.get('prev', '')))
 
 
 @blueprint.route("/todo/update_status", methods=["POST"])

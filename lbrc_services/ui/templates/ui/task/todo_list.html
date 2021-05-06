@@ -54,19 +54,19 @@
 
 {{ render_pagination(todos, 'ui.task_todo_list', search=search_form.search.data, task_id=task.id) }}
 
-{% call render_modal('edit_todo_modal', 'To Do') %}
-<form id="todo_form" method="POST" action="{{ url_for('ui.task_save_todo', task_id=task.id) }}" class="form panel-body" enctype="multipart/form-data">
-    <fieldset>
-        {{ todo_form.hidden_tag() }}
+    {% call render_modal('edit_todo_modal', 'To Do') %}
+    <form id="todo_form" method="POST" action="{{ url_for('ui.task_save_todo', task_id=task.id, prev=previous_page) }}" class="form panel-body" enctype="multipart/form-data">
+        <fieldset>
+            {{ todo_form.hidden_tag() }}
 
-        {% for f in todo_form %}
-            {{ render_field(f) }}
-        {% endfor %}
+            {% for f in todo_form %}
+                {{ render_field(f) }}
+            {% endfor %}
 
-        {{ render_button_bar(submit_label="Save") }}
-    </fieldset>
-</form>
-{% endcall %}
+            {{ render_button_bar(submit_label="Save") }}
+        </fieldset>
+    </form>
+    {% endcall %}
 
 {% endblock %}
 
