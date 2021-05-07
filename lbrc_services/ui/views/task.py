@@ -173,6 +173,9 @@ def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=Fal
     if search_form.data.get('service_id', 0) not in (0, "0", None):
         q = q.filter(Task.service_id == search_form.data['service_id'])
 
+    if search_form.data.get('organisation_id', 0) not in (0, "0", None):
+        q = q.filter(Task.organisation_id == search_form.data['organisation_id'])
+
     if search_form.data.get('requestor_id', 0) not in (0, "0", None):
         q = q.filter(Task.requestor_id == search_form.data['requestor_id'])
 

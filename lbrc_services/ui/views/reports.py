@@ -42,19 +42,19 @@ def tasks_requested_by_month():
         until=date(max_date.year, max_date.month, 1),
     )]
 
-    return grouped_bar_chart('Tasks Requested by Month', buckets, tasks)
+    return grouped_bar_chart('Tasks Requested by Month', buckets, tasks).render_response()
 
 
 @blueprint.route("/reports/tasks_by_current_status")
 @must_own_a_service()
 def tasks_by_current_status():
-    return count_by_category_for_service_barchart('Tasks by Current Status', TaskStatusType.name, joins=[Task.current_status_type])
+    return count_by_category_for_service_barchart('Tasks by Current Status', TaskStatusType.name, joins=[Task.current_status_type]).render_response()
 
 
 @blueprint.route("/reports/tasks_by_organisation")
 @must_own_a_service()
 def tasks_by_organisation():
-    return count_by_category_for_service_barchart('Tasks by Organisation', Organisation.name, joins=[Task.organisation])
+    return count_by_category_for_service_barchart('Tasks by Organisation', Organisation.name, joins=[Task.organisation]).render_response()
 
 
 def count_by_category_for_service_barchart(title, category_name_field, joins=None):

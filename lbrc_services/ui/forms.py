@@ -23,6 +23,12 @@ def _get_service_choices():
     return [(0, 'All')] + [(rt.id, rt.name) for rt in services]
 
 
+def _get_organisation_search_choices():
+    organisations = Organisation.query.all()
+
+    return [(0, 'All')] + [(rt.id, rt.name) for rt in organisations]
+
+
 def _get_task_status_type_choices():
     task_status_types = TaskStatusType.query.order_by(TaskStatusType.name.asc()).all()
     return [(rt.id, rt.name) for rt in task_status_types]
@@ -45,6 +51,7 @@ def _get_combined_task_status_type_choices():
 class TaskSearchForm(SearchForm):
     service_id = SelectField('Service', coerce=int, choices=[])
     task_status_type_id = SelectField('Status', coerce=int, choices=[])
+    organisation_id = SelectField('Organisation', coerce=int, choices=[], default=0)
     assigned_user_id = SelectField('Assigned User', coerce=int, choices=[], default=-2)
     created_date_from = DateField('Requested From', format='%Y-%m-%d')
     created_date_to = DateField('Requested Until', format='%Y-%m-%d')
@@ -55,6 +62,7 @@ class TaskSearchForm(SearchForm):
         self.service_id.choices = _get_service_choices()
         self.task_status_type_id.choices = _get_combined_task_status_type_choices()
         self.assigned_user_id.choices = _get_task_assigned_user_search_choices()
+        self.organisation_id.choices = _get_organisation_search_choices()
 
 
 class MyJobsSearchForm(TaskSearchForm):
