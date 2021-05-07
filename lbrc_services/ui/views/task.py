@@ -1,3 +1,4 @@
+from datetime import timedelta
 from lbrc_flask.security import current_user_id
 from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, User
 from lbrc_flask.database import db
@@ -183,7 +184,7 @@ def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=Fal
         q = q.filter(Task.created_date >= search_form.data['created_date_from'])
 
     if search_form.data.get('created_date_to', None):
-        q = q.filter(Task.created_date <= search_form.data['created_date_to'])
+        q = q.filter(Task.created_date < search_form.data['created_date_to'] + timedelta(days=1))
 
     assigned_user_id = search_form.data.get('assigned_user_id', 0)
 

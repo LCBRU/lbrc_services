@@ -49,29 +49,29 @@ def _get_combined_task_status_type_choices():
 
 
 class TaskSearchForm(SearchForm):
+    created_date_from = DateField('Request Made From', format='%Y-%m-%d')
+    created_date_to = DateField('Request Made To', format='%Y-%m-%d')
     service_id = SelectField('Service', coerce=int, choices=[])
-    task_status_type_id = SelectField('Status', coerce=int, choices=[])
     organisation_id = SelectField('Organisation', coerce=int, choices=[], default=0)
-    assigned_user_id = SelectField('Assigned User', coerce=int, choices=[], default=-2)
-    created_date_from = DateField('Requested From', format='%Y-%m-%d')
-    created_date_to = DateField('Requested Until', format='%Y-%m-%d')
+    task_status_type_id = SelectField('Status', coerce=int, choices=[])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.service_id.choices = _get_service_choices()
         self.task_status_type_id.choices = _get_combined_task_status_type_choices()
-        self.assigned_user_id.choices = _get_task_assigned_user_search_choices()
         self.organisation_id.choices = _get_organisation_search_choices()
 
 
 class MyJobsSearchForm(TaskSearchForm):
     requestor_id = SelectField('Requesterd By', coerce=int, choices=[], render_kw={'class': 'select2 form-control'})
+    assigned_user_id = SelectField('Assigned User', coerce=int, choices=[], default=-2)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.requestor_id.choices = _get_requestor_choices()
+        self.assigned_user_id.choices = _get_task_assigned_user_search_choices()
 
 
 class TaskUpdateAssignedUserForm(FlashingForm):
