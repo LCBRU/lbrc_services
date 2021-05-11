@@ -184,6 +184,8 @@ class Task(AuditMixin, CommonMixin, db.Model):
     def notification_email_addresses(self):
         return self.service.notification_email_addresses + [self.requestor.email]
 
+    def get_data_for_task_id(self, field_id):
+        return next((t for t in self.data if t.field_id == field_id), None)
 
 class TaskStatus(AuditMixin, CommonMixin, db.Model):
 

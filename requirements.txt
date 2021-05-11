@@ -7,3 +7,4 @@ openpyxl
 pygal
 lxml
 python-dateutil
+cairosvg

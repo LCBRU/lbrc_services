@@ -1,79 +1,95 @@
+from lbrc_flask.forms.dynamic import Field
+from lbrc_services.ui.views import _get_tasks_query
 from dateutil.rrule import rrule, MONTHLY
-from datetime import date
-from flask import render_template
+from datetime import date, datetime
+from flask import render_template, request, send_file
 from flask_security import current_user
-from lbrc_services.model import Task, Service, TaskStatusType, Organisation
-from lbrc_flask.database import dialect_date_format_string, dialect_format_date
-from ..decorators import must_own_a_service
+from ..decorators import must_be_service_owner, must_own_a_service
 from .. import blueprint
-from lbrc_flask.validators import parse_date
 from lbrc_flask.charting import grouped_bar_chart
+from ..forms import ReportSearchForm
+from tempfile import NamedTemporaryFile
 
 
 @blueprint.route("/reports")
 @must_own_a_service()
+@must_be_service_owner('service_id')
 def reports():
-    return render_template("ui/reports.html")
+    search_form = ReportSearchForm(formdata=request.args)
+
+    return render_template("ui/reports.html", search_form=search_form, chart=get_chart(search_form).render_data_uri())
 
 
-@blueprint.route("/reports/tasks_requested_by_month")
+@blueprint.route("/report_png")
 @must_own_a_service()
-def tasks_requested_by_month():
-    date_format_string = dialect_date_format_string('%b %Y')
+@must_be_service_owner('service_id')
+def report_png():
+    search_form = ReportSearchForm(formdata=request.args)
 
-    tasks = Task.query.with_entities(
-        Service.name,
-        dialect_format_date(Task.created_date, date_format_string),
-    ).join(
-        Task.service,
-    ).filter(
-        Task.service_id.in_([u.id for u in current_user.owned_services])
-    ).order_by(
-        Service.name,
-        Task.created_date,
-    ).all()
+    chart = get_chart(search_form)
+    report_grouper_id = search_form.data.get('report_grouper_id', -3)
 
-    min_date = min([parse_date(t[1]) for t in tasks])
-    max_date = max([parse_date(t[1]) for t in tasks])
+    with NamedTemporaryFile() as tmp:
+        chart.render_to_png(tmp.name)
 
-    buckets = [d.strftime(date_format_string) for d in rrule(
-        MONTHLY,
-        dtstart=date(min_date.year, min_date.month, 1),
-        until=date(max_date.year, max_date.month, 1),
-    )]
-
-    return grouped_bar_chart('Tasks Requested by Month', buckets, tasks).render_response()
+        return send_file(
+            tmp.name,
+            as_attachment=True,
+            attachment_filename='{}_{}.png'.format(get_report_name(report_grouper_id), datetime.utcnow().strftime("%Y%m%d_%H%M%S")),
+            cache_timeout=0,
+            mimetype='image/png',
+        )
 
 
-@blueprint.route("/reports/tasks_by_current_status")
-@must_own_a_service()
-def tasks_by_current_status():
-    return count_by_category_for_service_barchart('Tasks by Current Status', TaskStatusType.name, joins=[Task.current_status_type]).render_response()
+def get_chart(search_form):
+    tasks = _get_tasks_query(search_form=search_form, requester_id=current_user.id).all()
 
+    report_grouper_id = search_form.data.get('report_grouper_id', -3)
+    buckets = None
 
-@blueprint.route("/reports/tasks_by_organisation")
-@must_own_a_service()
-def tasks_by_organisation():
-    return count_by_category_for_service_barchart('Tasks by Organisation', Organisation.name, joins=[Task.organisation]).render_response()
+    if report_grouper_id == -3:
+        min_date = min([t.created_date for t in tasks])
+        max_date = max([t.created_date for t in tasks])
 
+        buckets = [d.strftime('%b %Y') for d in rrule(
+            MONTHLY,
+            dtstart=date(min_date.year, min_date.month, 1),
+            until=date(max_date.year, max_date.month, 1),
+        )]
 
-def count_by_category_for_service_barchart(title, category_name_field, joins=None):
+        group_category = [{'group': t.service.name, 'category': t.created_date.strftime('%b %Y')} for t in tasks]
 
-    if joins is None:
-        joins = []
+    elif report_grouper_id == -2:
+        group_category = [{'group': t.service.name, 'category': t.current_status_type.name} for t in tasks]
+
+    elif report_grouper_id == -1:
+        group_category = [{'group': t.service.name, 'category': t.organisation.name} for t in tasks]
+    
     else:
-        joins = joins + [Task.service]
+        field = Field.query.get_or_404(report_grouper_id)
 
-    tasks = Task.query.with_entities(
-        Service.name,
-        category_name_field,
-    ).join(*joins).filter(
-        Task.service_id.in_([u.id for u in current_user.owned_services])
-    ).order_by(
-        Service.name,
-        Task.created_date,
-    ).all()
+        if len(field.get_choices()) > 0:
+            buckets = [c[0] for c in field.get_choices()]
+        
+        group_category = []
 
-    buckets = {t[1] for t in tasks}
+        for t in tasks:
+            group_category.extend([{'group': t.service.name, 'category': d.formated_value} for d in t.data if d.field_id == report_grouper_id])
 
-    return grouped_bar_chart(title, buckets, tasks)
+    return grouped_bar_chart(get_report_name(report_grouper_id), group_category, buckets=buckets)
+
+
+def get_report_name(report_id):
+    static_groupers = {
+        -3: 'Month Requested',
+        -2: 'Current Status',
+        -1: 'Organisation',
+    }
+
+    if report_id in static_groupers.keys():
+        grouper = static_groupers[report_id]
+    else:
+        grouper = Field.query.get_or_404(report_id).get_label()
+
+    return 'Jobs by {}'.format(grouper)
+

@@ -21,6 +21,27 @@ def must_own_a_service():
     return decorator
 
 
+def must_be_service_owner(var_name):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            service_id = get_value_from_all_arguments(var_name)
+
+            if service_id is not None and int(service_id) > 0:
+                s = Service.query.options(
+                    joinedload(Service.owners),
+                ).get_or_404(service_id)
+
+                if current_user not in s.owners:
+                    abort(403)
+
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 def must_be_task_file_owner_or_requestor(var_name):
     def decorator(f):
         @wraps(f)

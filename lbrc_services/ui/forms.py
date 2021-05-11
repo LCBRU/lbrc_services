@@ -1,6 +1,7 @@
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
-from lbrc_flask.forms.dynamic import FormBuilder
+from itertools import groupby
+from lbrc_flask.forms.dynamic import Field, FieldGroup, FormBuilder
 from lbrc_flask.security import current_user_id
 from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.html5 import DateField
@@ -48,6 +49,13 @@ def _get_combined_task_status_type_choices():
     return [(0, 'Outstanding (not done, declined or cancelled)'), (-1, 'Completed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
 
 
+def _get_report_grouper_choices():
+    field_group_ids = Service.query.with_entities(Service.field_group_id.distinct()).join(Service.owners).filter(User.id == current_user.id)
+    report_group_fields = Field.query.filter(Field.field_group_id.in_(field_group_ids)).filter(Field.reportable == True).all()
+
+    return [(-3, 'Requested Month'), (-2, 'Current Status'), (-1, 'Organisation')] + [(f.id, '{}: {}'.format(f.field_group.name, f.get_label())) for f in report_group_fields]
+
+
 class TaskSearchForm(SearchForm):
     created_date_from = DateField('Request Made From', format='%Y-%m-%d')
     created_date_to = DateField('Request Made To', format='%Y-%m-%d')
@@ -72,6 +80,15 @@ class MyJobsSearchForm(TaskSearchForm):
 
         self.requestor_id.choices = _get_requestor_choices()
         self.assigned_user_id.choices = _get_task_assigned_user_search_choices()
+
+
+class ReportSearchForm(MyJobsSearchForm):
+    report_grouper_id = SelectField('Job Count By...', coerce=int, choices=[], default=-3)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.report_grouper_id.choices = _get_report_grouper_choices()
 
 
 class TaskUpdateAssignedUserForm(FlashingForm):
@@ -143,8 +160,11 @@ def get_create_task_form(service, task=None):
         dt.organisation_id = task.organisation_id
         dt.organisation_description = task.organisation_description
 
-        for td in task.data:
-            setattr(dt, td.field.field_name, td.data_value)
+        for field, data in groupby(task.data, lambda d: d.field):
+            if field.field_type.is_select_multiple:
+                setattr(dt, field.field_name, [d.data_value for d in data])
+            else:
+                setattr(dt, field.field_name, next(data).data_value)
 
     result = builder.get_form()(obj=dt)
 

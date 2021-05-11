@@ -1,21 +1,30 @@
 {% extends "ui/page.html" %}
+{% from "lbrc_flask/form_macros.html" import render_search %}
 
 {% block content %}
 
 <section>
-    <h1>Reports</h1>
+    <div class="page-header">
+        <h1>Reports</h1>
 
-    <figure>
-        <embed type="image/svg+xml" src="{{ url_for('ui.tasks_requested_by_month') }}" alt="Tasks Requested by Month" />
-    </figure>
+        {{ render_search(
+            search_form,
+            'ui.reports',
+            placeholder='enter search text - searches names',
+            buttons=[
+                {
+                    'id': 'download',
+                    'text': 'Download',
+                    'endpoint': 'ui.report_png',
+                    'add_form_fields': True,
+                },
+            ],
+        ) }}
+    </div>
 
-    <figure>
-        <embed type="image/svg+xml" src="{{ url_for('ui.tasks_by_current_status') }}" alt="Tasks by Current Status" />
-    </figure>
-
-    <figure>
-        <embed type="image/svg+xml" src="{{ url_for('ui.tasks_by_organisation') }}" alt="Tasks by Organisation" />
-    </figure>
+    <div id="chart">
+        <embed type="image/svg+xml" src= {{ chart|safe }} />
+    </div>
 
 </section>
 
