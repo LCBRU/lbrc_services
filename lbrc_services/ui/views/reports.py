@@ -69,7 +69,7 @@ def get_chart(search_form):
         field = Field.query.get_or_404(report_grouper_id)
 
         if len(field.get_choices()) > 0:
-            buckets = [c[0] for c in field.get_choices()]
+            buckets = [c[0] for c in field.get_choices() if c[0]]
         
         group_category = []
 
