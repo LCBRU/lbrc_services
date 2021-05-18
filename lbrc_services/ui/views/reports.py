@@ -48,14 +48,17 @@ def get_chart(search_form):
     buckets = None
 
     if report_grouper_id == -3:
-        min_date = min([t.created_date for t in tasks])
-        max_date = max([t.created_date for t in tasks])
+        if len(tasks) < 1:
+            buckets = []
+        else:
+            min_date = min([t.created_date for t in tasks])
+            max_date = max([t.created_date for t in tasks])
 
-        buckets = [d.strftime('%b %Y') for d in rrule(
-            MONTHLY,
-            dtstart=date(min_date.year, min_date.month, 1),
-            until=date(max_date.year, max_date.month, 1),
-        )]
+            buckets = [d.strftime('%b %Y') for d in rrule(
+                MONTHLY,
+                dtstart=date(min_date.year, min_date.month, 1),
+                until=date(max_date.year, max_date.month, 1),
+            )]
 
         group_category = [{'group': t.service.name, 'category': t.created_date.strftime('%b %Y')} for t in tasks]
 

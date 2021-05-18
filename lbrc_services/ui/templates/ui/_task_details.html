@@ -13,7 +13,7 @@
                     </div>
                     <div class="col-5">
                         <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
-                            <div class="btn-group mr-1" role="group">
+                            <div class="btn-group mr-1 mb-1" role="group">
                                 <a class="btn btn-primary" href="{{ url_for('ui.edit_task', task_id=t.id, prev=request.full_path) }}">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -21,13 +21,13 @@
 
                             {% if not show_owner_controls %}
 
-                                <div class="btn-group mr-1" role="group">
+                                <div class="btn-group mr-1 mb-1" role="group">
                                     <a class="btn btn-primary" href="Javascript://">{{ t.current_status_type.name }}</a>
                                 </div>
 
                             {% else %}
 
-                                <div class="btn-group mr-1" role="group">
+                                <div class="btn-group mr-1 mb-1" role="group">
                                     <a class="btn btn-primary" href="{{ url_for('ui.task_todo_list', task_id=t.id, prev=request.full_path) }}">
                                         <i class="fas fa-clipboard-check"></i>
                                         {% if t.required_todos > 0 %}
@@ -36,7 +36,7 @@
                                     </a>
                                 </div>
 
-                                <div class="btn-group mr-1" role="group">
+                                <div class="btn-group mr-1 mb-1" role="group">
                                     <button id="btnGroupAssignedUser" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         {{ t.current_assigned_user.full_name | default_if_none('Unassigned') }}
                                     </button>
@@ -57,7 +57,7 @@
                                     </div>
                                 </div>
 
-                                <div class="btn-group" role="group">
+                                <div class="btn-group mb-1" role="group">
                                     <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         {{ t.current_status_type.name }}
                                     </button>
