@@ -21,14 +21,11 @@ def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=Fal
         joinedload(Task.files),
         joinedload(Task.current_status_type),
     )
-
     if search_form.search.data:
         q = q.filter(Task.name.like("%{}%".format(search_form.search.data)))
 
     if search_form.data.get('service_id', 0) not in (0, "0", None):
         q = q.filter(Task.service_id == search_form.data['service_id'])
-    else:
-        q = q.filter(Task.service_id.in_([s.id for s in current_user.owned_services]))
 
     if search_form.data.get('organisation_id', 0) not in (0, "0", None):
         q = q.filter(Task.organisation_id == search_form.data['organisation_id'])

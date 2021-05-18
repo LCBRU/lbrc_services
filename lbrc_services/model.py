@@ -161,7 +161,7 @@ class Task(AuditMixin, CommonMixin, db.Model):
     requestor = db.relationship(User, lazy="joined", backref='tasks', foreign_keys=[requestor_id])
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(TaskStatusType.id), nullable=False)
     current_status_type = db.relationship(TaskStatusType)
-    current_assigned_user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    current_assigned_user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
     current_assigned_user = db.relationship(User, foreign_keys=[current_assigned_user_id])
 
     @property

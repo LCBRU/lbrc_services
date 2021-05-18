@@ -2,6 +2,7 @@ from flask_api import status
 from lbrc_flask.forms import SearchForm
 from lbrc_services.model import Task, ToDo
 from lbrc_flask.database import db
+from lbrc_flask.requests import get_value_from_all_arguments
 from flask import (
     render_template,
     redirect,
@@ -54,7 +55,11 @@ def task_save_todo():
         db.session.add(todo)
         db.session.commit()
 
-    return redirect(url_for("ui.task_todo_list", task_id=form.task_id.data, prev=request.args.get('prev', '')))
+    print('*'* 100)
+    print(request.args.get('prev', ''))
+    print('*'* 100)
+
+    return redirect(url_for("ui.task_todo_list", task_id=form.task_id.data, prev=get_value_from_all_arguments('prev')))
 
 
 @blueprint.route("/todo/update_status", methods=["POST"])

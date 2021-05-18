@@ -11,7 +11,7 @@ def _url(task_file_id, task_id, external=True):
 
 @pytest.fixture(scope="function")
 def mock_send_file(app):
-    with patch('lbrc_services.ui.send_file') as m:
+    with patch('lbrc_services.ui.views.task.send_file') as m:
         m.return_value = ''
         yield m
 

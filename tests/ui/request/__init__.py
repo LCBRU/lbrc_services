@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 @pytest.fixture(scope="function")
 def mock_email():
-    with patch('lbrc_services.ui.email') as mock:
+    with patch('lbrc_services.ui.views.task.email') as mock:
         yield mock
 
 

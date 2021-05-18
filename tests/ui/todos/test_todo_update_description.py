@@ -20,12 +20,15 @@ def _update_todo_post(client, task_id, todo_id, description):
     )
 
 
-def _create_todo_post(client, task_id, description):
+def _create_todo_post(client, task_id, description, prev=None):
+    prev = prev or _url()
+    
     return client.post(
         _url(external=False),
         data={
             'task_id': task_id,
             'description': description,
+            'prev': prev,
         },
     )
 
@@ -51,8 +54,8 @@ def test__create_post__ok(client, faker, loggedin_user):
 
     expected = faker.pystr(min_chars=5, max_chars=100)
 
-    resp = _create_todo_post(client, task_id=task.id, description=expected)
-    assert__redirect(resp, endpoint='ui.task_todo_list', task_id=task.id)
+    resp = _create_todo_post(client, task_id=task.id, description=expected, prev=_url())
+    assert__redirect(resp, endpoint='ui.task_todo_list', task_id=task.id, prev=_url())
 
     ToDo.query.count() == 1
     actual = ToDo.query.one()

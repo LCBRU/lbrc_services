@@ -5,7 +5,7 @@ from lbrc_flask.pytest.asserts import assert__requires_login
 
 
 def _url(external=True, **kwargs):
-    return url_for('ui.my_jobs', _external=external, **kwargs)
+    return url_for('ui.task_update_status', _external=external, **kwargs)
 
 
 def _update_status_post(client, task, status, notes):
