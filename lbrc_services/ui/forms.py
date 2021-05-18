@@ -53,7 +53,7 @@ def _get_report_grouper_choices():
     field_group_ids = Service.query.with_entities(Service.field_group_id.distinct()).join(Service.owners).filter(User.id == current_user.id)
     report_group_fields = Field.query.filter(Field.field_group_id.in_(field_group_ids)).filter(Field.reportable == True).all()
 
-    return [(-3, 'Requested Month'), (-2, 'Current Status'), (-1, 'Organisation')] + [(f.id, '{}: {}'.format(f.field_group.name, f.get_label())) for f in report_group_fields]
+    return [(-3, 'Requested Month'), (-2, 'Current Status'), (-1, 'Organisation')] + [(f.id, '{}: {}'.format(f.field_group.name, f.get_label())) for f in sorted(report_group_fields, key=lambda x: x.field_group.name)]
 
 
 class TaskSearchForm(SearchForm):
