@@ -36,6 +36,7 @@ class UserView(AdminCustomView):
         User.first_name,
         User.last_name,
         User.ldap_user,
+        User.active,
     ]
     form_columns = [
         User.username,
