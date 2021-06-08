@@ -43,6 +43,7 @@ class UserView(AdminCustomView):
         User.first_name,
         User.last_name,
         'roles',
+        User.active,
     ]
 
 def init_admin(app, title):
