@@ -46,7 +46,7 @@ def _get_task_assigned_user_search_choices():
 
 
 def _get_combined_task_status_type_choices():
-    return [(0, 'Outstanding (not done, declined or cancelled)'), (-1, 'Completed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
+    return [(0, 'Open (created, in progress or awaiting information)'), (-1, 'Closed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
 
 
 def _get_report_grouper_choices():
