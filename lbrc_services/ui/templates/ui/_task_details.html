@@ -7,7 +7,12 @@
                 <div class="row">
                     <div class="col-7">
                         <header>
-                            <h1>{{t.service.name}}: {{ t.name }}</h1>
+                            <h1>
+                                <span>{{t.service.name}}: {{ t.name }}</span>
+                                {% if not show_owner_controls %}
+                                    <span class="badge badge-secondary">{{ t.current_status_type.name }}</span>
+                                {% endif %}
+                            </h1>
                             <h2>For <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
                         </header>
                     </div>
@@ -22,7 +27,12 @@
                             {% if not show_owner_controls %}
 
                                 <div class="btn-group mr-1 mb-1" role="group">
-                                    <a class="btn btn-primary" href="Javascript://">{{ t.current_status_type.name }}</a>
+                                    <a class="btn btn-primary"
+                                        data-toggle="modal"
+                                        data-task-id="{{ t.id }}"
+                                        data-name="{{ t.name }}"
+                                        data-target="#cancelRequestModal"
+                                        href="#">Cancel Request</a>
                                 </div>
 
                             {% else %}
@@ -109,9 +119,5 @@
         </li>
     {% endfor %}
 </ul>
-
-
-
-
 
 {% endmacro %}

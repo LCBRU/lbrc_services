@@ -1,3 +1,4 @@
+from lbrc_flask.forms import ConfirmForm
 from lbrc_services.ui.views import _get_tasks_query
 from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation
 from lbrc_flask.database import db
@@ -19,6 +20,7 @@ from .. import blueprint
 @blueprint.route("/my_requests")
 def my_requests():
     search_form = TaskSearchForm(formdata=request.args)
+    cancel_request_form = ConfirmForm()
 
     q = _get_tasks_query(search_form=search_form, requester_id=current_user.id)
 
@@ -28,8 +30,16 @@ def my_requests():
             error_out=False,
         )
 
-    return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form)
+    return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form, cancel_request_form=cancel_request_form)
 
+
+@blueprint.route("/cancel_request", methods=["POST"])
+def cancel_request():
+    cancel_request_form = ConfirmForm()
+
+    update_task_status(cancel_request_form.id.data, TaskStatusType.get_cancelled(), 'Cancelled by user')
+
+    return redirect(url_for("ui.my_requests", **request.args))
 
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
@@ -97,25 +107,31 @@ def task_update_status():
     task_update_status_form = TaskUpdateStatusForm()
 
     if task_update_status_form.validate_on_submit():
-        task = Task.query.get_or_404(task_update_status_form.task_id.data)
-
         status_type = TaskStatusType.query.get_or_404(task_update_status_form.status.data)
+
+        update_task_status(
+            task_update_status_form.task_id.data,
+            status_type,
+            task_update_status_form.notes.data,
+        )
+
+    return redirect(url_for("ui.my_jobs", **request.args))
+
+def update_task_status(task_id, new_task_status_type, notes):
+        task = Task.query.get_or_404(task_id)
 
         task_status = TaskStatus(
             task=task,
-            task_status_type=status_type,
-            notes=task_update_status_form.notes.data,
+            task_status_type=new_task_status_type,
+            notes=notes,
         )
 
         db.session.add(task_status)
 
-        task.current_status_type = status_type
+        task.current_status_type = new_task_status_type
 
         db.session.add(task)
         db.session.commit()
-
-    return redirect(url_for("ui.my_jobs", **request.args))
-
 
 @blueprint.route("/task/update_assigned_user", methods=["POST"])
 @must_be_task_owner("task_id")

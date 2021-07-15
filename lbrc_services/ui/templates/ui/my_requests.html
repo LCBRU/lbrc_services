@@ -1,6 +1,7 @@
 {% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_pagination, render_field, render_button_bar %}
 {% from "ui/_task_details.html" import render_tasks_list %}
+{% from "lbrc_flask/modal_macros.html" import render_modal %}
 
 {% block content %}
 <section>
@@ -19,5 +20,36 @@
 
 </section>
 {{ render_pagination(tasks, 'ui.my_requests', form=search_form) }}
+
+{% call render_modal('cancelRequestModal', 'Cancel Request') %}
+    <p id="modal_description">Cancel the request "<span id="task_name"></span>".</p>
+    <form id="cancel_request_form" action="{{ url_for('ui.cancel_request') }}" method="POST" class="form panel-body" enctype="multipart/form-data">
+        <fieldset>
+            {{ cancel_request_form.hidden_tag() }}
+
+            {{ render_button_bar('ui.my_requests', submit_label="Cancel Request") }}
+        </fieldset>
+    </form>
+{% endcall %}
+
+{% endblock %}
+
+{% block js %}
+
+<script>
+    $(document).ready(function(){
+        $('#cancelRequestModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var id = button.data('task-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#task_name').text(name);
+
+            let task_id = modal.find('#id');
+            task_id.val(id);
+        });
+    });
+</script>
 
 {% endblock %}
