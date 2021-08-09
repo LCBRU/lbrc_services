@@ -131,9 +131,12 @@ class Organisation(db.Model, CommonMixin):
     LIFESTYLE = 'BRC Lifestyle Theme'
     PRECICION = 'BRC Precision Medicine Theme'
     RESPIRATORY = 'BRC Respiratory Theme'
+    LDC = 'Leicester Diabetes Centre'
+    PRC = 'Patient Recruitment Centre'
+    RandI = 'R&I'
     OTHER = 'Other - please specify'
 
-    all_organisations = [CARDIOVASCULAR, LIFESTYLE, PRECICION, RESPIRATORY, OTHER]
+    all_organisations = [CARDIOVASCULAR, LIFESTYLE, PRECICION, RESPIRATORY, LDC, PRC, RandI, OTHER]
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
