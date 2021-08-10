@@ -143,7 +143,7 @@ def get_create_task_form(service, task=None):
     requestor_choices = [('', '')] + [(t.id, t.full_name) for t in users]
 
     builder = FormBuilder()
-    builder.add_form_field('requestor_id', SelectField('Requesting User', default=current_user_id, choices=requestor_choices, validators=[DataRequired()]))
+    builder.add_form_field('requestor_id', SelectField('Requesting User', default=current_user_id, choices=requestor_choices, validators=[DataRequired()], validate_choice=False))
     builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
     builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired()]))
     builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
