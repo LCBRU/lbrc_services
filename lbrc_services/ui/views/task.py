@@ -41,6 +41,7 @@ def cancel_request():
 
     return redirect(url_for("ui.my_requests", **request.args))
 
+
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
     search_form = MyJobsSearchForm(formdata=request.args)
@@ -117,6 +118,7 @@ def task_update_status():
 
     return redirect(url_for("ui.my_jobs", **request.args))
 
+
 def update_task_status(task_id, new_task_status_type, notes):
         task = Task.query.get_or_404(task_id)
 
@@ -132,6 +134,7 @@ def update_task_status(task_id, new_task_status_type, notes):
 
         db.session.add(task)
         db.session.commit()
+
 
 @blueprint.route("/task/update_assigned_user", methods=["POST"])
 @must_be_task_owner("task_id")
@@ -174,6 +177,11 @@ def task_assignment_history(task_id):
 
 
 def save_task(task, form, context):
+
+    print('*' * 100)
+    print(form.requestor_id.data)
+    print('*' * 100)
+
     task.requestor_id = form.requestor_id.data
     task.organisation_id = form.organisation_id.data
     task.organisation_description = form.organisation_description.data

@@ -1,8 +1,9 @@
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
-from lbrc_flask.forms.dynamic import Field, FieldGroup, FormBuilder
+from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
+from lbrc_flask.security.ldap import get_or_create_ldap_user
 from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.html5 import DateField
 from wtforms.fields.simple import HiddenField
@@ -138,12 +139,29 @@ def required_when_other_organisation(form, field):
         raise ValidationError('This field is required.')
 
 
+def _user_coerce(value):
+    if str(value).isnumeric():
+        return value
+
+    u = User.query.filter(User.username == value).one_or_none()
+
+    if u:
+        return u.id
+
+    u = get_or_create_ldap_user(value)
+
+    if u:
+        return u.id
+    
+    return None
+
+
 def get_create_task_form(service, task=None):
     users = User.query.order_by(User.last_name.asc(), User.first_name.asc()).all()
     requestor_choices = [('', '')] + [(t.id, t.full_name) for t in users]
 
     builder = FormBuilder()
-    builder.add_form_field('requestor_id', SelectField('Requesting User', default=current_user_id, choices=requestor_choices, validators=[DataRequired()]))
+    builder.add_form_field('requestor_id', SelectField('Requesting User', coerce=_user_coerce, default=current_user_id, choices=requestor_choices, validate_choice=False, validators=[DataRequired()]))
     builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
     builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired()]))
     builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
