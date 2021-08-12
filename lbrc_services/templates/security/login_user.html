@@ -16,6 +16,13 @@
     </div>
 
     <div class="row justify-content-center">
+        <div class="errors">
+            {{ errors.render_errors(get_flashed_messages(with_categories=true)) }}
+            {% block errors %}{% endblock %}
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
         <div class="col-6">
             {{ formhelper.render_form_errors(login_user_form)  }}
         </div>
