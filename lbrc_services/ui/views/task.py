@@ -15,6 +15,8 @@ from lbrc_flask.export import excel_download
 from ..decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_task_owner
 from ..forms import MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form, TaskUpdateAssignedUserForm
 from .. import blueprint
+from sqlalchemy import or_
+from lbrc_flask.security import current_user_id
 
 
 @blueprint.route("/my_requests")
@@ -46,6 +48,24 @@ def cancel_request():
 def my_jobs():
     search_form = MyJobsSearchForm(formdata=request.args)
     q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+
+    assigned_user_id = search_form.data.get('assigned_user_id', 0)
+
+    if assigned_user_id == -2:
+        q = q.filter(or_(
+            Task.current_assigned_user_id == 0,
+            Task.current_assigned_user_id == None,
+            Task.current_assigned_user_id == current_user_id(),
+        ))
+    elif assigned_user_id == -1:
+        pass
+    elif assigned_user_id in (0, "0", None):
+        q = q.filter(or_(
+            Task.current_assigned_user_id == 0,
+            Task.current_assigned_user_id == None,
+        ))
+    else:
+        q = q.filter(Task.current_assigned_user_id == assigned_user_id)
 
     tasks = q.paginate(
             page=search_form.page.data,

@@ -7,11 +7,8 @@ __all__ = [
 
 
 from datetime import timedelta
-from lbrc_flask.security import current_user_id
 from sqlalchemy.orm import joinedload
 from lbrc_services.model import Service, Task, TaskStatusType, User
-from flask_security import current_user
-from sqlalchemy import or_
 
 
 def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=False):
@@ -38,24 +35,6 @@ def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=Fal
 
     if search_form.data.get('created_date_to', None):
         q = q.filter(Task.created_date < search_form.data['created_date_to'] + timedelta(days=1))
-
-    assigned_user_id = search_form.data.get('assigned_user_id', 0)
-
-    if assigned_user_id == -2:
-        q = q.filter(or_(
-            Task.current_assigned_user_id == 0,
-            Task.current_assigned_user_id == None,
-            Task.current_assigned_user_id == current_user_id(),
-        ))
-    elif assigned_user_id == -1:
-        pass
-    elif assigned_user_id in (0, "0", None):
-        q = q.filter(or_(
-            Task.current_assigned_user_id == 0,
-            Task.current_assigned_user_id == None,
-        ))
-    else:
-        q = q.filter(Task.current_assigned_user_id == assigned_user_id)
 
     if 'task_status_type_id' in search_form.data:
         option = search_form.data.get('task_status_type_id', 0) or 0
