@@ -133,3 +133,4 @@ test_file_uploads
 database.sqlite3
 .vscode
 *.code-workspace
+log/
