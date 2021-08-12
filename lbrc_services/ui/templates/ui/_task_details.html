@@ -8,7 +8,7 @@
                     <div class="col-7">
                         <header>
                             <h1>
-                                <span>{{t.service.name}}: {{ t.name }}</span>
+                                <span>#{{t.id}} {{t.service.name}}: {{ t.name }}</span>
                                 {% if not show_owner_controls %}
                                     <span class="badge badge-secondary">{{ t.current_status_type.name }}</span>
                                 {% endif %}
