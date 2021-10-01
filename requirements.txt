@@ -8,3 +8,5 @@ pygal
 lxml
 python-dateutil
 cairosvg
+flask_weasyprint
+

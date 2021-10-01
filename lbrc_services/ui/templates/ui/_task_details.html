@@ -112,7 +112,11 @@
                 <dl>
                     {% for d in t.data %}
                         <dt>{{ d.field.field_name }}</dt>
-                        <dd>{{ d.formated_value | blank_if_none }}</dd>
+                        {% if d.field.field_type.is_textarea %}
+                            <dd>{{ d.formated_value | blank_if_none | pre }}</dd>
+                        {% else %}
+                            <dd>{{ d.formated_value | blank_if_none }}</dd>
+                        {% endif %}
                     {% endfor %}
                 </dl>
                 
