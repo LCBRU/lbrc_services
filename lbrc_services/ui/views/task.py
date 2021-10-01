@@ -41,7 +41,7 @@ def cancel_request():
 
     update_task_status(cancel_request_form.id.data, TaskStatusType.get_cancelled(), 'Cancelled by user')
 
-    return redirect(url_for("ui.my_requests", **request.args))
+    return redirect(request.args.get('prev', ''))
 
 
 @blueprint.route("/my_jobs", methods=["GET", "POST"])

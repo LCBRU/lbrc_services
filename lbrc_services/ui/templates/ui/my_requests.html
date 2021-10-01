@@ -23,11 +23,11 @@
 
 {% call render_modal('cancelRequestModal', 'Cancel Request') %}
     <p id="modal_description">Cancel the request "<span id="task_name"></span>".</p>
-    <form id="cancel_request_form" action="{{ url_for('ui.cancel_request') }}" method="POST" class="form panel-body" enctype="multipart/form-data">
+    <form id="cancel_request_form" action="{{ url_for('ui.cancel_request', prev=request.full_path) }}" method="POST" class="form panel-body" enctype="multipart/form-data">
         <fieldset>
             {{ cancel_request_form.hidden_tag() }}
 
-            {{ render_button_bar('ui.my_requests', submit_label="Cancel Request") }}
+            {{ render_button_bar(cancel_url=request.full_path, submit_label="Cancel Request") }}
         </fieldset>
     </form>
 {% endcall %}
