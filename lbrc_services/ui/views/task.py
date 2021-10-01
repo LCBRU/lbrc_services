@@ -162,22 +162,41 @@ def update_assigned_user():
     task_update_assigned_user_form = TaskUpdateAssignedUserForm()
 
     if task_update_assigned_user_form.validate_on_submit():
-        task = Task.query.get_or_404(task_update_assigned_user_form.task_id.data)
-
-        tau = TaskAssignedUser(
-            task=task,
-            user_id=task_update_assigned_user_form.assigned_user.data,
+        _update_assigned_user(
+            task_update_assigned_user_form.task_id.data,
+            task_update_assigned_user_form.assigned_user.data,
             notes=task_update_assigned_user_form.notes.data,
         )
 
-        db.session.add(tau)
+    return redirect(url_for("ui.my_jobs", **request.args))
 
-        task.current_assigned_user_id = task_update_assigned_user_form.assigned_user.data
 
-        db.session.add(task)
-        db.session.commit()
+@blueprint.route("/task/<int:task_id>/assign_to_me")
+@must_be_task_owner("task_id")
+def assign_to_me(task_id):
+    _update_assigned_user(
+        task_id,
+        current_user_id(),
+    )
 
     return redirect(url_for("ui.my_jobs", **request.args))
+
+
+def _update_assigned_user(task_id, user_id, notes=''):
+    task = Task.query.get_or_404(task_id)
+
+    tau = TaskAssignedUser(
+        task=task,
+        user_id=user_id,
+        notes=notes,
+    )
+
+    db.session.add(tau)
+
+    task.current_assigned_user_id = user_id
+
+    db.session.add(task)
+    db.session.commit()
 
 
 @blueprint.route("/task/<int:task_id>/status_history")

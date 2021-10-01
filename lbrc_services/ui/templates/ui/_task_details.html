@@ -51,6 +51,7 @@
                                         {{ t.current_assigned_user.full_name | default_if_none('Unassigned') }}
                                     </button>
                                     <div class="dropdown-menu" aria-labelledby="btnGroupAssignedUser">
+                                        <a class="dropdown-item" href="{{ url_for('ui.assign_to_me', task_id=t.id) }}">Assign to Me</a>
                                         <a class="dropdown-item"
                                             data-toggle="modal"
                                             data-task-id="{{ t.id }}"
