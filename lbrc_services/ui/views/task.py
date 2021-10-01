@@ -1,6 +1,6 @@
 from lbrc_flask.forms import ConfirmForm
 from lbrc_services.ui.views import _get_tasks_query
-from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation
+from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
 from flask import (
@@ -198,14 +198,21 @@ def task_assignment_history(task_id):
 
 def save_task(task, form, context):
 
-    print('*' * 100)
-    print(form.requestor_id.data)
-    print('*' * 100)
-
     task.requestor_id = form.requestor_id.data
     task.organisation_id = form.organisation_id.data
     task.organisation_description = form.organisation_description.data
     task.name = form.name.data
+
+    assigned_user = form.assigned_user_id.data or 0
+
+    tau = TaskAssignedUser(
+        task=task,
+        user_id=assigned_user,
+    )
+
+    db.session.add(tau)
+
+    task.current_assigned_user_id = assigned_user
 
     task.data.clear()
     db.session.add(task)
@@ -270,7 +277,14 @@ def create_task(service_id):
 
         return redirect(url_for("ui.index"))
 
-    return render_template("ui/task/create.html", form=form, service=service, other_organisation=Organisation.get_other(), allow_requestor_selection=current_user.service_owner)
+    return render_template(
+        "ui/task/create.html",
+        form=form,
+        service=service,
+        other_organisation=Organisation.get_other(),
+        allow_requestor_selection=current_user.service_owner,
+        allow_assignee_selection=current_user.service_owner,
+    )
 
 
 @blueprint.route("/task/<int:task_id>/edit", methods=["GET", "POST"])
@@ -286,7 +300,13 @@ def edit_task(task_id):
 
         return redirect(request.args.get('prev', ''))
 
-    return render_template("ui/task/create.html", form=form, service=task.service, other_organisation=Organisation.get_other())
+    return render_template(
+        "ui/task/create.html",
+        form=form,
+        service=task.service,
+        other_organisation=Organisation.get_other(),
+        allow_assignee_selection=current_user.service_owner,
+    )
 
 
 @blueprint.route("/task/<int:task_id>/file/<int:task_file_id>")

@@ -41,6 +41,11 @@ def _get_task_assigned_user_choices():
     return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
 
 
+def _get_service_assigned_user_choices(service_id):
+    service = Service.query.get_or_404(service_id)
+    return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in service.owners]
+
+
 def _get_task_assigned_user_search_choices():
     owners = User.query.join(User.owned_services).all()
     return [(-2, 'Mine and Unassigned'), (-1, 'All'), (0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
@@ -162,6 +167,7 @@ def get_create_task_form(service, task=None):
 
     builder = FormBuilder()
     builder.add_form_field('requestor_id', SelectField('Requesting User', coerce=_user_coerce, default=current_user_id, choices=requestor_choices, validate_choice=False, validators=[DataRequired()]))
+    builder.add_form_field('assigned_user_id', SelectField('Assigned User', coerce=_user_coerce, default=current_user_id, choices=_get_service_assigned_user_choices(service.id), validate_choice=False, validators=[DataRequired()]))
     builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
     builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired()]))
     builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
