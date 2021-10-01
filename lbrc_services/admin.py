@@ -1,5 +1,5 @@
 from wtforms import validators
-from lbrc_services.model import Service, User
+from lbrc_services.model import Organisation, Service, User
 from lbrc_flask.admin import init_admin as flask_init_admin, AdminCustomView
 from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms
 from lbrc_flask.database import db
@@ -47,6 +47,15 @@ class UserView(AdminCustomView):
         User.active,
     ]
 
+class OrganisationView(AdminCustomView):
+
+    column_searchable_list = column_list = [
+        Organisation.name,
+    ]
+    form_columns = [
+        Organisation.name,
+    ]
+
 def init_admin(app, title):
     flask_init_admin(
         app,
@@ -55,5 +64,6 @@ def init_admin(app, title):
             ServiceView(Service, db.session),
             *get_dynamic_forms_admin_forms(),
             UserView(User, db.session),
+            OrganisationView(Organisation, db.session),
         ],
     )
