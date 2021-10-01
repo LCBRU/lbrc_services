@@ -136,7 +136,7 @@ def task_update_status():
             task_update_status_form.notes.data,
         )
 
-    return redirect(url_for("ui.my_jobs", **request.args))
+    return redirect(request.args.get('prev', ''))
 
 
 def update_task_status(task_id, new_task_status_type, notes):
@@ -168,7 +168,7 @@ def update_assigned_user():
             notes=task_update_assigned_user_form.notes.data,
         )
 
-    return redirect(url_for("ui.my_jobs", **request.args))
+    return redirect(request.args.get('prev', ''))
 
 
 @blueprint.route("/task/<int:task_id>/assign_to_me")
@@ -179,7 +179,7 @@ def assign_to_me(task_id):
         current_user_id(),
     )
 
-    return redirect(url_for("ui.my_jobs", **request.args))
+    return redirect(request.args.get('prev', ''))
 
 
 def _update_assigned_user(task_id, user_id, notes=''):

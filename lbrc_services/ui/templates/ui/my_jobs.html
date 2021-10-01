@@ -32,7 +32,7 @@
 
 {% call render_modal('updateStatusModal', 'Update Status') %}
     <p id="modal_description">Set new status for "<span id="task_name"></span>".</p>
-    <form id="task_status_form" action="{{ url_for('ui.task_update_status') }}" method="POST" enctype="multipart/form-data">
+    <form id="task_status_form" action="{{ url_for('ui.task_update_status', prev=request.full_path) }}" method="POST" enctype="multipart/form-data">
         <fieldset>
             {{ task_update_status_form.hidden_tag() }}
 
@@ -40,14 +40,14 @@
                 {{ render_field(f) }}
             {% endfor %}
 
-            {{ render_button_bar('ui.my_jobs', submit_label="Save") }}
+            {{ render_button_bar(cancel_url=request.full_path, submit_label="Save") }}
         </fieldset>
     </form>
 {% endcall %}
 
 {% call render_modal('updateAssignedUserModal', 'Update Assigned User') %}
     <p id="modal_description">Set assigned user for "<span id="task_name"></span>".</p>
-    <form id="task_update_assigned_user_form" action="{{ url_for('ui.update_assigned_user') }}" method="POST" class="form panel-body" enctype="multipart/form-data">
+    <form id="task_update_assigned_user_form" action="{{ url_for('ui.update_assigned_user', prev=request.full_path) }}" method="POST" class="form panel-body" enctype="multipart/form-data">
         <fieldset>
             {{ task_update_assigned_user_form.hidden_tag() }}
 
@@ -55,7 +55,7 @@
                 {{ render_field(f) }}
             {% endfor %}
 
-            {{ render_button_bar('ui.my_jobs', submit_label="Save") }}
+            {{ render_button_bar(cancel_url=request.full_path, submit_label="Save") }}
         </fieldset>
     </form>
 {% endcall %}
