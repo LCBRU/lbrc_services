@@ -105,7 +105,7 @@ class TaskUpdateAssignedUserForm(FlashingForm):
 
     task_id = HiddenField()
     assigned_user = SelectField("Assigned User", validators=[DataRequired()])
-    notes = TextAreaField("Notes", validators=[Length(max=500)])
+    notes = TextAreaField("Notes", validators=[Length(max=255)])
 
 
 class TaskUpdateStatusForm(FlashingForm):
@@ -116,7 +116,7 @@ class TaskUpdateStatusForm(FlashingForm):
 
     task_id = HiddenField()
     status = SelectField("New Status", validators=[DataRequired()])
-    notes = TextAreaField("Notes", validators=[Length(max=500)])
+    notes = TextAreaField("Notes", validators=[Length(max=255)])
 
 
 class EditToDoForm(FlashingForm):
