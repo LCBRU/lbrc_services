@@ -59,6 +59,7 @@ class TaskStatusType(db.Model, CommonMixin):
     AWAITING_INFORMATION = 'Awaiting Information'
     CANCELLED = 'Cancelled'
     DECLINED = 'Declined'
+    DUPLICATE = 'Duplicate'
 
     all_details = {
         CREATED: {
@@ -82,6 +83,10 @@ class TaskStatusType(db.Model, CommonMixin):
             'is_active': False,
         },
         DECLINED: {
+            'is_complete': True,
+            'is_active': False,
+        },
+        DUPLICATE: {
             'is_complete': True,
             'is_active': False,
         },
@@ -118,6 +123,10 @@ class TaskStatusType(db.Model, CommonMixin):
     @classmethod
     def get_declined(cls):
         return cls.get_task_status(TaskStatusType.DECLINED)
+
+    @classmethod
+    def get_duplicate(cls):
+        return cls.get_task_status(TaskStatusType.DUPLICATE)
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
