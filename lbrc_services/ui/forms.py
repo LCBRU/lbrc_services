@@ -165,7 +165,7 @@ def get_create_task_form(service, task=None):
     users = User.query.order_by(User.last_name.asc(), User.first_name.asc()).all()
     requestor_choices = [('', '')] + [(t.id, t.full_name) for t in users]
 
-    default_assigned_user_id = 0
+    default_assigned_user_id = None
 
     if current_user in service.owners:
         default_assigned_user_id = current_user_id
