@@ -222,16 +222,17 @@ def save_task(task, form, context):
     task.organisation_description = form.organisation_description.data
     task.name = form.name.data
 
-    assigned_user = form.assigned_user_id.data or 0
+    assigned_user = form.assigned_user_id.data
 
-    tau = TaskAssignedUser(
-        task=task,
-        user_id=assigned_user,
-    )
+    if assigned_user:
+        tau = TaskAssignedUser(
+            task=task,
+            user_id=assigned_user,
+        )
 
-    db.session.add(tau)
+        db.session.add(tau)
 
-    task.current_assigned_user_id = assigned_user
+        task.current_assigned_user_id = assigned_user
 
     task.data.clear()
     db.session.add(task)
