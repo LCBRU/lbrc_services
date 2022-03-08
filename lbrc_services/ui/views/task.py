@@ -1,5 +1,5 @@
 from lbrc_flask.forms import ConfirmForm
-from lbrc_services.ui.views import _get_tasks_query
+from lbrc_services.ui.views import _get_tasks_query, send_task_export
 from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
@@ -11,7 +11,6 @@ from flask import (
     request,
 )
 from flask_security import current_user
-from lbrc_flask.export import excel_download
 from ..decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_task_owner
 from ..forms import MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form, TaskUpdateAssignedUserForm
 from .. import blueprint
@@ -87,39 +86,7 @@ def my_jobs_export():
     search_form = MyJobsSearchForm(formdata=request.args)
     q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
 
-    # Use of dictionary instead of set to maintain order of headers
-    headers = {
-        'name': None,
-        'organisation': None,
-        'organisation description': None,
-        'service': None,
-        'requestor': None,
-        'status': None,
-        'assigned to': None,
-    }
-
-    task_details = []
-
-    for t in q.all():
-        td = {}
-        task_details.append(td)
-
-        td['name'] = t.name
-        td['organisation'] = t.organisation.name
-        td['organisation_description'] = t.organisation_description
-        td['service'] = t.service.name
-        td['requestor'] = t.requestor.full_name
-        td['status'] = t.current_status_type.name
-
-        if t.current_assigned_user:
-            td['assigned to'] = t.current_assigned_user.full_name
-
-        for d in t.data:
-            headers[d.field.get_label()] = None
-
-            td[d.field.get_label()] = d.formated_value
-            
-    return excel_download('My Jobs', headers.keys(), task_details)
+    return send_task_export('My Jobs', q.all())
 
 
 @blueprint.route("/task/update_status", methods=["POST"])

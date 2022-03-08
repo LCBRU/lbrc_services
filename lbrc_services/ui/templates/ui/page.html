@@ -10,4 +10,8 @@
     {{ render_nav_item('ui.reports', 'Reports') }}
 {% endif %}
 
+{% if current_user.has_role('exporter') %}
+    {{ render_nav_item('ui.export', 'Export') }}
+{% endif %}
+
 {% endblock %}

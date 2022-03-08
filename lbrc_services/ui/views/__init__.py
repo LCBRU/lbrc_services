@@ -3,12 +3,14 @@ __all__ = [
     "todo",
     "user",
     "reports",
+    "export",
 ]
 
 
 from datetime import timedelta
 from sqlalchemy.orm import joinedload
 from lbrc_services.model import Service, Task, TaskStatusType, User
+from lbrc_flask.export import excel_download
 
 
 def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=False):
@@ -62,3 +64,41 @@ def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=Fal
         q = q.order_by(Task.created_date.desc())
 
     return q
+
+
+def send_task_export(title, tasks):
+    # Use of dictionary instead of set to maintain order of headers
+    headers = {
+        'name': None,
+        'organisation': None,
+        'organisation description': None,
+        'service': None,
+        'requestor': None,
+        'status': None,
+        'assigned to': None,
+    }
+
+    task_details = []
+
+    for t in tasks:
+        td = {}
+        task_details.append(td)
+
+        td['name'] = t.name
+        td['organisation'] = t.organisation.name
+        td['organisation_description'] = t.organisation_description
+        td['service'] = t.service.name
+        td['requestor'] = t.requestor.full_name
+        td['status'] = t.current_status_type.name
+
+        if t.current_assigned_user:
+            td['assigned to'] = t.current_assigned_user.full_name
+
+        for d in t.data:
+            headers[d.field.get_label()] = None
+
+            td[d.field.get_label()] = d.formated_value
+            
+    return excel_download(title, headers.keys(), task_details)
+
+
