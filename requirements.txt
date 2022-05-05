@@ -9,4 +9,4 @@ lxml
 python-dateutil
 cairosvg
 flask_weasyprint
-
+WTForms==2.3.3

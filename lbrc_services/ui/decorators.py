@@ -46,10 +46,13 @@ def must_be_task_file_owner_or_requestor(var_name):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            x = get_value_from_all_arguments(var_name)
+            print('*'*1000)
             rf = TaskFile.query.options(
                 joinedload(TaskFile.task).joinedload(Task.service).joinedload(Service.owners),
             ).get_or_404(get_value_from_all_arguments(var_name))
 
+            print('1'*1000)
             if rf.task.requestor_id != current_user.id and current_user not in rf.task.service.owners:
                 abort(403)
 
