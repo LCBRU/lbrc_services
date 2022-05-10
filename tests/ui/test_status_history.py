@@ -2,7 +2,7 @@ import re
 from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
 from itertools import cycle
-from lbrc_services.model import TaskStatus, TaskStatusType
+from lbrc_services.model.services import TaskStatus, TaskStatusType
 from flask import url_for
 from lbrc_flask.database import db
 from flask_api import status

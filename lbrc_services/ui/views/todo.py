@@ -1,6 +1,6 @@
 from flask_api import status
 from lbrc_flask.forms import SearchForm
-from lbrc_services.model import Task, ToDo
+from lbrc_services.model.services import Task, ToDo
 from lbrc_flask.database import db
 from lbrc_flask.requests import get_value_from_all_arguments
 from flask import (

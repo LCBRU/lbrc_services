@@ -1,7 +1,7 @@
 from flask import url_for
 from flask_api import status
 import pytest
-from lbrc_services.model import ToDo
+from lbrc_services.model.services import ToDo
 from lbrc_flask.pytest.asserts import assert__requires_login
 
 

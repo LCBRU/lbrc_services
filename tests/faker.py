@@ -1,5 +1,5 @@
 from faker.providers import BaseProvider
-from lbrc_services.model import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
+from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
 from io import BytesIO
 from pathlib import Path
@@ -164,21 +164,31 @@ class LbrcServicesFakerProvider(BaseProvider):
             status=status,
         )
 
-    def get_test_owned_task(self, owner, **kwargs):
+    def get_test_owned_task(self, owner, count=1, **kwargs):
         s = self.get_test_service(owners=[owner])
+        r = None
+        rs = []
 
-        r = self.task_details(**kwargs, service=s)
+        for _ in range(count):
+            r = self.task_details(**kwargs, service=s)
+            rs.append(r)
 
-        db.session.add(r)
+        db.session.add_all(rs)
         db.session.commit()
 
         return r
 
 
-    def get_test_task(self, **kwargs):
-        r = self.task_details(**kwargs)
+    def get_test_task(self, count=1, **kwargs):
+        r = None
+        rs = []
 
-        db.session.add(r)
+        for _ in range(count):
+            r = self.task_details(**kwargs)
+            rs.append(r)
+
+        db.session.add_all(rs)
+
         db.session.commit()
 
         return r

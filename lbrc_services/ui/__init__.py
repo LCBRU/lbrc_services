@@ -1,4 +1,4 @@
-from lbrc_services.model import Service
+from lbrc_services.model.services import Service
 from flask import (
     Blueprint,
     render_template,

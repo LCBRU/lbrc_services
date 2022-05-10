@@ -1,6 +1,6 @@
 from lbrc_flask.forms import ConfirmForm
 from lbrc_services.ui.views import _get_tasks_query, send_task_export
-from lbrc_services.model import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, User
+from lbrc_services.model.services import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, User
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
 from flask import (

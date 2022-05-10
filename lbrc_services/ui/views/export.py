@@ -1,5 +1,5 @@
 from flask_security import roles_accepted
-from lbrc_services.model import Task
+from lbrc_services.model.services import Task
 from lbrc_services.ui.views import send_task_export
 from .. import blueprint
 

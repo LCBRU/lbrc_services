@@ -4,7 +4,7 @@ from flask_login import current_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 from lbrc_flask.requests import get_value_from_all_arguments
-from lbrc_services.model import TaskFile, Task, Service, ToDo
+from lbrc_services.model.services import TaskFile, Task, Service, ToDo
 
 
 def must_own_a_service():

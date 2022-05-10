@@ -1,7 +1,7 @@
 import pytest
 import re
 from flask import url_for
-from lbrc_services.model import TaskStatusType
+from lbrc_services.model.services import TaskStatusType
 from tests import lbrc_services_get
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__search_html, assert__select, assert__page_navigation
 from flask_api import status
@@ -96,7 +96,7 @@ def task_matches_li(task, li):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__pages(client, faker, jobs, loggedin_user):
-    my_jobs = [faker.get_test_owned_task(loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
+    my_jobs = [faker.get_test_owned_task(loggedin_user, requestor=loggedin_user, count=jobs)]
 
     assert__page_navigation(client, 'ui.my_requests', {'_external': False}, jobs, form=TaskSearchForm())
 
@@ -106,8 +106,8 @@ def test__my_jobs__pages(client, faker, jobs, loggedin_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
-    matching = [faker.get_test_owned_task(name='Mary', owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
-    unmatching = [faker.get_test_owned_task(name='Joseph', owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
+    matching = [faker.get_test_owned_task(name='Mary', owner=loggedin_user, requestor=loggedin_user, count=jobs)]
+    unmatching = [faker.get_test_owned_task(name='Joseph', owner=loggedin_user, requestor=loggedin_user, count=100)]
 
     assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'search': 'ar'}, jobs, form=TaskSearchForm())
 
@@ -117,8 +117,8 @@ def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user):
-    matching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user) for _ in range(jobs)]
-    unmatching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user) for _ in range(100)]
+    matching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user, count=jobs)]
+    unmatching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user, count=100)]
 
     assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'task_status_type_id': TaskStatusType.get_done().id}, jobs, form=TaskSearchForm())
 
@@ -130,7 +130,7 @@ def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user
 def test__my_jobs__search__service__pages(client, faker, jobs, loggedin_user):
     service1 = faker.get_test_service(owners=[loggedin_user])
     service2 = faker.get_test_service(owners=[loggedin_user])
-    matching = [faker.get_test_task(service=service1, requestor=loggedin_user) for _ in range(jobs)]
-    unmatching = [faker.get_test_task(service=service2, requestor=loggedin_user) for _ in range(100)]
+    matching = [faker.get_test_task(service=service1, requestor=loggedin_user, count=jobs)]
+    unmatching = [faker.get_test_task(service=service2, requestor=loggedin_user, count=100)]
 
     assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'service_id': service1.id}, jobs, form=TaskSearchForm())

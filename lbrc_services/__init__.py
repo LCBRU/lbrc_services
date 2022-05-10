@@ -1,4 +1,4 @@
-from lbrc_services.model import User
+from lbrc_services.model.services import User
 from flask import Flask
 from lbrc_flask import init_lbrc_flask
 from lbrc_flask.security import init_security, Role

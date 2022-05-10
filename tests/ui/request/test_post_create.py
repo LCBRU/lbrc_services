@@ -1,7 +1,7 @@
 from flask import url_for
 from flask_api import status
 import pytest
-from lbrc_services.model import Organisation
+from lbrc_services.model.services import Organisation
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
 from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import assert__task, post_task, assert_emails_sent, mock_email

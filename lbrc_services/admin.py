@@ -1,5 +1,5 @@
 from wtforms import validators
-from lbrc_services.model import Organisation, Service, User
+from lbrc_services.model.services import Organisation, Service, User
 from lbrc_flask.admin import init_admin as flask_init_admin, AdminCustomView
 from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms
 from lbrc_flask.database import db

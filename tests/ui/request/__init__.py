@@ -1,5 +1,5 @@
 import pytest
-from lbrc_services.model import Task, TaskStatusType
+from lbrc_services.model.services import Task, TaskStatusType
 from pathlib import Path
 from unittest.mock import patch
 

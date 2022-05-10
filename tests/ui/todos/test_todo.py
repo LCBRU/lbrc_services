@@ -1,4 +1,4 @@
-from lbrc_services.model import ToDo
+from lbrc_services.model.services import ToDo
 from tests import lbrc_services_get
 import pytest
 from flask import url_for

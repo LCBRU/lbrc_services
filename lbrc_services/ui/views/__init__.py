@@ -9,7 +9,7 @@ __all__ = [
 
 from datetime import timedelta
 from sqlalchemy.orm import joinedload
-from lbrc_services.model import Service, Task, TaskStatusType, User
+from lbrc_services.model.services import Service, Task, TaskStatusType, User
 from lbrc_flask.export import excel_download
 
 

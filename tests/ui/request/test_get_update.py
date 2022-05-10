@@ -1,4 +1,4 @@
-from lbrc_services.model import Task, TaskData
+from lbrc_services.model.services import Task, TaskData
 from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
 import pytest

@@ -1,6 +1,6 @@
 from sqlalchemy import func, or_
 from lbrc_flask.security.ldap import Ldap
-from lbrc_services.model import Task, User
+from lbrc_services.model.services import Task, User
 from lbrc_flask.requests import get_value_from_all_arguments
 from lbrc_flask.database import db
 from .. import blueprint
