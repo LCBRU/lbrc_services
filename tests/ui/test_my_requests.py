@@ -41,9 +41,6 @@ def test__my_requests(client, faker, mine, others, loggedin_user):
 
     resp = _get(client, _url(), loggedin_user, has_form=True)
 
-    for r in my_requests:
-        pp(r)
-
     assert_results(resp, my_requests)
 
 

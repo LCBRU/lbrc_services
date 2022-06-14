@@ -1,4 +1,5 @@
 from faker.providers import BaseProvider
+from lbrc_services.model.quotes import Quote, QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
 from io import BytesIO
@@ -100,6 +101,47 @@ class LbrcServicesFakerProvider(BaseProvider):
 
         return result
 
+    def quote_details(
+        self,
+        name=None,
+        requestor=None,
+        current_status_type=None,
+        organisation=None,
+        organisation_description=None,
+        created_date=None,
+    ):
+        result = Quote()
+
+        if current_status_type is None:
+            result.current_status_type_id = QuoteStatusType.get_draft().id
+        else:
+            result.current_status_type_id = current_status_type.id
+
+        if organisation is None:
+            result.organisation_id = Organisation.get_organisation(Organisation.CARDIOVASCULAR).id
+        else:
+            result.organisation_id = organisation.id
+
+        if name is None:
+            result.name = self.generator.pystr(min_chars=5, max_chars=10)
+        else:
+            result.name = name
+
+        if requestor is None:
+            result.requestor = self.user_details()
+        elif requestor.id is None:
+            result.requestor = requestor
+        else:
+            result.requestor_id = requestor.id
+
+        if organisation_description is None:
+            result.organisation_description = ''
+
+        if created_date is not None:
+            result.created_date = created_date
+
+        return result
+
     def task_file_details(self, task=None, field=None, filename=None):
 
         if filename is None:
@@ -192,6 +234,20 @@ class LbrcServicesFakerProvider(BaseProvider):
         db.session.commit()
 
         return r
+
+
+    def get_test_quote(self, count=1, **kwargs):
+        result = []
+
+        for _ in range(count):
+            r = self.quote_details(**kwargs)
+            result.append(r)
+
+        db.session.add_all(result)
+
+        db.session.commit()
+
+        return result
 
 
     def get_test_task_file(self, fake_file=None, **kwargs):

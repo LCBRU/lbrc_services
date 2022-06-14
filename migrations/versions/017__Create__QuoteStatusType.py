@@ -12,7 +12,6 @@ def upgrade(migrate_engine):
         Column("id", Integer, primary_key=True),
         Column("name", UnicodeText),
         Column("is_complete", Boolean,),
-        *get_audit_mixin_columns(),
     )
 
     t.create()

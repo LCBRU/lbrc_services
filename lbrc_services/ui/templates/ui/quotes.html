@@ -1,0 +1,104 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_pagination, render_field, render_button_bar %}
+{% from "lbrc_flask/modal_macros.html" import render_modal %}
+{% from "ui/_quote_details.html" import render_quote_list %}
+
+{% block content %}
+
+<section>
+    <div class="page-header">
+        <h1>Quotes</h1>
+
+        {{ render_search(
+            search_form,
+            'ui.quotes',
+            placeholder='enter search text - searches names',
+            buttons=[
+                {
+                    'id': 'export',
+                    'text': 'Export',
+                    'endpoint': 'ui.quotes_export',
+                    'add_form_fields': True,
+                },
+                {
+                    'id': 'create',
+                    'text': 'Create',
+                    'endpoint': 'ui.create_quote',
+                },
+            ],
+        ) }}
+    </div>
+
+    {{ render_quote_list(quotes) }}
+
+</section>
+
+{{ render_pagination(quotes, 'ui.quotes', form=search_form) }}
+
+{% call render_modal('updateStatusModal', 'Update Status') %}
+    <p id="modal_description">Set new status for "<span id="quote_name"></span>".</p>
+    <form id="quote_status_form" action="{{ url_for('ui.quote_update_status', prev=request.full_path) }}" method="POST" enctype="multipart/form-data">
+        <fieldset>
+            {{ quote_update_status_form.hidden_tag() }}
+
+            {% for f in quote_update_status_form %}
+                {{ render_field(f) }}
+            {% endfor %}
+
+            {{ render_button_bar(cancel_url=request.full_path, submit_label="Save") }}
+        </fieldset>
+    </form>
+{% endcall %}
+
+{% call render_modal('showStatusHistoryModal', 'Status History') %}
+    <p id="modal_description">Status history for "<span id="quote_name"></span>".</p>
+
+    <div id="showStatusHistoryModal_content"></div>
+{% endcall %}
+
+{% endblock %}
+
+{% block js %}
+
+<script>
+    $(document).ready(function(){
+        $('#updateStatusModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var quote_id = button.data('quote-id');
+            var current_status_type_id = button.data('current-status-type-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#quote_name').text(name);
+
+            modal.find("#status").val(current_status_type_id);
+            modal.find("#quote_id").val(quote_id);
+        });
+    });
+
+    $(document).ready(function(){
+        $('#showStatusHistoryModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var quote_id = button.data('quote-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#quote_name').text(name);
+
+            let showStatusHistoryModal_content = document.getElementById('showStatusHistoryModal_content')
+            showStatusHistoryModal_content.innerHTML = '';
+
+            url = `{{ request.script_root | safe }}/task/${task_id}/status_history`;
+
+            fetch(url).then(function(response) {
+                return response.text();
+            }).then(function (html) {
+                showStatusHistoryModal_content.innerHTML = html;
+            })
+
+        });
+    });
+
+</script>
+
+{% endblock %}

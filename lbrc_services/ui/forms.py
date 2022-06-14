@@ -8,15 +8,21 @@ from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.html5 import DateField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError
+from lbrc_services.model.quotes import QuoteStatusType
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 
 
-def _get_requestor_choices():
+def _get_requestor_choices(add_all=True):
     service_ids = Service.query.with_entities(Service.id.distinct()).join(Service.owners).filter(User.id == current_user.id)
     requestor_ids = Task.query.with_entities(Task.requestor_id.distinct()).filter(Task.service_id.in_(service_ids))
     submitters = sorted(User.query.filter(User.id.in_(requestor_ids)).all(), key=lambda u: u.full_name)
 
-    return [(0, 'All')] + [(u.id, u.full_name) for u in submitters]
+    result = [(u.id, u.full_name) for u in submitters]
+
+    if add_all:
+        result = [(0, 'All')] + result
+
+    return result
 
 
 def _get_service_choices():
@@ -34,6 +40,11 @@ def _get_organisation_search_choices():
 def _get_task_status_type_choices():
     task_status_types = TaskStatusType.query.order_by(TaskStatusType.name.asc()).all()
     return [(rt.id, rt.name) for rt in task_status_types]
+
+
+def _get_quote_status_type_choices():
+    quote_status_types = QuoteStatusType.query.order_by(QuoteStatusType.name.asc()).all()
+    return [(rt.id, rt.name) for rt in quote_status_types]
 
 
 def _get_task_assigned_user_choices():
@@ -55,11 +66,28 @@ def _get_combined_task_status_type_choices():
     return [(0, 'Open (created, in progress or awaiting information)'), (-1, 'Closed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
 
 
+def _get_combined_quote_status_type_choices():
+    return [(0, 'Open (draft, awaiting approval, issued, due or charged)'), (-1, 'Closed (paid, deleted or duplicate)'), (-2, 'All')] + _get_quote_status_type_choices()
+
+
 def _get_report_grouper_choices():
     field_group_ids = Service.query.with_entities(Service.field_group_id.distinct()).join(Service.owners).filter(User.id == current_user.id)
     report_group_fields = Field.query.filter(Field.field_group_id.in_(field_group_ids)).filter(Field.reportable == True).all()
 
     return [(-3, 'Requested Month'), (-2, 'Current Status'), (-1, 'Organisation')] + sorted([(f.id, '{}: {}'.format(f.field_group.name, f.get_label())) for f in report_group_fields], key=lambda x: x[1])
+
+
+class QuoteSearchForm(SearchForm):
+    created_date_from = DateField('Quote Created From', format='%Y-%m-%d')
+    created_date_to = DateField('Quote Created To', format='%Y-%m-%d')
+    organisation_id = SelectField('Organisation', coerce=int, choices=[], default=0)
+    quote_status_type_id = SelectField('Status', coerce=int, choices=[])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.quote_status_type_id.choices = _get_combined_quote_status_type_choices()
+        self.organisation_id.choices = _get_organisation_search_choices()
 
 
 class TaskSearchForm(SearchForm):
@@ -119,6 +147,17 @@ class TaskUpdateStatusForm(FlashingForm):
     notes = TextAreaField("Notes", validators=[Length(max=255)])
 
 
+class QuoteUpdateStatusForm(FlashingForm):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.status.choices = _get_quote_status_type_choices()
+
+    quote_id = HiddenField()
+    status = SelectField("New Status", validators=[DataRequired()])
+    notes = TextAreaField("Notes", validators=[Length(max=255)])
+
+
 class EditToDoForm(FlashingForm):
     task_id = HiddenField()
     todo_id = HiddenField()
@@ -159,6 +198,20 @@ def _user_coerce(value):
         return u.id
     
     return None
+
+
+class QuoteUpdateForm(FlashingForm):
+    quote_id = HiddenField()
+    requestor_id = SelectField('Requesting User', coerce=_user_coerce, default=current_user_id, validate_choice=False, validators=[DataRequired()])
+    name = StringField('Quote Title', validators=[Length(max=255), DataRequired()])
+    organisation_id = SelectField('Organisation', validators=[DataRequired()])
+    organisation_description = StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.requestor_id.choices = _get_requestor_choices(add_all=False)
+        self.organisation_id.choices = _get_organisation_choices()
 
 
 def get_create_task_form(service, task=None):

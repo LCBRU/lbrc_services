@@ -1,0 +1,52 @@
+{% macro render_quote_list(quotes) %}
+
+<ul class="list-group">
+    {% for q in quotes.items %}
+        <li class="list-group-item">
+            <div class='summary_details'>
+                <div class="row">
+                    <div class="col-7">
+                        <header>
+                            <h1>
+                                <span>#{{q.id}}: {{ q.name }}</span>
+                            </h1>
+                            <h2>For <a href="mailto:{{q.requestor.email}}">{{q.requestor.full_name }}</a> created {{ q.created_date | datetime_humanize }}</h2>
+                        </header>
+                    </div>
+                    <div class="col-5">
+                        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+                            <div class="btn-group mr-1 mb-1" role="group">
+                                <a class="btn btn-primary" href="{{ url_for('ui.edit_quote', quote_id=q.id, prev=request.full_path) }}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+
+                            <div class="btn-group mb-1" role="group">
+                                <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    {{ q.current_status_type.name }}
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                    <a class="dropdown-item"
+                                        data-toggle="modal"
+                                        data-quote-id="{{ q.id }}"
+                                        data-current-status-type-id="{{ q.current_status_type.id }}"
+                                        data-name="{{ q.name }}"
+                                        data-target="#updateStatusModal"
+                                        href="#">Update Status</a>
+                                    <a class="dropdown-item"
+                                        data-toggle="modal"
+                                        data-task-id="{{ q.id }}"
+                                        data-name="{{ q.name }}"
+                                        data-target="#showStatusHistoryModal"
+                                        href="#">Show History</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+
+{% endmacro %}

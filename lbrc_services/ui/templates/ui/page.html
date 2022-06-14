@@ -8,6 +8,7 @@
 {% if current_user.service_owner %}
     {{ render_nav_item('ui.my_jobs', 'My Jobs') }}
     {{ render_nav_item('ui.reports', 'Reports') }}
+    {{ render_nav_item('ui.quotes', 'Quotes') }}
 {% endif %}
 
 {% if current_user.has_role('exporter') %}

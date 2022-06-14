@@ -1,3 +1,4 @@
+from lbrc_services.model.quotes import QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskStatusType
 from lbrc_flask.database import db
 
@@ -13,6 +14,15 @@ def init_model(app):
                         name=name,
                         is_complete=details['is_complete'],
                         is_active=details['is_active'],
+                    )
+                )
+
+        for name, details in QuoteStatusType.all_details.items():
+            if QuoteStatusType.query.filter(QuoteStatusType.name == name).count() == 0:
+                db.session.add(
+                    QuoteStatusType(
+                        name=name,
+                        is_complete=details['is_complete'],
                     )
                 )
 
