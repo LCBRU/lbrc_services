@@ -89,7 +89,6 @@ def _get_quote_query(search_form, owner_id=None, sort_asc=False):
 
     if search_form.data.get('created_date_to', None):
         q = q.filter(Quote.created_date < search_form.data['created_date_to'] + timedelta(days=1))
-        print('YELLLLLLO')
 
     if 'quote_status_type_id' in search_form.data:
         option = search_form.data.get('quote_status_type_id', 0) or 0

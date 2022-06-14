@@ -1,3 +1,4 @@
+from lbrc_services.model.security import ROLE_QUOTER
 from lbrc_services.model.services import User
 from flask import Flask
 from lbrc_flask import init_lbrc_flask
@@ -17,7 +18,7 @@ def create_app(config=Config):
 
     with app.app_context():
         init_lbrc_flask(app, TITLE)
-        init_security(app, user_class=User, role_class=Role)
+        init_security(app, user_class=User, role_class=Role, roles=[ROLE_QUOTER])
         init_admin(app, TITLE)
         init_dynamic_forms(app)
         init_model(app)

@@ -1,8 +1,10 @@
+from flask_security import roles_required
 from lbrc_flask.forms import ConfirmForm
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user
 from lbrc_services.model.quotes import Quote, QuoteStatus, QuoteStatusType
 from lbrc_flask.database import db
+from lbrc_services.model.security import ROLE_QUOTER
 from lbrc_services.model.services import Organisation
 
 from lbrc_services.ui.forms import QuoteSearchForm, QuoteUpdateForm, QuoteUpdateStatusForm
@@ -11,6 +13,7 @@ from .. import blueprint
 
 
 @blueprint.route("/quotes")
+@roles_required(ROLE_QUOTER)
 def quotes():
     search_form = QuoteSearchForm(formdata=request.args)
 
@@ -95,6 +98,7 @@ def save_quote(quote, form, context):
 
 
 @blueprint.route("/quotes/create", methods=["GET", "POST"])
+@roles_required(ROLE_QUOTER)
 def create_quote():
     form = QuoteUpdateForm()
 
