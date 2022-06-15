@@ -2,7 +2,7 @@ from flask_api import status
 from flask import url_for
 from lbrc_flask.pytest.asserts import assert__redirect, assert__requires_login, assert__requires_role, assert__error__required_field
 from lbrc_services.model.services import Organisation
-from tests.ui.request import assert__quote, post_quote
+from tests.ui.quotes import assert__quote, post_quote
 
 
 def _url(external=True, prev=None):

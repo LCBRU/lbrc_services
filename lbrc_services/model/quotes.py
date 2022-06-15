@@ -83,6 +83,11 @@ class QuoteStatusType(db.Model, CommonMixin):
     is_complete = db.Column(db.Boolean)
 
 
+class QuoteRequirementType(db.Model, CommonMixin):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255))
+
+
 class Quote(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
@@ -95,15 +100,6 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(QuoteStatusType.id), nullable=False)
     current_status_type = db.relationship(QuoteStatusType)
 
-    number_of_sites = db.Column(db.Integer)
-    length_of_study_months = db.Column(db.Integer)
-    number_of_participants = db.Column(db.Integer)
-    number_of_crfs = db.Column(db.Integer)
-    number_of_visits = db.Column(db.Integer)
-
-    other_requirements = db.Column(db.String())
-    out_of_scope = db.Column(db.String())
-
 
 class QuoteStatus(AuditMixin, CommonMixin, db.Model):
 
@@ -113,3 +109,13 @@ class QuoteStatus(AuditMixin, CommonMixin, db.Model):
     notes = db.Column(db.String(255))
     quote_status_type_id = db.Column(db.Integer, db.ForeignKey(QuoteStatusType.id), nullable=False)
     quote_status_type = db.relationship(QuoteStatusType, backref="quotes")
+
+
+class QuoteRequirement(AuditMixin, CommonMixin, db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True)
+    quote_id = db.Column(db.Integer, db.ForeignKey(Quote.id), nullable=False)
+    quote = db.relationship(Quote, backref="requirements")
+    quote_requirement_type_id = db.Column(db.Integer, db.ForeignKey(QuoteRequirementType.id), nullable=False)
+    quote_requirement_type = db.relationship(QuoteRequirementType)
+    notes = db.Column(db.String())

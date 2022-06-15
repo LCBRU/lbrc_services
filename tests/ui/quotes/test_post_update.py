@@ -3,9 +3,7 @@ from flask_api import status
 import pytest
 from lbrc_services.model.services import Organisation
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
-from lbrc_flask.forms.dynamic import FieldType
-from tests.ui.request import assert__quote, post_quote
-from unittest.mock import patch
+from tests.ui.quotes import assert__quote, post_quote
 
 
 def _url(quote_id, external=True, prev=None):

@@ -1,7 +1,5 @@
-from flask_api import status
 from flask import url_for
 from lbrc_services.model.quotes import QuoteStatus, QuoteStatusType
-from lbrc_services.model.services import TaskStatus, TaskStatusType
 from lbrc_flask.pytest.asserts import assert__requires_login
 
 

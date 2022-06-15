@@ -1,5 +1,4 @@
 import pytest
-from lbrc_services.model.quotes import Quote, QuoteStatusType
 from lbrc_services.model.services import Task, TaskStatusType
 from pathlib import Path
 from unittest.mock import patch
@@ -13,12 +12,6 @@ def mock_email():
 
 def _get_actual_task():
     actuals = Task.query.all()
-    assert len(actuals) == 1
-    return actuals[0]   
-
-
-def _get_actual_quote():
-    actuals = Quote.query.all()
     assert len(actuals) == 1
     return actuals[0]   
 
@@ -38,31 +31,6 @@ def assert_emails_sent(mock_email, context, user):
         context=context,
         task=task,
     )
-
-
-def assert__quote(expected, user):
-    a = _get_actual_quote()
-
-    print(f'{a.number_of_sites=} {expected.number_of_sites=}')
-
-    assert a.name == expected.name
-    assert a.organisation_id == expected.organisation_id
-    assert a.organisation_description == expected.organisation_description
-    assert a.requestor == user
-    assert a.current_status_type == QuoteStatusType.get_draft()
-    assert a.number_of_sites == expected.number_of_sites
-    assert a.length_of_study_months == expected.length_of_study_months
-    assert a.number_of_participants == expected.number_of_participants
-    assert a.number_of_crfs == expected.number_of_crfs
-    assert a.number_of_visits == expected.number_of_visits
-    assert a.other_requirements == expected.other_requirements
-    assert a.out_of_scope == expected.out_of_scope
-
-    assert len(a.status_history) == 1
-    s = a.status_history[0]
-    assert s.quote == a
-    assert len(s.notes) > 0
-    assert s.quote_status_type == QuoteStatusType.get_draft()
 
 
 def assert__task(expected, user, data=None, files=None):
@@ -117,25 +85,5 @@ def post_task(client, url, task, field_data=None):
 
     if task.requestor_id:
         data['requestor_id'] = task.requestor_id
-
-    return client.post(url, data=data)
-
-
-def post_quote(client, url, quote):
-    data={
-        'name': quote.name,
-        'organisation_id': quote.organisation_id,
-        'organisation_description': quote.organisation_description,
-        'number_of_sites': quote.number_of_sites,
-        'length_of_study_months': quote.length_of_study_months,
-        'number_of_participants': quote.number_of_participants,
-        'number_of_crfs': quote.number_of_crfs,
-        'number_of_visits': quote.number_of_visits,
-        'other_requirements': quote.other_requirements,
-        'out_of_scope': quote.out_of_scope,
-    }
-
-    if quote.requestor_id:
-        data['requestor_id'] = quote.requestor_id
 
     return client.post(url, data=data)
