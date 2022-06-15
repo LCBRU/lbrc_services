@@ -2,10 +2,7 @@
 {% import "lbrc_flask/form_macros.html" as formhelper %}
 
 {% block content %}
-
-
 <div class="row justify-content-center">
-
     <div class="col-8">
         <div class="card">
             <div class="card-header">
@@ -32,59 +29,12 @@
         </div>
     </div>
 </div>
-
-
-<!-- Progress Dialog  -->
-<div class="modal fade" id="progress_modal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="progress_modal" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="progressModalLabel">Uploading ...</h5>
-            </div>
-            <div class="modal-body">
-                <div class="loader"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
 {% endblock %}
+
 
 {% block js %}
 <script type="text/javascript">
-    search_url = "{{ url_for('ui.user_search') }}";
-
-    $(document).ready(function() {
-        $('#requestor_id').select2({
-            ajax: {
-                url: search_url,
-                dataType: 'json',
-                delay: 500,
-            }
-        });
-    });
+    enable_child_control_on_parent_value('#organisation_id', '#organisation_description', '{{ other_organisation.id }}');
+    select2_remote('#requestor_id', "{{ url_for('ui.user_search') }}");
 </script>
-
-<script>
-    function show_hide_org_desc(){
-        org = $('#organisation_id');
-        console.log(org)
-        org_desc = $('#organisation_description');
-        console.log(org_desc)
-
-        org_desc.prop('disabled', !(org.val() == '{{ other_organisation.id }}'));
-    }
-
-    $(document).ready(function(){
-        $("form#request_form").submit(function(e){
-            $('#progress_modal').modal('show');
-        });
-
-        $('#organisation_id').change(show_hide_org_desc);
-        show_hide_org_desc();
-    });
-
-</script>
-
 {% endblock %}

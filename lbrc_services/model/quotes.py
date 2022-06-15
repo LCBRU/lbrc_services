@@ -84,6 +84,24 @@ class QuoteStatusType(db.Model, CommonMixin):
 
 
 class QuoteRequirementType(db.Model, CommonMixin):
+    initial_types = [
+        'Number of Sites',
+        'Length of Study',
+        'Number of participants',
+        'Number of CRFs',
+        'Number of Visits',
+        'OpenSpecimen Protocols',
+        'Label Packs',
+        'Blinding IDs',
+        'Bespoke Applications',
+        'Email Notifications',
+        'Integrations with UHL Systems',
+        'Data Warehousing',
+        'Data Quality Reporting',
+        'Specific Exclusion from Scope',
+        'Other requirements',
+    ]
+
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
 

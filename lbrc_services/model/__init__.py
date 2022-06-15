@@ -1,4 +1,4 @@
-from lbrc_services.model.quotes import QuoteStatusType
+from lbrc_services.model.quotes import QuoteRequirementType, QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskStatusType
 from lbrc_flask.database import db
 
@@ -30,6 +30,14 @@ def init_model(app):
             if Organisation.query.filter(Organisation.name == name).count() == 0:
                 db.session.add(
                     Organisation(
+                        name=name,
+                    )
+                )
+
+        for name in QuoteRequirementType.initial_types:
+            if QuoteRequirementType.query.filter(QuoteRequirementType.name == name).count() == 0:
+                db.session.add(
+                    QuoteRequirementType(
                         name=name,
                     )
                 )
