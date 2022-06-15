@@ -5,9 +5,9 @@ from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
 from wtforms import SelectField, TextAreaField, StringField
-from wtforms.fields.html5 import DateField
+from wtforms.fields.html5 import DateField, IntegerField
 from wtforms.fields.simple import HiddenField
-from wtforms.validators import DataRequired, Length, ValidationError
+from wtforms.validators import DataRequired, Length, ValidationError, NumberRange, optional
 from lbrc_services.model.quotes import QuoteStatusType
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 
@@ -206,14 +206,13 @@ class QuoteUpdateForm(FlashingForm):
     name = StringField('Quote Title', validators=[Length(max=255), DataRequired()])
     organisation_id = SelectField('Organisation', validators=[DataRequired()])
     organisation_description = StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation])
-    number_of_sites = StringField('Number of Sites')
-    length_of_study_months = StringField('Length of Study (months)')
-    number_of_participants = StringField('Number of Participants (approximate)')
-    number_of_crfs = StringField('Number of CRFs')
-    number_of_visits = StringField('Number of Visits')
+    number_of_sites = IntegerField('Number of Sites', validators=[NumberRange(min=0, max=50), optional()], render_kw={'min': '0', 'max': '50'})
+    length_of_study_months = IntegerField('Length of Study (months)', validators=[NumberRange(min=0, max=60), optional()], render_kw={'min': '0', 'max': '60', 'step': '6'})
+    number_of_participants = IntegerField('Number of Participants (approximate)', validators=[NumberRange(min=0, max=50_000), optional()], render_kw={'min': '0', 'max': '50000', 'step': '50'})
+    number_of_crfs = IntegerField('Number of CRFs', validators=[NumberRange(min=0, max=50), optional()], render_kw={'min': '0', 'max': '20'})
+    number_of_visits = IntegerField('Number of Visits', validators=[NumberRange(min=0, max=50), optional()], render_kw={'min': '0', 'max': '20'})
     other_requirements = TextAreaField("Other Requirements")
     out_of_scope = TextAreaField("Specific items not within scope")
-
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
