@@ -1,3 +1,4 @@
+from itertools import count
 from faker.providers import BaseProvider
 from lbrc_services.model.quotes import Quote, QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
@@ -109,6 +110,13 @@ class LbrcServicesFakerProvider(BaseProvider):
         organisation=None,
         organisation_description=None,
         created_date=None,
+        number_of_sites=None,
+        length_of_study_months=None,
+        number_of_participants=None,
+        number_of_crfs=None,
+        number_of_visits=None,
+        other_requirements=None,
+        out_of_scope=None,
     ):
         result = Quote()
 
@@ -139,6 +147,14 @@ class LbrcServicesFakerProvider(BaseProvider):
 
         if created_date is not None:
             result.created_date = created_date
+
+        result.number_of_sites = number_of_sites or self.generator.pyint()
+        result.length_of_study_months = number_of_sites or self.generator.pyint()
+        result.number_of_participants = number_of_participants or self.generator.pyint()
+        result.number_of_crfs = number_of_crfs or self.generator.pyint()
+        result.number_of_visits = number_of_visits or self.generator.pyint()
+        result.other_requirements = other_requirements or self.generator.pystr(min_chars=5, max_chars=100)
+        result.out_of_scope = out_of_scope or self.generator.pystr(min_chars=5, max_chars=100)
 
         return result
 
@@ -236,7 +252,7 @@ class LbrcServicesFakerProvider(BaseProvider):
         return r
 
 
-    def get_test_quote(self, count=1, **kwargs):
+    def get_test_quotes(self, count=1, **kwargs):
         result = []
 
         for _ in range(count):
@@ -248,6 +264,10 @@ class LbrcServicesFakerProvider(BaseProvider):
         db.session.commit()
 
         return result
+
+
+    def get_test_quote(self, **kwargs):
+        return self.get_test_quotes(**kwargs)[0]
 
 
     def get_test_task_file(self, fake_file=None, **kwargs):

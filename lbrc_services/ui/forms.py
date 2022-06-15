@@ -206,6 +206,14 @@ class QuoteUpdateForm(FlashingForm):
     name = StringField('Quote Title', validators=[Length(max=255), DataRequired()])
     organisation_id = SelectField('Organisation', validators=[DataRequired()])
     organisation_description = StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation])
+    number_of_sites = StringField('Number of Sites')
+    length_of_study_months = StringField('Length of Study (months)')
+    number_of_participants = StringField('Number of Participants (approximate)')
+    number_of_crfs = StringField('Number of CRFs')
+    number_of_visits = StringField('Number of Visits')
+    other_requirements = TextAreaField("Other Requirements")
+    out_of_scope = TextAreaField("Specific items not within scope")
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

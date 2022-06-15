@@ -80,10 +80,20 @@ def quote_status_history(quote_id):
 
 def save_quote(quote, form, context):
 
+    print(f'{form.number_of_sites.data=}')
+
     quote.requestor_id = form.requestor_id.data
     quote.organisation_id = form.organisation_id.data
     quote.organisation_description = form.organisation_description.data
     quote.name = form.name.data
+    quote.number_of_sites = form.number_of_sites.data
+    quote.length_of_study_months = form.length_of_study_months.data
+    quote.number_of_participants = form.number_of_participants.data
+    quote.number_of_crfs = form.number_of_crfs.data
+    quote.number_of_visits = form.number_of_visits.data
+    quote.other_requirements = form.other_requirements.data
+    quote.out_of_scope = form.out_of_scope.data
+
 
     db.session.add(quote)
 
@@ -119,6 +129,7 @@ def create_quote():
 
 
 @blueprint.route("/quotes/<int:quote_id>/edit", methods=["GET", "POST"])
+@roles_required(ROLE_QUOTER)
 def edit_quote(quote_id):
     quote = Quote.query.get_or_404(quote_id)
 

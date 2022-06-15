@@ -39,7 +39,7 @@ def _get(client, url, loggedin_user, has_form):
     [0, 1, 5],
 )
 def test__quotes(client, faker, quotes, quoter_user):
-    my_quotes = faker.get_test_quote(requestor=quoter_user, count=quotes)
+    my_quotes = faker.get_test_quotes(requestor=quoter_user, count=quotes)
 
     resp = _get(client, _url(), quoter_user, has_form=True)
 
@@ -48,8 +48,8 @@ def test__quotes(client, faker, quotes, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__name(client, faker, quoter_user):
-    matching = faker.get_test_quote(requestor=quoter_user, name='Mary')
-    non_matching = faker.get_test_quote(requestor=quoter_user, name='Joseph')
+    matching = faker.get_test_quotes(requestor=quoter_user, name='Mary')
+    non_matching = faker.get_test_quotes(requestor=quoter_user, name='Joseph')
 
     resp = _get(client, _url(search='ar'), quoter_user, has_form=True)
 
@@ -58,8 +58,8 @@ def test__quotes__search__name(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__task_status_type(client, faker, quoter_user):
-    matching = faker.get_test_quote(requestor=quoter_user, current_status_type=QuoteStatusType.get_awaiting_approval())
-    non_matching = faker.get_test_quote(requestor=quoter_user, current_status_type=QuoteStatusType.get_charged())
+    matching = faker.get_test_quotes(requestor=quoter_user, current_status_type=QuoteStatusType.get_awaiting_approval())
+    non_matching = faker.get_test_quotes(requestor=quoter_user, current_status_type=QuoteStatusType.get_charged())
 
     resp = _get(client, _url(quote_status_type_id=QuoteStatusType.get_awaiting_approval().id), quoter_user, has_form=True)
 
@@ -68,8 +68,8 @@ def test__quotes__search__task_status_type(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__organisation(client, faker, quoter_user):
-    matching = faker.get_test_quote(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR))
-    non_matching = faker.get_test_quote(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.LIFESTYLE))
+    matching = faker.get_test_quotes(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR))
+    non_matching = faker.get_test_quotes(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.LIFESTYLE))
 
     resp = _get(client, _url(organisation_id=Organisation.get_organisation(Organisation.CARDIOVASCULAR).id), quoter_user, has_form=True)
 
@@ -78,8 +78,8 @@ def test__quotes__search__organisation(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__created_from(client, faker, quoter_user):
-    matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2020, 1, 1))
-    non_matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2019, 12, 31))
+    matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2020, 1, 1))
+    non_matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2019, 12, 31))
 
     resp = _get(client, _url(created_date_from='2020-01-01'), quoter_user, has_form=True)
 
@@ -88,8 +88,8 @@ def test__quotes__search__created_from(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__created_to(client, faker, quoter_user):
-    non_matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2020, 1, 1))
-    matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2019, 12, 31))
+    non_matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2020, 1, 1))
+    matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2019, 12, 31))
 
     resp = _get(client, _url(created_date_to='2019-12-31'), quoter_user, has_form=True)
 
@@ -101,7 +101,7 @@ def test__quotes__search__created_to(client, faker, quoter_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__pages(client, faker, quote_count, quoter_user):
-    quotes = [faker.get_test_quote(count=quote_count)]
+    quotes = faker.get_test_quotes(count=quote_count)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False}, quote_count, form=QuoteSearchForm())
 
@@ -111,8 +111,8 @@ def test__quotes__pages(client, faker, quote_count, quoter_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__name__pages(client, faker, quote_count, quoter_user):
-    matching = [faker.get_test_quote(name='Mary', requestor=quoter_user, count=quote_count)]
-    unmatching = [faker.get_test_quote(name='Joseph', requestor=quoter_user, count=100)]
+    matching = faker.get_test_quotes(name='Mary', requestor=quoter_user, count=quote_count)
+    unmatching = faker.get_test_quotes(name='Joseph', requestor=quoter_user, count=100)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'search': 'ar'}, quote_count, form=QuoteSearchForm())
 
@@ -122,8 +122,8 @@ def test__quotes__search__name__pages(client, faker, quote_count, quoter_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__quote_status__pages(client, faker, quote_count, quoter_user):
-    matching = [faker.get_test_quote(current_status_type=QuoteStatusType.get_paid(), requestor=quoter_user, count=quote_count)]
-    unmatching = [faker.get_test_quote(current_status_type=QuoteStatusType.get_awaiting_approval(), requestor=quoter_user, count=100)]
+    matching = faker.get_test_quotes(current_status_type=QuoteStatusType.get_paid(), requestor=quoter_user, count=quote_count)
+    unmatching = faker.get_test_quotes(current_status_type=QuoteStatusType.get_awaiting_approval(), requestor=quoter_user, count=100)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'quote_status_type_id': QuoteStatusType.get_paid().id}, quote_count, form=QuoteSearchForm())
 
@@ -133,8 +133,8 @@ def test__quotes__search__quote_status__pages(client, faker, quote_count, quoter
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__organisation__pages(client, faker, quote_count, quoter_user):
-    matching = [faker.get_test_quote(organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR), requestor=quoter_user, count=quote_count)]
-    unmatching = [faker.get_test_quote(organisation=Organisation.get_organisation(Organisation.LIFESTYLE), requestor=quoter_user, count=100)]
+    matching = faker.get_test_quotes(organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR), requestor=quoter_user, count=quote_count)
+    unmatching = faker.get_test_quotes(organisation=Organisation.get_organisation(Organisation.LIFESTYLE), requestor=quoter_user, count=100)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'organisation_id': Organisation.get_organisation(Organisation.CARDIOVASCULAR).id}, quote_count, form=QuoteSearchForm())
 
@@ -144,8 +144,8 @@ def test__quotes__search__organisation__pages(client, faker, quote_count, quoter
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__created_from__pages(client, faker, quoter_user, quote_count):
-    matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2020, 1, 1), count=quote_count)
-    non_matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2019, 12, 31), count=100)
+    matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2020, 1, 1), count=quote_count)
+    non_matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2019, 12, 31), count=100)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'created_date_from': '2020-01-01'}, quote_count, form=QuoteSearchForm())
 
@@ -155,8 +155,8 @@ def test__quotes__search__created_from__pages(client, faker, quoter_user, quote_
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__created_to__pages(client, faker, quoter_user, quote_count):
-    non_matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2020, 1, 1), count=100)
-    matching = faker.get_test_quote(requestor=quoter_user, created_date=datetime(2019, 12, 31), count=quote_count)
+    non_matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2020, 1, 1), count=100)
+    matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2019, 12, 31), count=quote_count)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'created_date_to': '2019-12-31'}, quote_count, form=QuoteSearchForm())
 
