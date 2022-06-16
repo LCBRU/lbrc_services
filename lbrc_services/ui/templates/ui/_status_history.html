@@ -1,11 +1,11 @@
 <ul class="list-group">
-    {% for ts in task_statuses %}
+    {% for s in statuses %}
         <li class="list-group-item">
             <div class='summary_details'>
                 <header>
                     <div>
-                        <h1>{{ts.task_status_type.name}}</h1>
-                        <h2>Created {{ ts.created_date | datetime_humanize }}</h2>
+                        <h1>{{s.task_status_type.name}}</h1>
+                        <h2>Created {{ s.created_date | datetime_humanize }}</h2>
                     </div>
                 </header>
                 <p>{{ ts.notes }}</p>

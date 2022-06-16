@@ -4,11 +4,12 @@ from itertools import groupby
 from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
-from wtforms import SelectField, TextAreaField, StringField
-from wtforms.fields.html5 import DateField, IntegerField
+from wtforms import SelectField, TextAreaField, StringField, FieldList, FormField
+from wtforms.fields.html5 import DateField
 from wtforms.fields.simple import HiddenField
-from wtforms.validators import DataRequired, Length, ValidationError, NumberRange, optional
-from lbrc_services.model.quotes import QuoteStatusType
+from wtforms.validators import DataRequired, Length, ValidationError
+from flask_wtf import FlaskForm
+from lbrc_services.model.quotes import QuoteRequirementType, QuoteStatusType
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 
 
@@ -151,10 +152,10 @@ class QuoteUpdateStatusForm(FlashingForm):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.status.choices = _get_quote_status_type_choices()
+        self.status_type_id.choices = _get_quote_status_type_choices()
 
     quote_id = HiddenField()
-    status = SelectField("New Status", validators=[DataRequired()])
+    status_type_id = SelectField("New Status", validators=[DataRequired()])
     notes = TextAreaField("Notes", validators=[Length(max=255)])
 
 
@@ -212,6 +213,18 @@ class QuoteUpdateForm(FlashingForm):
 
         self.requestor_id.choices = _get_requestor_choices(add_all=False)
         self.organisation_id.choices = _get_organisation_choices()
+
+
+class QuoteRequirementForm(FlashingForm):
+    id = HiddenField()
+    quote_id = HiddenField()
+    quote_requirement_type_id = SelectField('Type', validators=[DataRequired()])
+    notes = TextAreaField('Notes')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.quote_requirement_type_id.choices = [(0, '')] + [(t.id, t.name) for t in QuoteRequirementType.query.all()]
 
 
 def get_create_task_form(service, task=None):

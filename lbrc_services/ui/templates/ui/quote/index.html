@@ -1,0 +1,128 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_pagination, render_field, render_button_bar %}
+{% from "lbrc_flask/modal_macros.html" import render_modal, render_edit_modal %}
+
+{% block content %}
+
+<section>
+    <div class="page-header">
+        <h1>Quotes</h1>
+
+        {{ render_search(
+            search_form,
+            'ui.quotes',
+            placeholder='enter search text - searches names',
+            buttons=[
+                {
+                    'id': 'export',
+                    'text': 'Export',
+                    'endpoint': 'ui.quotes_export',
+                    'add_form_fields': True,
+                },
+                {
+                    'id': 'create',
+                    'text': 'Create',
+                    'endpoint': 'ui.create_quote',
+                },
+            ],
+        ) }}
+    </div>
+
+    <ul class="list-group">
+        {% for q in quotes.items %}
+            <li class="list-group-item">
+                <div class='summary_details'>
+                    <div class="row">
+                        <div class="col-7">
+                            <header>
+                                <h1>
+                                    <span>#{{q.id}}: {{ q.name }}</span>
+                                </h1>
+                                <h2>For <a href="mailto:{{q.requestor.email}}">{{q.requestor.full_name }}</a> created {{ q.created_date | datetime_humanize }}</h2>
+                            </header>
+                        </div>
+                        <div class="col-5">
+                            <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+                                <div class="btn-group mr-1 mb-1" role="group">
+                                    <a class="btn btn-primary" href="{{ url_for('ui.edit_quote', quote_id=q.id, prev=request.full_path) }}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+    
+                                <div class="btn-group mr-1 mb-1" role="group">
+                                    <a class="btn btn-primary" href="{{ url_for('ui.edit_quote_requirements', quote_id=q.id, prev=request.full_path) }}">
+                                        <i class="fas fa-list"></i>
+                                    </a>
+                                </div>
+    
+                                <div class="btn-group mb-1" role="group">
+                                    <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ q.current_status_type.name }}
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                        <a class="dropdown-item"
+                                            data-toggle="modal"
+                                            data-quote_id="{{ q.id }}"
+                                            data-status_type_id="{{ q.current_status_type.id }}"
+                                            data-name="{{ q.name }}"
+                                            data-target="#updateStatusModal"
+                                            href="#">Update Status</a>
+                                        <a class="dropdown-item"
+                                            data-toggle="modal"
+                                            data-quote-id="{{ q.id }}"
+                                            data-name="{{ q.name }}"
+                                            data-target="#showStatusHistoryModal"
+                                            href="#">Show History</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    
+</section>
+
+{{ render_pagination(quotes, 'ui.quotes', form=search_form) }}
+
+{{ render_edit_modal('updateStatusModal', 'Update Status', url_for('ui.quote_update_status', prev=request.full_path), quote_update_status_form) }}
+
+{% call render_modal('showStatusHistoryModal', 'Status History') %}
+    <p id="modal_description">Status history for "<span id="quote_name"></span>".</p>
+
+    <div id="showStatusHistoryModal_content"></div>
+{% endcall %}
+
+{% endblock %}
+
+{% block js %}
+
+<script>
+    $(document).ready(function(){
+        $('#showStatusHistoryModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var quote_id = button.data('quote-id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#quote_name').text(name);
+
+            let showStatusHistoryModal_content = document.getElementById('showStatusHistoryModal_content')
+            showStatusHistoryModal_content.innerHTML = '';
+
+            url = `{{ request.script_root | safe }}/quotes/${quote_id}/status_history`;
+
+            fetch(url).then(function(response) {
+                return response.text();
+            }).then(function (html) {
+                showStatusHistoryModal_content.innerHTML = html;
+            })
+
+        });
+    });
+
+</script>
+
+{% endblock %}

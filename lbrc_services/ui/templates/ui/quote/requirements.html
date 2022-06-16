@@ -1,0 +1,64 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/modal_macros.html" import render_edit_modal, render_delete_modal %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col">
+                        <h3>{{quote.name}}</h3>
+                        <h4>Requirements</h4>
+                    </div>
+                    <div class="col-auto">
+                        <a class="btn btn-primary"
+                            data-toggle="modal"
+                            data-quote_id="{{ quote.id }}"
+                            data-target="#requirementDetailsModal"
+                            href="JavaScript://">Create</a>
+                        <a class="btn btn-primary" href="{{ previous_page }}">Done</a>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="list-group">
+                {% for r in quote.requirements %}
+                    <li class="list-group-item">
+                        <div class='summary_details'>
+                            <div class="row">
+                                <div class="col">
+                                    <header>
+                                        <h1>{{r.quote_requirement_type.name}}</h1>
+                                    </header>
+                                </div>
+                                <div class="col-auto">
+                                    <a class="btn btn-primary"
+                                        data-toggle="modal"
+                                        data-id="{{r.id}}"
+                                        data-quote_id="{{ r.quote_id }}"
+                                        data-quote_requirement_type_id="{{ r.quote_requirement_type_id }}"
+                                        data-notes="{{ r.notes }}"
+                                        data-target="#requirementDetailsModal"
+                                        href="#"><i class="fas fa-edit"></i></a>
+                                    <a class="btn btn-primary"
+                                        data-toggle="modal"
+                                        data-id="{{r.id}}"
+                                        data-name="{{ r.quote_requirement_type.name }}"
+                                        data-target="#requirementDeleteModal"
+                                        href="#"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </div>
+                            <p>{{ r.notes }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{{ render_edit_modal('requirementDetailsModal', 'Requirement Details', url_for('ui.create_quote_requirement', prev=request.full_path), quote_edit_form) }}
+{{ render_delete_modal('requirementDeleteModal', 'Delete Requirement', url_for('ui.delete_quote_requirement', prev=request.full_path), delete_form) }}
+
+{% endblock %}

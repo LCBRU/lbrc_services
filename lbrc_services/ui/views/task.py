@@ -171,7 +171,7 @@ def _update_assigned_user(task_id, user_id, notes=''):
 def task_status_history(task_id):
     task_statuses = TaskStatus.query.filter(TaskStatus.task_id == task_id).order_by(TaskStatus.created_date.desc()).all()
 
-    return render_template("ui/_task_status_history.html", task_statuses=task_statuses)
+    return render_template("ui/_status_history.html", statuses=task_statuses)
 
 
 @blueprint.route("/task/<int:task_id>/assignment_history")
