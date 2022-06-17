@@ -1,6 +1,7 @@
 from lbrc_flask.database import db
 from lbrc_flask.security import AuditMixin
 from lbrc_flask.model import CommonMixin
+from sqlalchemy.sql import func
 from lbrc_services.model.services import Organisation, User
 
 
@@ -106,6 +107,36 @@ class QuoteRequirementType(db.Model, CommonMixin):
     name = db.Column(db.String(255))
 
 
+class QuotePricingType(db.Model, CommonMixin):
+    initial_types = [
+        {
+            'name': 'BRC',
+            'price_per_day': 300,
+        },
+        {
+            'name': 'External',
+            'price_per_day': 500,
+        },
+        {
+            'name': 'PhD',
+            'price_per_day': 0,
+        },
+        {
+            'name': 'LDC',
+            'price_per_day': 0,
+        },
+        {
+            'name': 'For Information Only',
+            'price_per_day': 0,
+        },
+    ]
+
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255))
+    price_per_day = db.Column(db.DECIMAL())
+    disabled = db.Column(db.Boolean())
+
+
 class Quote(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
@@ -117,6 +148,16 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     requestor = db.relationship(User, lazy="joined", backref='quotes', foreign_keys=[requestor_id])
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(QuoteStatusType.id), nullable=False)
     current_status_type = db.relationship(QuoteStatusType)
+    introduction = db.Column(db.String())
+    conslusion = db.Column(db.String())
+
+    @property
+    def total_days(self):
+        return sum([s.total_days for s in self.work_sections])
+
+    @property
+    def requirements_types(self):
+        return set([r.quote_requirement_type for r in self.requirements])
 
 
 class QuoteStatus(AuditMixin, CommonMixin, db.Model):
@@ -137,3 +178,24 @@ class QuoteRequirement(AuditMixin, CommonMixin, db.Model):
     quote_requirement_type_id = db.Column(db.Integer, db.ForeignKey(QuoteRequirementType.id), nullable=False)
     quote_requirement_type = db.relationship(QuoteRequirementType)
     notes = db.Column(db.String())
+
+
+class QuoteWorkSection(AuditMixin, CommonMixin, db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True)
+    quote_id = db.Column(db.Integer, db.ForeignKey(Quote.id), nullable=False)
+    quote = db.relationship(Quote, backref="work_sections")
+    name = db.Column(db.String(255))
+
+    @property
+    def total_days(self):
+        return QuoteWorkLine.query.with_entities(func.sum(QuoteWorkLine.days)).filter(QuoteWorkLine.quote_work_section_id == self.id).scalar() or 0
+
+
+class QuoteWorkLine(AuditMixin, CommonMixin, db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True)
+    quote_work_section_id = db.Column(db.Integer, db.ForeignKey(QuoteWorkSection.id), nullable=False)
+    quote_work_section = db.relationship(QuoteWorkSection, backref="lines")
+    name = db.Column(db.String(255))
+    days = db.Column(db.DECIMAL())

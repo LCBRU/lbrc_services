@@ -58,7 +58,7 @@
     </div>
 </div>
 
-{{ render_edit_modal('requirementDetailsModal', 'Requirement Details', url_for('ui.create_quote_requirement', prev=request.full_path), quote_edit_form) }}
+{{ render_edit_modal('requirementDetailsModal', 'Requirement Details', url_for('ui.save_quote_requirement', prev=request.full_path), quote_edit_form) }}
 {{ render_delete_modal('requirementDeleteModal', 'Delete Requirement', url_for('ui.delete_quote_requirement', prev=request.full_path), delete_form) }}
 
 {% endblock %}

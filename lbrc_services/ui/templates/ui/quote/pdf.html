@@ -1,0 +1,121 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Leicester BRC Quotation</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        @page {
+            size: A4 portrait;
+            
+            @bottom-right {
+                content: "Page " counter(page)
+                            " of " counter(pages);
+                font-size: 10px;
+            }                 
+
+            @bottom-left {
+                content: "Downloaded: {{ current_date }}";
+                font-size: 10px;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: x-small;
+        }
+
+        header {
+            background-image: url(brc.png);
+            background-repeat: no-repeat;
+            background-position: top right;
+            text-align: right;
+            padding-top: 50px;
+        }
+
+        header p {
+            margin: 2px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            font-weight: normal;
+        }
+
+        h2 {
+            color: #777;
+            font-size: 1.8em;
+            font-weight: normal;
+        }
+
+        table {
+            width: 100%;
+            margin: 0;
+        }
+        table, td, th {
+            border-collapse: collapse;
+        }
+
+        table thead td {
+            padding: 10px;
+            color: #777;
+            font-size: 1.5em;
+        }
+
+        table tbody td {
+            border: 1px #000 solid;
+            padding: 10px
+        }
+</style>
+</head>
+
+<body>
+    <header>
+        <p>Diabetes Research Centre</p>
+        <p>Leicester General Hospital</p>
+        <p>Gwendolen Road</p>
+        <p>Leicester LE5 4PW</p>
+        <br>
+        <p>Tel: 0116 2584210</p>
+        <p><i class="fa-brands fa-twitter"></i> @leicesterbrc</p>
+        <p><i class="fas fa-globe-africa"></i> www.ll.dlpa.bru.nihr.ac.uk</p>
+        <p><i class="fas fa-envelope"></i> leicesterbrc@uhl-tr.nhs.uk</p>
+    </header>
+
+    <h1>{{ quote.name }}</h1>
+
+    <h2>List of Requirements</h2>
+
+    <ul>
+        {% for r in quote.requirements %}
+            <li>{{r.quote_requirement_type.name}}: {{r.notes}}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Work Breakdown</h2>
+
+    <table>
+        {% for s in quote.work_sections %}
+            <thead>
+                <tr>
+                    <td>{{ s.name }}</td>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for l in s.lines %}
+                    <tr>
+                        <td>{{ l.name }}</td>
+                        <td>{{ "%.2f"|format(l.days) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        {% endfor %}
+    </table>
+</body>
+</html>

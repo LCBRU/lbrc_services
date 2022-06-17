@@ -2,13 +2,13 @@ from flask_security import roles_required
 from lbrc_flask.forms import ConfirmForm
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user
-from lbrc_services.model.quotes import Quote, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType
+from lbrc_services.model.quotes import Quote, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType, QuoteWorkLine, QuoteWorkSection
 from lbrc_flask.database import db
 from lbrc_services.model.security import ROLE_QUOTER
 from lbrc_services.model.services import Organisation
-from lbrc_services.ui.forms import QuoteRequirementForm, QuoteSearchForm, QuoteUpdateForm, QuoteUpdateStatusForm
+from lbrc_services.ui.forms import QuoteRequirementForm, QuoteSearchForm, QuoteUpdateForm, QuoteUpdateStatusForm, QuoteWorkLineForm, QuoteWorkSectionForm
 from lbrc_services.ui.views import _get_quote_query, send_quote_export
-from lbrc_flask.json import validate_json
+from lbrc_flask.export import pdf_download
 from .. import blueprint
 
 
@@ -155,9 +155,9 @@ def edit_quote_requirements(quote_id):
     )
 
 
-@blueprint.route("/quotes/requirements/create", methods=["POST"])
+@blueprint.route("/quotes/requirements/save", methods=["POST"])
 @roles_required(ROLE_QUOTER)
-def create_quote_requirement():
+def save_quote_requirement():
     form = QuoteRequirementForm()
 
     if form.validate_on_submit():
@@ -167,7 +167,6 @@ def create_quote_requirement():
         requirement = QuoteRequirement.query.filter(QuoteRequirement.id == form.id.data).one_or_none()
 
         if not requirement:
-            print('Ole beyonmd his years')
             requirement = QuoteRequirement(
                 quote=quote,
             )
@@ -191,3 +190,93 @@ def delete_quote_requirement():
         db.session.commit()
 
     return redirect(request.args.get('prev', url_for('ui.quotes')))
+
+
+@blueprint.route("/quotes/<int:quote_id>/work")
+@roles_required(ROLE_QUOTER)
+def edit_quote_work(quote_id):
+    return render_template(
+        "ui/quote/work.html",
+        quote=Quote.query.get_or_404(quote_id),
+        quote_work_section_form=QuoteWorkSectionForm(),
+        quote_work_line_form=QuoteWorkLineForm(),
+        delete_form=ConfirmForm(),
+    )
+
+
+@blueprint.route("/quotes/work/sections/save", methods=["POST"])
+@roles_required(ROLE_QUOTER)
+def save_quote_work_section():
+    form = QuoteWorkSectionForm()
+
+    if form.validate_on_submit():
+        quote = Quote.query.get_or_404(form.quote_id.data)
+        section = QuoteWorkSection.query.filter(QuoteWorkSection.id == form.id.data).one_or_none()
+
+        if not section:
+            section = QuoteWorkSection(
+                quote=quote,
+            )
+
+        section.name = form.name.data
+
+        db.session.add(section)
+        db.session.commit()
+
+    return redirect(request.args.get('prev', url_for('ui.quotes')))
+
+
+@blueprint.route("/quotes/work/sections/delete", methods=['POST'])
+def delete_quote_work_section():
+    form = ConfirmForm()
+
+    if form.validate_on_submit():
+        s = QuoteWorkSection.query.get_or_404(form.id.data)
+        db.session.delete(s)
+        db.session.commit()
+
+    return redirect(request.args.get('prev', url_for('ui.quotes')))
+
+
+@blueprint.route("/quotes/work/line/save", methods=["POST"])
+@roles_required(ROLE_QUOTER)
+def save_quote_work_line():
+    form = QuoteWorkLineForm()
+
+    print(form.data)
+
+    if form.validate_on_submit():
+        qws = QuoteWorkSection.query.get_or_404(form.quote_work_section_id.data)
+        line = QuoteWorkLine.query.filter(QuoteWorkLine.id == form.id.data).one_or_none()
+
+        if not line:
+            line = QuoteWorkLine(
+                quote_work_section=qws,
+            )
+
+        line.name = form.name.data
+        line.days = form.days.data
+
+        db.session.add(line)
+        db.session.commit()
+
+    return redirect(request.args.get('prev', url_for('ui.quotes')))
+
+
+@blueprint.route("/quotes/work/line/delete", methods=['POST'])
+def delete_quote_work_line():
+    form = ConfirmForm()
+
+    if form.validate_on_submit():
+        l = QuoteWorkLine.query.get_or_404(form.id.data)
+        db.session.delete(l)
+        db.session.commit()
+
+    return redirect(request.args.get('prev', url_for('ui.quotes')))
+
+
+@blueprint.route("/quotes/<int:quote_id>/pdf")
+def quote_pdf(quote_id):
+    quote = Quote.query.get_or_404(quote_id)
+
+    return pdf_download('ui/quote/pdf.html', quote=quote, path='./lbrc_services/ui/templates/ui/quote/')

@@ -1,0 +1,132 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/modal_macros.html" import render_edit_modal, render_delete_modal %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col">
+                        <h3>{{quote.name}}</h3>
+                        <h4>Work Breakdown</h4>
+                    </div>
+                    <div class="col-auto">
+                        <a class="btn btn-primary"
+                            data-toggle="modal"
+                            data-quote_id="{{ quote.id }}"
+                            data-target="#sectionDetailsModal"
+                            href="JavaScript://">Create</a>
+                        <a class="btn btn-primary" href="{{ previous_page }}">Done</a>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="list-group">
+                {% for s in quote.work_sections %}
+                    <li class="list-group-item">
+                        <div class='summary_details'>
+                            <div class="row">
+                                <div class="col">
+                                    <header>
+                                        <h1>{{s.name}}</h1>
+                                    </header>
+                                </div>
+                                <div class="col-auto">
+                                    <a data-toggle="modal"
+                                        data-id="{{s.id}}"
+                                        data-quote_id="{{ s.quote_id }}"
+                                        data-name="{{ s.name }}"
+                                        data-target="#sectionDetailsModal"
+                                        href="#"><i class="fas fa-edit"></i></a>
+                                    <a data-toggle="modal"
+                                        data-quote_work_section_id="{{ s.id }}"
+                                        data-target="#lineDetailsModal"
+                                        href="#"><i class="fas fa-plus-square"></i></a>
+                                    <a data-toggle="modal"
+                                        data-id="{{s.id}}"
+                                        data-name="{{ s.name }}"
+                                        data-target="#sectionDeleteModal"
+                                        href="#"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <table class="table table-sm table-hover">
+                                    <colgroup>
+                                        <col style="width:90%">
+                                        <col style="width:10%" class="text-right">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th class="text-right">Days</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for l in s.lines %}
+                                            <tr>
+                                                <td>
+                                                    <div>
+                                                        <a data-toggle="modal"
+                                                            data-id="{{ l.id }}"
+                                                            data-name="{{ l.name }}"
+                                                            title="Delete line {{ l.name }} from section {{ s.name }}"
+                                                            data-target="#lineDeleteModal"
+                                                            href="#"><i class="fas fa-trash"></i></a>
+                                                        <a data-toggle="modal"
+                                                            data-id="{{ l.id }}"
+                                                            data-quote_work_section_id="{{ l.quote_work_section_id }}"
+                                                            data-name="{{ l.name }}"
+                                                            data-days="{{ '%.2f'|format(l.days) }}"
+                                                            title="Edit line {{ l.name }} from section {{ s.name }}"
+                                                            data-target="#lineDetailsModal"
+                                                            href="#"><i class="fas fa-edit"></i></a>
+                                                        <a>{{ l.name }}</a>
+                                                    </div>
+                                                </td>
+                                                <td>{{ "%.2f"|format(l.days) }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="font-weight-bold">
+                                                <td>{{s.name}} Total</td>
+                                                <td>{{ "%.2f"|format(s.total_days) }}</td>
+                                            </tr>
+                                        </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col">
+                            <table class="table table-sm table-hover">
+                                <colgroup>
+                                    <col style="width:90%">
+                                    <col style="width:10%" class="text-right">
+                                </colgroup>
+                                <tfoot>
+                                    <tr class="font-weight-bold">
+                                        <td>{{ quote.name }} Total</td>
+                                        <td>{{ "%.2f"|format(quote.total_days) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{{ render_edit_modal('sectionDetailsModal', 'Work Section Details', url_for('ui.save_quote_work_section', prev=request.full_path), quote_work_section_form) }}
+{{ render_delete_modal('sectionDeleteModal', 'Delete Work Section', url_for('ui.delete_quote_work_section', prev=request.full_path), delete_form) }}
+{{ render_edit_modal('lineDetailsModal', 'Work Line Details', url_for('ui.save_quote_work_line', prev=request.full_path), quote_work_line_form) }}
+{{ render_delete_modal('lineDeleteModal', 'Delete Work Line', url_for('ui.delete_quote_work_line', prev=request.full_path), delete_form) }}
+
+{% endblock %}

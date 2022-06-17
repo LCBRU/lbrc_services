@@ -4,11 +4,10 @@ from itertools import groupby
 from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
-from wtforms import SelectField, TextAreaField, StringField, FieldList, FormField
-from wtforms.fields.html5 import DateField
+from wtforms import SelectField, TextAreaField, StringField
+from wtforms.fields.html5 import DateField, DecimalField
 from wtforms.fields.simple import HiddenField
-from wtforms.validators import DataRequired, Length, ValidationError
-from flask_wtf import FlaskForm
+from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
 from lbrc_services.model.quotes import QuoteRequirementType, QuoteStatusType
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 
@@ -225,6 +224,19 @@ class QuoteRequirementForm(FlashingForm):
         super().__init__(**kwargs)
 
         self.quote_requirement_type_id.choices = [(0, '')] + [(t.id, t.name) for t in QuoteRequirementType.query.all()]
+
+
+class QuoteWorkSectionForm(FlashingForm):
+    id = HiddenField()
+    quote_id = HiddenField()
+    name = StringField('Name', validators=[DataRequired()])
+
+
+class QuoteWorkLineForm(FlashingForm):
+    id = HiddenField()
+    quote_work_section_id = HiddenField()
+    name = StringField('Name', validators=[DataRequired()])
+    days = DecimalField('Days', places=2, render_kw={'min': '0', 'max': '50', 'step': '0.25'}, validators=[DataRequired(), NumberRange(min=0, max=50)])
 
 
 def get_create_task_form(service, task=None):

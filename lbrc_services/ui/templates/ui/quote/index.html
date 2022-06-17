@@ -48,13 +48,25 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 </div>
-    
+
                                 <div class="btn-group mr-1 mb-1" role="group">
                                     <a class="btn btn-primary" href="{{ url_for('ui.edit_quote_requirements', quote_id=q.id, prev=request.full_path) }}">
-                                        <i class="fas fa-list"></i>
+                                        <i class="fas fa-infinity"></i>
                                     </a>
                                 </div>
-    
+
+                                <div class="btn-group mr-1 mb-1" role="group">
+                                    <a class="btn btn-primary" href="{{ url_for('ui.edit_quote_work', quote_id=q.id, prev=request.full_path) }}">
+                                        <i class="fas fa-hammer"></i>
+                                    </a>
+                                </div>
+
+                                <div class="btn-group mr-1 mb-1" role="group">
+                                    <a class="btn btn-primary" href="{{ url_for('ui.quote_pdf', quote_id=q.id) }}">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                </div>
+
                                 <div class="btn-group mb-1" role="group">
                                     <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         {{ q.current_status_type.name }}
@@ -78,6 +90,30 @@
                             </div>
                         </div>
                     </div>
+                    {% if q.requirements_types | length > 0 %}
+                        <h5>Requirements</h5>
+                        <div class="row">
+                            <div class="col">
+                                {% for r in q.requirements_types %}
+                                    <div class="btn-group mr-1 mb-1" role="group">
+                                        <button type="button" class="btn btn-info btn-sm" data-display="static"><i class="fas fa-infinity"></i> {{ r.name }}</button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if q.work_sections | length > 0 %}
+                        <h5>Total Estinate of Work: {{ "%.2f days" | format(q.total_days) }}</h5>
+                        <div class="row">
+                            <div class="col">
+                                {% for ws in q.work_sections %}
+                                    <div class="btn-group mr-1 mb-1" role="group">
+                                        <button type="button" class="btn btn-info btn-sm" data-display="static"><i class="fas fa-hammer"></i> {{ ws.name }} {{ "(%.2f days)" | format(ws.total_days) }}</button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </li>
         {% endfor %}
