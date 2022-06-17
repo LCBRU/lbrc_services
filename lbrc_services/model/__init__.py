@@ -1,4 +1,4 @@
-from lbrc_services.model.quotes import QuoteRequirementType, QuoteStatusType
+from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskStatusType
 from lbrc_flask.database import db
 
@@ -39,6 +39,15 @@ def init_model(app):
                 db.session.add(
                     QuoteRequirementType(
                         name=name,
+                    )
+                )
+
+        for name, price_per_day in QuotePricingType.initial_types:
+            if QuotePricingType.query.filter(QuotePricingType.name == name).count() == 0:
+                db.session.add(
+                    QuotePricingType(
+                        name=name,
+                        price_per_day=price_per_day,
                     )
                 )
 

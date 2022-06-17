@@ -109,26 +109,11 @@ class QuoteRequirementType(db.Model, CommonMixin):
 
 class QuotePricingType(db.Model, CommonMixin):
     initial_types = [
-        {
-            'name': 'BRC',
-            'price_per_day': 300,
-        },
-        {
-            'name': 'External',
-            'price_per_day': 500,
-        },
-        {
-            'name': 'PhD',
-            'price_per_day': 0,
-        },
-        {
-            'name': 'LDC',
-            'price_per_day': 0,
-        },
-        {
-            'name': 'For Information Only',
-            'price_per_day': 0,
-        },
+        ('BRC', 300),
+        ('External', 500),
+        ('PhD', 0),
+        ('LDC', 0),
+        ('For Information Only', 0),
     ]
 
     id = db.Column(db.Integer(), primary_key=True)
@@ -149,7 +134,9 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(QuoteStatusType.id), nullable=False)
     current_status_type = db.relationship(QuoteStatusType)
     introduction = db.Column(db.String())
-    conslusion = db.Column(db.String())
+    conclusion = db.Column(db.String())
+    quote_pricing_type_id = db.Column(db.Integer, db.ForeignKey(QuotePricingType.id), nullable=False)
+    quote_pricing_type = db.relationship(QuotePricingType)
 
     @property
     def total_days(self):

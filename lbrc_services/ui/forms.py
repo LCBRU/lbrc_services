@@ -8,7 +8,7 @@ from wtforms import SelectField, TextAreaField, StringField
 from wtforms.fields.html5 import DateField, DecimalField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
-from lbrc_services.model.quotes import QuoteRequirementType, QuoteStatusType
+from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, QuoteStatusType
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 
 
@@ -206,12 +206,16 @@ class QuoteUpdateForm(FlashingForm):
     name = StringField('Quote Title', validators=[Length(max=255), DataRequired()])
     organisation_id = SelectField('Organisation', validators=[DataRequired()])
     organisation_description = StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation])
+    quote_pricing_type_id = SelectField('Pricing Type', validators=[DataRequired()])
+    introduction = TextAreaField('Introduction')
+    conclusion = TextAreaField('Conclusion')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.requestor_id.choices = _get_requestor_choices(add_all=False)
         self.organisation_id.choices = _get_organisation_choices()
+        self.quote_pricing_type_id.choices = [(0, '')] + [(pt.id, pt.name) for pt in QuotePricingType.query.all()]
 
 
 class QuoteRequirementForm(FlashingForm):

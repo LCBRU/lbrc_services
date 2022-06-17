@@ -90,6 +90,9 @@ def save_quote(quote, form, context):
     quote.organisation_id = form.organisation_id.data
     quote.organisation_description = form.organisation_description.data
     quote.name = form.name.data
+    quote.introduction = form.introduction.data
+    quote.conclusion = form.conclusion.data
+    quote.quote_pricing_type_id = form.quote_pricing_type_id.data
 
     db.session.add(quote)
 
