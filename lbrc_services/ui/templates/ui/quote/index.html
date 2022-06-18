@@ -36,9 +36,10 @@
                         <div class="col-7">
                             <header>
                                 <h1>
-                                    <span>#{{q.id}}: {{ q.name }}</span>
+                                    <span>{{ q.name }}</span>
                                 </h1>
                                 <h2>For <a href="mailto:{{q.requestor.email}}">{{q.requestor.full_name }}</a> created {{ q.created_date | datetime_humanize }}</h2>
+                                <h4>ref: {{ q.reference }}</h4>
                             </header>
                         </div>
                         <div class="col-5">

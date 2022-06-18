@@ -71,6 +71,11 @@
             border: 1px #000 solid;
             padding: 10px
         }
+
+        p.estimate {
+            font-weight: bold;
+            text-align: center;
+        }
 </style>
 </head>
 
@@ -85,9 +90,15 @@
         <p><i class="fa-brands fa-twitter"></i> @leicesterbrc</p>
         <p><i class="fas fa-globe-africa"></i> www.ll.dlpa.bru.nihr.ac.uk</p>
         <p><i class="fas fa-envelope"></i> leicesterbrc@uhl-tr.nhs.uk</p>
+        <br>
+        <p><i class="fas fa-hashtag"></i> {{ quote.reference }}</p>
     </header>
 
     <h1>{{ quote.name }}</h1>
+
+    {% if quote.introduction | length > 0 %}
+        {{quote.introduction | markdown }}
+    {% endif %}
 
     <h2>List of Requirements</h2>
 
@@ -111,11 +122,28 @@
                 {% for l in s.lines %}
                     <tr>
                         <td>{{ l.name }}</td>
-                        <td>{{ "%.2f"|format(l.days) }}</td>
+                        <td style="text-align: right;">{{ "%.2f"|format(l.days) }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
         {% endfor %}
     </table>
+
+    <h2>Estimate</h2>
+
+    {% if quote.quote_pricing_type.price_per_day > 0 %}
+        <p>The estimate for the total cost of this project is:</p>
+        <p class="estimate">{{ "%.2f"|format(quote.total_days) }} days x {{ "£%.2f"|format(quote.quote_pricing_type.price_per_day) }} = {{ "£%.2f"|format(quote.estimated_total_cost) }}</p>
+        <p>This estimate is based on the information currently available and is subject to change.</p>
+    {% else %}
+        <p>The estimate for the work required for this project is:</p>
+        <p class="estimate">{{ "%.2f"|format(quote.total_days) }} days</p>
+        <p>This estimate has been provided for information purposes only.</p>
+    {% endif %}
+
+    {% if quote.conclusion | length > 0 %}
+        {{quote.conclusion | markdown }}
+    {% endif %}
+
 </body>
 </html>

@@ -90,6 +90,7 @@ def save_quote(quote, form, context):
     quote.organisation_id = form.organisation_id.data
     quote.organisation_description = form.organisation_description.data
     quote.name = form.name.data
+    quote.date_requested = form.date_requested.data
     quote.introduction = form.introduction.data
     quote.conclusion = form.conclusion.data
     quote.quote_pricing_type_id = form.quote_pricing_type_id.data
@@ -282,4 +283,4 @@ def delete_quote_work_line():
 def quote_pdf(quote_id):
     quote = Quote.query.get_or_404(quote_id)
 
-    return pdf_download('ui/quote/pdf.html', quote=quote, path='./lbrc_services/ui/templates/ui/quote/')
+    return pdf_download('ui/quote/pdf.html', title=f'quote_{quote.reference}', quote=quote, path='./lbrc_services/ui/templates/ui/quote/')

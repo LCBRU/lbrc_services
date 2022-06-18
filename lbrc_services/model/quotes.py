@@ -137,14 +137,23 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     conclusion = db.Column(db.String())
     quote_pricing_type_id = db.Column(db.Integer, db.ForeignKey(QuotePricingType.id), nullable=False)
     quote_pricing_type = db.relationship(QuotePricingType)
+    date_requested = db.Column(db.Date, nullable=False)
 
     @property
     def total_days(self):
         return sum([s.total_days for s in self.work_sections])
 
     @property
+    def estimated_total_cost(self):
+        return self.total_days * self.quote_pricing_type.price_per_day
+
+    @property
     def requirements_types(self):
         return set([r.quote_requirement_type for r in self.requirements])
+
+    @property
+    def reference(self):
+        return f'{self.requestor.username}_{self.date_requested:%Y%m%d}_{self.id:0>6d}'
 
 
 class QuoteStatus(AuditMixin, CommonMixin, db.Model):
