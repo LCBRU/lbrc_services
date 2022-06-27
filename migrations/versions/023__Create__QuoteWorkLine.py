@@ -15,7 +15,7 @@ def upgrade(migrate_engine):
         Column("id", Integer, primary_key=True),
         Column("quote_work_section_id", Integer, ForeignKey(ws.c.id), nullable=False, index=True),
         Column("name", NVARCHAR(255)),
-        Column("days", DECIMAL()),
+        Column("days", DECIMAL(10,2)),
         *get_audit_mixin_columns(),
     )
 
