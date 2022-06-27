@@ -113,6 +113,7 @@ class QuoteRequirementType(db.Model, CommonMixin):
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
+    description = db.Column(db.UnicodeText())
 
 
 class QuotePricingType(db.Model, CommonMixin):
