@@ -9,6 +9,7 @@ class QuoteStatusType(db.Model, CommonMixin):
 
     DRAFT = 'Draft'
     AWAITING_APPROVAL = 'Awaiting Approval'
+    APPROVED = 'Approved'
     ISSUED = 'Issued'
     DUE = 'Due'
     CHARGED = 'Charged'
@@ -21,6 +22,9 @@ class QuoteStatusType(db.Model, CommonMixin):
             'is_complete': False,
         },
         AWAITING_APPROVAL: {
+            'is_complete': False,
+        },
+        APPROVED: {
             'is_complete': False,
         },
         ISSUED: {
@@ -54,6 +58,10 @@ class QuoteStatusType(db.Model, CommonMixin):
     @classmethod
     def get_awaiting_approval(cls):
         return QuoteStatusType.get_quote_status(QuoteStatusType.AWAITING_APPROVAL)
+
+    @classmethod
+    def get_approved(cls):
+        return QuoteStatusType.get_quote_status(QuoteStatusType.APPROVED)
 
     @classmethod
     def get_issued(cls):
