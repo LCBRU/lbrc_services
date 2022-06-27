@@ -1,4 +1,5 @@
 from wtforms import validators
+from lbrc_services.model.quotes import QuoteRequirementType
 from lbrc_services.model.services import Organisation, Service, User
 from lbrc_flask.admin import init_admin as flask_init_admin, AdminCustomView
 from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms
@@ -47,6 +48,7 @@ class UserView(AdminCustomView):
         User.active,
     ]
 
+
 class OrganisationView(AdminCustomView):
 
     column_searchable_list = column_list = [
@@ -55,6 +57,19 @@ class OrganisationView(AdminCustomView):
     form_columns = [
         Organisation.name,
     ]
+
+
+class QuoteRequirementTypeView(AdminCustomView):
+
+    column_searchable_list = column_list = [
+        QuoteRequirementType.name,
+        QuoteRequirementType.description,
+    ]
+    form_columns = [
+        QuoteRequirementType.name,
+        QuoteRequirementType.description,
+    ]
+
 
 def init_admin(app, title):
     flask_init_admin(
@@ -65,5 +80,6 @@ def init_admin(app, title):
             *get_dynamic_forms_admin_forms(),
             UserView(User, db.session),
             OrganisationView(Organisation, db.session),
+            QuoteRequirementTypeView(QuoteRequirementType, db.session),
         ],
     )
