@@ -25,7 +25,7 @@
                                 <div class="col">
                                     <header>
                                         <h1>{{t.name}}</h1>
-                                        <h2>{{t.description | blank_if_none}}</h2>
+                                        <h2>{{t.description | blank_if_none | markdown}}</h2>
                                     </header>
                                 </div>
                                 <div class="col-auto">
@@ -34,7 +34,7 @@
                                         data-quote_id="{{ quote.id }}"
                                         data-quote_requirement_type_id="{{ t.id }}"
                                         data-quote_requirement_type_name="{{ t.name }}"
-                                        data-quote_requirement_type_description="{{ t.description | blank_if_none }}"
+                                        data-quote_requirement_type_description="{{ t.description | blank_if_none | markdown}}"
                                         data-notes=""
                                         data-target="#requirementDetailsModal"
                                         href="#"><i class="fas fa-plus-square"></i></a>
@@ -53,7 +53,7 @@
                                             data-quote_id="{{ r.quote_id }}"
                                             data-quote_requirement_type_id="{{ r.quote_requirement_type_id }}"
                                             data-quote_requirement_type_name="{{ r.quote_requirement_type.name }}"
-                                            data-quote_requirement_type_description="{{ r.quote_requirement_type.description | blank_if_none }}"
+                                            data-quote_requirement_type_description="{{ r.quote_requirement_type.description | blank_if_none | markdown}}"
                                             data-notes="{{ r.notes }}"
                                             data-target="#requirementDetailsModal"
                                             href="#"><i class="fas fa-edit"></i></a>
