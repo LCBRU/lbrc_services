@@ -64,10 +64,12 @@ class QuoteRequirementTypeView(AdminCustomView):
     column_searchable_list = column_list = [
         QuoteRequirementType.name,
         QuoteRequirementType.description,
+        QuoteRequirementType.importance,
     ]
     form_columns = [
         QuoteRequirementType.name,
         QuoteRequirementType.description,
+        QuoteRequirementType.importance,
     ]
 
 
