@@ -154,6 +154,7 @@ def edit_quote_requirements(quote_id):
     return render_template(
         "ui/quote/requirements.html",
         quote=Quote.query.get_or_404(quote_id),
+        types=QuoteRequirementType.query.all(),
         quote_edit_form=QuoteRequirementForm(),
         delete_form=ConfirmForm(),
     )

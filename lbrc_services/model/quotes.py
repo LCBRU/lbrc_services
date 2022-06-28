@@ -164,6 +164,9 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     def reference(self):
         return f'{self.requestor.username}_{self.date_requested:%Y%m%d}_{self.id:0>6d}'
 
+    def requirements_by_type(self, quote_requirement_type):
+        return [r for r in self.requirements if r.quote_requirement_type == quote_requirement_type]
+
 
 class QuoteStatus(AuditMixin, CommonMixin, db.Model):
 

@@ -1,6 +1,7 @@
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
+from lbrc_flask.forms import ElementDisplayField
 from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
@@ -222,7 +223,9 @@ class QuoteUpdateForm(FlashingForm):
 class QuoteRequirementForm(FlashingForm):
     id = HiddenField()
     quote_id = HiddenField()
-    quote_requirement_type_id = SelectField('Type', validators=[DataRequired()])
+    quote_requirement_type_id = HiddenField()
+    quote_requirement_type_name = ElementDisplayField(element_type='h1')
+    quote_requirement_type_description = ElementDisplayField(element_type='h2')
     notes = TextAreaField('Notes')
 
     def __init__(self, **kwargs):

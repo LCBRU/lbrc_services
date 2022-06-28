@@ -12,44 +12,59 @@
                         <h4>Requirements</h4>
                     </div>
                     <div class="col-auto">
-                        <a class="btn btn-primary"
-                            data-toggle="modal"
-                            data-quote_id="{{ quote.id }}"
-                            data-target="#requirementDetailsModal"
-                            href="JavaScript://">Create</a>
                         <a class="btn btn-primary" href="{{ previous_page }}">Done</a>
                     </div>
                 </div>
             </div>
 
             <ul class="list-group">
-                {% for r in quote.requirements %}
+                {% for t in types %}
                     <li class="list-group-item">
                         <div class='summary_details'>
                             <div class="row">
                                 <div class="col">
                                     <header>
-                                        <h1>{{r.quote_requirement_type.name}}</h1>
+                                        <h1>{{t.name}}</h1>
+                                        <h2>{{t.description | blank_if_none}}</h2>
                                     </header>
                                 </div>
                                 <div class="col-auto">
-                                    <a class="btn btn-primary"
-                                        data-toggle="modal"
-                                        data-id="{{r.id}}"
-                                        data-quote_id="{{ r.quote_id }}"
-                                        data-quote_requirement_type_id="{{ r.quote_requirement_type_id }}"
-                                        data-notes="{{ r.notes }}"
+                                    <a data-toggle="modal"
+                                        data-id=""
+                                        data-quote_id="{{ quote.id }}"
+                                        data-quote_requirement_type_id="{{ t.id }}"
+                                        data-quote_requirement_type_name="{{ t.name }}"
+                                        data-quote_requirement_type_description="{{ t.description | blank_if_none }}"
+                                        data-notes=""
                                         data-target="#requirementDetailsModal"
-                                        href="#"><i class="fas fa-edit"></i></a>
-                                    <a class="btn btn-primary"
-                                        data-toggle="modal"
-                                        data-id="{{r.id}}"
-                                        data-name="{{ r.quote_requirement_type.name }}"
-                                        data-target="#requirementDeleteModal"
-                                        href="#"><i class="fas fa-trash"></i></a>
+                                        href="#"><i class="fas fa-plus-square"></i></a>
                                 </div>
                             </div>
-                            <p>{{ r.notes }}</p>
+                            {% for r in quote.requirements_by_type(t) %}
+                                <div class="row">
+                                    <div class="col-auto">
+                                        <a data-toggle="modal"
+                                            data-id="{{r.id}}"
+                                            data-name="{{ r.quote_requirement_type.name }}"
+                                            data-target="#requirementDeleteModal"
+                                            href="#"><i class="fas fa-trash"></i></a>
+                                        <a data-toggle="modal"
+                                            data-id="{{r.id}}"
+                                            data-quote_id="{{ r.quote_id }}"
+                                            data-quote_requirement_type_id="{{ r.quote_requirement_type_id }}"
+                                            data-quote_requirement_type_name="{{ r.quote_requirement_type.name }}"
+                                            data-quote_requirement_type_description="{{ r.quote_requirement_type.description | blank_if_none }}"
+                                            data-notes="{{ r.notes }}"
+                                            data-target="#requirementDetailsModal"
+                                            href="#"><i class="fas fa-edit"></i></a>
+                                    </div>
+                                    <div class="col">
+                                        {{r.notes}}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p><em>No Requirements</em></p>
+                            {% endfor %}
                         </div>
                     </li>
                 {% endfor %}
