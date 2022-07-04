@@ -87,7 +87,7 @@ def _send_quote_status_email(quote, new_quote_status_type):
         email(
             subject=f"Quote '{quote.name}' Awaiting Approval",
             message=f"{current_user.full_name} changed quote '{quote.name}' status to be awaiting approval",
-            recipients=get_users_for_role(ROLE_QUOTE_APPROVER),
+            recipients=[u.email for u in get_users_for_role(ROLE_QUOTE_APPROVER)],
             html_template='ui/email/quote_approver_email.html',
             quote=quote,
         )
