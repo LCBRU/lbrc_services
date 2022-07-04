@@ -9,7 +9,7 @@ from lbrc_services.model.quotes import Quote, QuoteRequirement, QuoteRequirement
 from lbrc_flask.database import db
 from lbrc_flask.security import get_users_for_role, User
 from lbrc_flask.emailing import email
-from lbrc_services.model.security import ROLE_QUOTER, ROLE_QUOTE_APPROVER
+from lbrc_services.model.security import ROLE_QUOTE_CHARGER, ROLE_QUOTER, ROLE_QUOTE_APPROVER
 from lbrc_services.model.services import Organisation
 from lbrc_services.ui.forms import QuoteRequirementForm, QuoteSearchForm, QuoteUpdateForm, QuoteUpdateStatusForm, QuoteWorkLineForm, QuoteWorkSectionForm
 from lbrc_services.ui.views import _get_quote_query, send_quote_export
@@ -86,11 +86,16 @@ def _send_quote_status_email(quote, new_quote_status_type):
     if quote.current_status_type == new_quote_status_type:
         return
     
-    if new_quote_status_type == QuoteStatusType.get_awaiting_approval():
+    notification_role = {
+        QuoteStatusType.AWAITING_APPROVAL: ROLE_QUOTE_APPROVER,
+        QuoteStatusType.DUE: ROLE_QUOTE_CHARGER,
+    }.get(new_quote_status_type.name, None)
+
+    if notification_role:
         email(
             subject=f"Quote '{quote.name}' {new_quote_status_type.name}",
             message=f"{current_user.full_name} changed quote '{quote.name}' status to '{new_quote_status_type.name}'",
-            recipients=[u.email for u in get_users_for_role(ROLE_QUOTE_APPROVER)],
+            recipients=[u.email for u in get_users_for_role(notification_role)],
             html_template='ui/email/quote_status_email.html',
             quote=quote,
             new_quote_status_type=new_quote_status_type,
