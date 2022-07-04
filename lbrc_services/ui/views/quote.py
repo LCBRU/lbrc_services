@@ -88,12 +88,12 @@ def _send_quote_status_email(quote, new_quote_status_type):
     
     if new_quote_status_type == QuoteStatusType.get_awaiting_approval():
         email(
-            subject=f"Quote '{quote.name}' {quote.current_status_type.name}",
-            message=f"{current_user.full_name} changed quote '{quote.name}' status to '{quote.current_status_type.name}'",
+            subject=f"Quote '{quote.name}' {new_quote_status_type.name}",
+            message=f"{current_user.full_name} changed quote '{quote.name}' status to '{new_quote_status_type.name}'",
             recipients=[u.email for u in get_users_for_role(ROLE_QUOTE_APPROVER)],
             html_template='ui/email/quote_status_email.html',
             quote=quote,
-
+            new_quote_status_type=new_quote_status_type,
         )
 
 
