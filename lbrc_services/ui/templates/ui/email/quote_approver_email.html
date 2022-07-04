@@ -7,7 +7,18 @@
 <dl>
     <dt>Name</dt>
     <dd><a href="{{ url_for('ui.quotes', search=quote.name, _external=True) }}">{{ quote.name }}</a></dd>
+    <dt>Reference</dt>
+    <dd><a href="{{ url_for('ui.quotes', search=quote.reference, _external=True) }}">{{ quote.reference }}</a></dd>
+    <dt>Requester</dt>
+    <dd>{{ quote.requestor.full_name }}</dd>
+    <dt>Pricing Type</dt>
+    <dd>{{ quote.quote_pricing_type.full_name }}</dd>
+    <dt>Date Requested</dt>
+    <dd>{{ quote.date_requested | date_format }}</dd>
+    <dt>Total Days</dt>
+    <dd>{{ quote.total_days | separated_number }}</dd>
+    <dt>Estimated Cost</dt>
+    <dd>{{ quote.estimated_total_cost | currency }}</dd>
 </dl>
 
 {% endblock %}
-
