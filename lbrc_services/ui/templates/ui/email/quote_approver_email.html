@@ -1,0 +1,13 @@
+{% extends "lbrc_flask/email.html" %}
+
+{% block content %}
+
+<h1>{{current_user.full_name}} requested approval for quote '{{ quote.name }}'</h1>
+
+<dl>
+    <dt>Name</dt>
+    <dd><a href="{{ url_for('ui.quotes', name=quote.name, _external=True) }}">{{ quote.name }}</a></dd>
+</dl>
+
+{% endblock %}
+

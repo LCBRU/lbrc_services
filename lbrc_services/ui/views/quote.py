@@ -4,12 +4,13 @@ from flask import redirect, render_template, request, url_for
 from flask_login import current_user
 from lbrc_services.model.quotes import Quote, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType, QuoteWorkLine, QuoteWorkSection
 from lbrc_flask.database import db
-from lbrc_services.model.security import ROLE_QUOTER
+from lbrc_flask.security import get_users_for_role
+from lbrc_flask.emailing import email
+from lbrc_services.model.security import ROLE_QUOTER, ROLE_QUOTE_APPROVER
 from lbrc_services.model.services import Organisation
 from lbrc_services.ui.forms import QuoteRequirementForm, QuoteSearchForm, QuoteUpdateForm, QuoteUpdateStatusForm, QuoteWorkLineForm, QuoteWorkSectionForm
 from lbrc_services.ui.views import _get_quote_query, send_quote_export
 from lbrc_flask.export import pdf_download
-from lbrc_flask.requests import get_value_from_all_arguments
 from .. import blueprint
 
 
@@ -47,12 +48,10 @@ def quotes_export():
 def quote_update_status():
     quote_update_status_form = QuoteUpdateStatusForm()
 
-    print(quote_update_status_form.data)
-
     if quote_update_status_form.validate_on_submit():
         status_type = QuoteStatusType.query.get_or_404(quote_update_status_form.status_type_id.data)
 
-        update_quote_status(
+        _update_quote_status(
             quote_update_status_form.quote_id.data,
             status_type,
             quote_update_status_form.notes.data,
@@ -61,7 +60,7 @@ def quote_update_status():
     return redirect(request.args.get('prev', ''))
 
 
-def update_quote_status(quote_id, new_quote_status_type, notes):
+def _update_quote_status(quote_id, new_quote_status_type, notes):
         quote = Quote.query.get_or_404(quote_id)
 
         quote_status = QuoteStatus(
@@ -72,10 +71,26 @@ def update_quote_status(quote_id, new_quote_status_type, notes):
 
         db.session.add(quote_status)
 
+        _send_quote_status_email(quote, new_quote_status_type)
+
         quote.current_status_type = new_quote_status_type
 
         db.session.add(quote)
         db.session.commit()
+
+
+def _send_quote_status_email(quote, new_quote_status_type):
+    if quote.current_status_type == new_quote_status_type:
+        return
+    
+    if new_quote_status_type == QuoteStatusType.get_awaiting_approval():
+        email(
+            subject=f"Quote '{quote.name}' Awaiting Approval",
+            message=f"{current_user.full_name} changed quote '{quote.name}' status to be awaiting approval",
+            recipients=get_users_for_role(ROLE_QUOTE_APPROVER),
+            html_template='ui/email/quote_approver_email.html',
+            quote=quote,
+        )
 
 
 @blueprint.route("/quotes/<int:quote_id>/status_history")
