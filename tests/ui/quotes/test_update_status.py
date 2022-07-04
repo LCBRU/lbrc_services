@@ -30,8 +30,6 @@ def test__quote__update_status(client, faker, loggedin_user):
 
     resp = _update_status_post(client, quote, sq, notes)
 
-    print(resp.soup)
-
     assert QuoteStatus.query.filter(QuoteStatus.quote_id == quote.id).count() == 1
     qs = QuoteStatus.query.filter(QuoteStatus.quote_id == quote.id).one()
     assert qs.quote_status_type_id == sq.id

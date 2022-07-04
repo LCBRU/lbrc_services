@@ -2,7 +2,7 @@ from flask import url_for
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
-from lbrc_flask.forms import ElementDisplayField
+from lbrc_flask.forms import ElementDisplayField, DataListField
 from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
@@ -10,7 +10,7 @@ from wtforms import SelectField, TextAreaField, StringField, SelectMultipleField
 from wtforms.fields.html5 import DateField, DecimalField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
-from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, QuoteStatusType
+from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, QuoteStatusType, QuoteWorkLineNameSuggestion
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 
 
@@ -244,14 +244,14 @@ class QuoteWorkSectionForm(FlashingForm):
 class QuoteWorkLineForm(FlashingForm):
     id = HiddenField()
     quote_work_section_id = HiddenField()
-    keywords = SelectMultipleField('Keywords')
-    name = StringField('Name', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()], render_kw={'list': 'name_options', 'autocomplete': 'off' })
+    name_options = DataListField()
     days = DecimalField('Days', places=2, render_kw={'min': '0', 'max': '50', 'step': '0.25'}, validators=[DataRequired(), NumberRange(min=0, max=50)])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.keywords.render_kw={'data-options-href': url_for('ui.publication_keyword_options'), 'style': 'width: 300px'}
+        self.name_options.choices = [s.name for s in QuoteWorkLineNameSuggestion.query.all()]
 
 
 def get_create_task_form(service, task=None):

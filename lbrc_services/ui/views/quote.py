@@ -284,19 +284,3 @@ def quote_pdf(quote_id):
     quote = Quote.query.get_or_404(quote_id)
 
     return pdf_download('ui/quote/pdf.html', title=f'quote_{quote.reference}', quote=quote, path='./lbrc_services/ui/templates/ui/quote/')
-
-
-@blueprint.route("/quotes/work_line_name_suggestion_search")
-def quote_work_line_name_suggestion_search():
-
-    q = get_value_from_all_arguments('q')
-    results = []
-
-    if q and len(q) > 1:
-        pass
-        # results = [{
-        #     'id': u['id'],
-        #     'text': u['full_name'],
-        # } for u in users]
-
-    return {'results': results}

@@ -1,5 +1,5 @@
 from wtforms import validators
-from lbrc_services.model.quotes import QuoteRequirementType
+from lbrc_services.model.quotes import QuoteRequirementType, QuoteWorkLineNameSuggestion
 from lbrc_services.model.services import Organisation, Service, User
 from lbrc_flask.admin import init_admin as flask_init_admin, AdminCustomView
 from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms
@@ -73,6 +73,16 @@ class QuoteRequirementTypeView(AdminCustomView):
     ]
 
 
+class QuoteWorkLineNameSuggestionView(AdminCustomView):
+
+    column_searchable_list = column_list = [
+        QuoteWorkLineNameSuggestion.name,
+    ]
+    form_columns = [
+        QuoteWorkLineNameSuggestion.name,
+    ]
+
+
 def init_admin(app, title):
     flask_init_admin(
         app,
@@ -83,5 +93,6 @@ def init_admin(app, title):
             UserView(User, db.session),
             OrganisationView(Organisation, db.session),
             QuoteRequirementTypeView(QuoteRequirementType, db.session),
+            QuoteWorkLineNameSuggestionView(QuoteWorkLineNameSuggestion, db.session),
         ],
     )
