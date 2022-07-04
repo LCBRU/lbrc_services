@@ -6,7 +6,7 @@
 
 <dl>
     <dt>Name</dt>
-    <dd><a href="{{ url_for('ui.quotes', name=quote.name, _external=True) }}">{{ quote.name }}</a></dd>
+    <dd><a href="{{ url_for('ui.quotes', search=quote.name, _external=True) }}">{{ quote.name }}</a></dd>
 </dl>
 
 {% endblock %}
