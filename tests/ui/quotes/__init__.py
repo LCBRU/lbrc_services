@@ -28,6 +28,8 @@ def post_quote(client, url, quote):
         'name': quote.name,
         'organisation_id': quote.organisation_id,
         'organisation_description': quote.organisation_description,
+        'quote_pricing_type_id': quote.quote_pricing_type_id,
+        'date_requested': quote.date_requested,
     }
 
     if quote.requestor_id:

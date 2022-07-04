@@ -9,6 +9,7 @@ from lbrc_services.model.services import Organisation
 from lbrc_services.ui.forms import QuoteRequirementForm, QuoteSearchForm, QuoteUpdateForm, QuoteUpdateStatusForm, QuoteWorkLineForm, QuoteWorkSectionForm
 from lbrc_services.ui.views import _get_quote_query, send_quote_export
 from lbrc_flask.export import pdf_download
+from lbrc_flask.requests import get_value_from_all_arguments
 from .. import blueprint
 
 
@@ -248,8 +249,6 @@ def delete_quote_work_section():
 def save_quote_work_line():
     form = QuoteWorkLineForm()
 
-    print(form.data)
-
     if form.validate_on_submit():
         qws = QuoteWorkSection.query.get_or_404(form.quote_work_section_id.data)
         line = QuoteWorkLine.query.filter(QuoteWorkLine.id == form.id.data).one_or_none()
@@ -285,3 +284,19 @@ def quote_pdf(quote_id):
     quote = Quote.query.get_or_404(quote_id)
 
     return pdf_download('ui/quote/pdf.html', title=f'quote_{quote.reference}', quote=quote, path='./lbrc_services/ui/templates/ui/quote/')
+
+
+@blueprint.route("/quotes/work_line_name_suggestion_search")
+def quote_work_line_name_suggestion_search():
+
+    q = get_value_from_all_arguments('q')
+    results = []
+
+    if q and len(q) > 1:
+        pass
+        # results = [{
+        #     'id': u['id'],
+        #     'text': u['full_name'],
+        # } for u in users]
+
+    return {'results': results}

@@ -1,6 +1,7 @@
+from datetime import datetime
 from itertools import count
 from faker.providers import BaseProvider
-from lbrc_services.model.quotes import Quote, QuoteStatusType
+from lbrc_services.model.quotes import Quote, QuotePricingType, QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
 from io import BytesIO
@@ -110,6 +111,8 @@ class LbrcServicesFakerProvider(BaseProvider):
         organisation=None,
         organisation_description=None,
         created_date=None,
+        quote_price_type=None,
+        date_requested=None,
     ):
         result = Quote()
 
@@ -122,6 +125,11 @@ class LbrcServicesFakerProvider(BaseProvider):
             result.organisation_id = Organisation.get_organisation(Organisation.CARDIOVASCULAR).id
         else:
             result.organisation_id = organisation.id
+
+        if quote_price_type is None:
+            result.quote_pricing_type_id = QuotePricingType.query.first().id
+        else:
+            result.quote_pricing_type_id = quote_price_type.id
 
         if name is None:
             result.name = self.generator.pystr(min_chars=5, max_chars=10)
@@ -140,6 +148,8 @@ class LbrcServicesFakerProvider(BaseProvider):
 
         if created_date is not None:
             result.created_date = created_date
+
+        result.date_requested = date_requested or datetime.now().date()
 
         return result
 

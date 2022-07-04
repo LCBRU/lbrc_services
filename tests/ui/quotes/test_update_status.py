@@ -12,7 +12,7 @@ def _update_status_post(client, quote, status, notes):
         _url(),
         data={
             'quote_id': quote.id,
-            'status': status.id,
+            'status_type_id': status.id,
             'notes': notes,
         },
     )
@@ -29,6 +29,8 @@ def test__quote__update_status(client, faker, loggedin_user):
     notes = faker.pystr(min_chars=5, max_chars=10)
 
     resp = _update_status_post(client, quote, sq, notes)
+
+    print(resp.soup)
 
     assert QuoteStatus.query.filter(QuoteStatus.quote_id == quote.id).count() == 1
     qs = QuoteStatus.query.filter(QuoteStatus.quote_id == quote.id).one()

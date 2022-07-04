@@ -1,3 +1,4 @@
+from flask import url_for
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
@@ -5,7 +6,7 @@ from lbrc_flask.forms import ElementDisplayField
 from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
-from wtforms import SelectField, TextAreaField, StringField
+from wtforms import SelectField, TextAreaField, StringField, SelectMultipleField
 from wtforms.fields.html5 import DateField, DecimalField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
@@ -243,8 +244,14 @@ class QuoteWorkSectionForm(FlashingForm):
 class QuoteWorkLineForm(FlashingForm):
     id = HiddenField()
     quote_work_section_id = HiddenField()
+    keywords = SelectMultipleField('Keywords')
     name = StringField('Name', validators=[DataRequired()])
     days = DecimalField('Days', places=2, render_kw={'min': '0', 'max': '50', 'step': '0.25'}, validators=[DataRequired(), NumberRange(min=0, max=50)])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.keywords.render_kw={'data-options-href': url_for('ui.publication_keyword_options'), 'style': 'width: 300px'}
 
 
 def get_create_task_form(service, task=None):

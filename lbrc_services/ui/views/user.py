@@ -72,18 +72,6 @@ def user_search():
             'text': u['full_name'],
         } for u in users]
 
-        # for u in User.query.filter(or_(
-        #     User.username.like(f'%{q}%'),
-        #     or_(
-        #         func.concat(User.first_name, ' ', User.last_name).like(f'%{q}%'),
-        #         User.email.like(f'%{q}%'),
-        #     )
-        # )).all():
-        #     results.append({
-        #         'id': u.id,
-        #         'text': u.full_name,
-        #     })
-
     return {'results': results}
 
 
