@@ -148,6 +148,7 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     quote_pricing_type_id = db.Column(db.Integer, db.ForeignKey(QuotePricingType.id), nullable=False)
     quote_pricing_type = db.relationship(QuotePricingType)
     date_requested = db.Column(db.Date, nullable=False)
+    reference = db.Column(db.String())
 
     @property
     def total_days(self):
@@ -160,10 +161,6 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     @property
     def requirements_types(self):
         return set([r.quote_requirement_type for r in self.requirements])
-
-    @property
-    def reference(self):
-        return f'{self.requestor.username}_{self.date_requested:%Y%m%d}_{self.id:0>6d}'
 
     def requirements_by_type(self, quote_requirement_type):
         return [r for r in self.requirements if r.quote_requirement_type == quote_requirement_type]

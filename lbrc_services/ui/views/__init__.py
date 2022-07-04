@@ -9,6 +9,7 @@ __all__ = [
 
 
 from datetime import timedelta
+from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 from lbrc_services.model.quotes import Quote, QuoteStatusType
 from lbrc_services.model.services import Service, Task, TaskStatusType, User
@@ -74,15 +75,16 @@ def _get_quote_query(search_form, owner_id=None, sort_asc=False):
         joinedload(Quote.current_status_type),
     )
     if search_form.search.data:
-        q = q.filter(Quote.name.like("%{}%".format(search_form.search.data)))
+        q = q.filter(or_(
+            Quote.name.like("%{}%".format(search_form.search.data)),
+            Quote.reference == search_form.search.data,
+        ))
 
     if search_form.data.get('organisation_id', 0) not in (0, "0", None):
         q = q.filter(Quote.organisation_id == search_form.data['organisation_id'])
 
     if search_form.data.get('requestor_id', 0) not in (0, "0", None):
         q = q.filter(Quote.requestor_id == search_form.data['requestor_id'])
-
-    print(search_form.data.get('created_date_to', None))
 
     if search_form.data.get('created_date_from', None):
         q = q.filter(Quote.created_date >= search_form.data['created_date_from'])

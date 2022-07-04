@@ -1,10 +1,13 @@
+from datetime import datetime
+import time
+from math import  modf
 from flask_security import roles_required
 from lbrc_flask.forms import ConfirmForm
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user
 from lbrc_services.model.quotes import Quote, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType, QuoteWorkLine, QuoteWorkSection
 from lbrc_flask.database import db
-from lbrc_flask.security import get_users_for_role
+from lbrc_flask.security import get_users_for_role, User
 from lbrc_flask.emailing import email
 from lbrc_services.model.security import ROLE_QUOTER, ROLE_QUOTE_APPROVER
 from lbrc_services.model.services import Organisation
@@ -101,6 +104,10 @@ def quote_status_history(quote_id):
 
 
 def save_quote(quote, form, context):
+
+    if not quote.reference:
+        requestor = User.query.get_or_404(form.requestor_id.data)
+        quote.reference = f'{requestor.username}_{form.date_requested.data:%Y%m%d}_{round((time.time() % 1) * 1_000_000)}'
 
     quote.requestor_id = form.requestor_id.data
     quote.organisation_id = form.organisation_id.data
