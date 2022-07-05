@@ -1,6 +1,5 @@
 from datetime import datetime
 import time
-from math import  modf
 from flask_security import roles_required
 from lbrc_flask.forms import ConfirmForm
 from flask import redirect, render_template, request, url_for
@@ -86,16 +85,20 @@ def _send_quote_status_email(quote, new_quote_status_type):
     if quote.current_status_type == new_quote_status_type:
         return
     
-    notification_role = {
-        QuoteStatusType.AWAITING_APPROVAL: ROLE_QUOTE_APPROVER,
-        QuoteStatusType.DUE: ROLE_QUOTE_CHARGER,
-    }.get(new_quote_status_type.name, None)
+    recipients = []
 
-    if notification_role:
+    if new_quote_status_type.name == QuoteStatusType.AWAITING_APPROVAL:
+        recipients = [u.email for u in get_users_for_role(ROLE_QUOTE_APPROVER)]
+    elif new_quote_status_type.name == QuoteStatusType.DUE:
+        recipients = [u.email for u in get_users_for_role(ROLE_QUOTE_CHARGER)]
+    elif new_quote_status_type.name == QuoteStatusType.APPROVED:
+        recipients = [quote.created_by]
+
+    if recipients:
         email(
             subject=f"Quote '{quote.name}' {new_quote_status_type.name}",
             message=f"{current_user.full_name} changed quote '{quote.name}' status to '{new_quote_status_type.name}'",
-            recipients=[u.email for u in get_users_for_role(notification_role)],
+            recipients=recipients,
             html_template='ui/email/quote_status_email.html',
             quote=quote,
             new_quote_status_type=new_quote_status_type,
