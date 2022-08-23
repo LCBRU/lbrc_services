@@ -123,6 +123,7 @@ def save_quote(quote, form, context):
     quote.organisation_description = form.organisation_description.data
     quote.name = form.name.data
     quote.date_requested = form.date_requested.data
+    quote.date_required = form.date_required.data
     quote.introduction = form.introduction.data
     quote.conclusion = form.conclusion.data
     quote.quote_pricing_type_id = form.quote_pricing_type_id.data

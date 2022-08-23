@@ -210,6 +210,7 @@ class QuoteUpdateForm(FlashingForm):
     organisation_description = StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation])
     quote_pricing_type_id = SelectField('Pricing Type', validators=[DataRequired()])
     date_requested = DateField('Date Requested', validators=[DataRequired()])
+    date_required = DateField('Date Required')
     introduction = TextAreaField('Introduction')
     conclusion = TextAreaField('Conclusion')
 
