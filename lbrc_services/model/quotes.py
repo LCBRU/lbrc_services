@@ -148,6 +148,7 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     quote_pricing_type_id = db.Column(db.Integer, db.ForeignKey(QuotePricingType.id), nullable=False)
     quote_pricing_type = db.relationship(QuotePricingType)
     date_requested = db.Column(db.Date, nullable=False)
+    date_required = db.Column(db.Date, nullable=True)
     reference = db.Column(db.String())
 
     @property
