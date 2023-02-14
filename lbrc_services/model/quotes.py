@@ -191,7 +191,7 @@ class QuoteWorkSection(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     quote_id = db.Column(db.Integer, db.ForeignKey(Quote.id), nullable=False)
-    quote = db.relationship(Quote, backref="work_sections", cascade="all, delete-orphan")
+    quote = db.relationship(Quote, backref="work_sections")
     name = db.Column(db.String(255))
 
     @property
