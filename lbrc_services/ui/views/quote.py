@@ -270,6 +270,9 @@ def delete_quote_work_section():
 
     if form.validate_on_submit():
         s = QuoteWorkSection.query.get_or_404(form.id.data)
+
+        for l in s.lines:
+            db.session.delete(l)
         db.session.delete(s)
         db.session.commit()
 
