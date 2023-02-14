@@ -193,7 +193,7 @@ def save_task(task, form, context):
     assigned_user = form.assigned_user_id.data
 
     current_app.logger.error(f'Assigned user is {assigned_user}')
-    if assigned_user:
+    if assigned_user and not assigned_user == '0':
         current_app.logger.error('There is an assigned user')
         tau = TaskAssignedUser(
             task=task,
