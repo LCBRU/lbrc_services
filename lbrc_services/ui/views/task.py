@@ -1,4 +1,3 @@
-from multiprocessing import current_process
 from lbrc_flask.forms import ConfirmForm
 from lbrc_services.ui.views import _get_tasks_query, send_task_export
 from lbrc_services.model.services import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, User
@@ -17,6 +16,7 @@ from ..forms import MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_
 from .. import blueprint
 from sqlalchemy import or_
 from lbrc_flask.security import current_user_id
+from flask import current_app
 
 
 @blueprint.route("/my_requests")
@@ -192,9 +192,9 @@ def save_task(task, form, context):
 
     assigned_user = form.assigned_user_id.data
 
-    current_process.logger.error(f'Assigned user is {assigned_user}')
+    current_app.logger.error(f'Assigned user is {assigned_user}')
     if assigned_user:
-        current_process.logger.error('There is an assigned user')
+        current_app.logger.error('There is an assigned user')
         tau = TaskAssignedUser(
             task=task,
             user_id=assigned_user,
