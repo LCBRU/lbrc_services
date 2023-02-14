@@ -191,7 +191,7 @@ class QuoteWorkSection(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     quote_id = db.Column(db.Integer, db.ForeignKey(Quote.id), nullable=False)
-    quote = db.relationship(Quote, backref="work_sections")
+    quote = db.relationship(Quote, backref="work_sections", cascade="all, delete-orphan")
     name = db.Column(db.String(255))
 
     @property
@@ -203,7 +203,7 @@ class QuoteWorkLine(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     quote_work_section_id = db.Column(db.Integer, db.ForeignKey(QuoteWorkSection.id), nullable=False)
-    quote_work_section = db.relationship(QuoteWorkSection, backref="lines")
+    quote_work_section = db.relationship(QuoteWorkSection, backref="lines", cascade="all, delete-orphan")
     name = db.Column(db.String(255))
     days = db.Column(db.DECIMAL())
 
