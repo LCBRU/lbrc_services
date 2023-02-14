@@ -2,8 +2,13 @@ from wtforms import validators
 from lbrc_services.model.quotes import QuoteRequirementType, QuoteWorkLineNameSuggestion
 from lbrc_services.model.services import Organisation, Service, User
 from lbrc_flask.admin import init_admin as flask_init_admin, AdminCustomView
-from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms
+from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms, Field, FieldType
 from lbrc_flask.database import db
+from flask_admin.model.form import InlineFormAdmin
+from flask_admin.form.rules import BaseRule
+from markupsafe import Markup
+from flask import url_for
+from flask_admin import BaseView, expose
 
 
 class ServiceView(AdminCustomView):
@@ -83,16 +88,91 @@ class QuoteWorkLineNameSuggestionView(AdminCustomView):
     ]
 
 
+class Link(BaseRule):
+    def __init__(self, endpoint, attribute, text):
+        super(Link, self).__init__()
+        self.endpoint = endpoint
+        self.text = text
+        self.attribute = attribute
+
+    def __call__(self, form, form_opts=None, field_args=None):
+        if not field_args:
+            field_args = {}
+
+        _id = getattr(form._obj, self.attribute, None)
+
+        if _id:
+            return Markup('<a href="{url}">{text}</a>'.format(url=url_for(self.endpoint, id=_id), text=self.text))
+
+
+class MultiLink(BaseRule):
+    def __init__(self, endpoint, relation, id_attribute, name_attribute, order_attribute):
+        super(MultiLink, self).__init__()
+        self.endpoint = endpoint
+        self.relation = relation
+        self.id_attribute = id_attribute
+        self.name_attribute = name_attribute
+        self.order_attribute = order_attribute
+
+    def __call__(self, form, form_opts=None, field_args=None):
+        if not field_args:
+            field_args = {}
+        links = []
+
+        for obj in getattr(form._obj, self.relation):
+            id = getattr(obj, self.id_attribute, None)
+            name = getattr(obj, self.name_attribute, 'Child')
+            links.append(f'<a href="{url_for(self.endpoint, id=id)}">Edit Field "{name}"</a>')
+
+        return Markup('<br>'.join(links))
+
+
+
+class FieldlineView(InlineFormAdmin):
+    form_edit_rules = (
+        'name',
+        Link(endpoint='field.edit_view', attribute='id', text="Hello"),
+    )
+
+class FieldGroupView(AdminCustomView):
+    # form_args = dict(
+    #     name=dict(validators=[validators.DataRequired()]),
+    # )
+    # form_columns = [
+    #     FieldGroup.name,
+    #     FieldGroup.fields,
+    # ]
+    form_edit_rules = (
+        'name',
+        MultiLink(endpoint='field.edit_view', relation='fields', id_attribute='id', name_attribute="field_name", order_attribute="order"),
+    )
+    # column_searchable_list = [FieldGroup.name]
+    # inline_models = (FieldlineView(Field),)
+
+
+class FieldView(AdminCustomView):
+    pass
+
+
+class AnalyticsView(BaseView):
+    @expose('/')
+    def index(self):
+        return self.render('analytics_index.html')
+
+
 def init_admin(app, title):
     flask_init_admin(
         app,
         title,
         [
             ServiceView(Service, db.session),
-            *get_dynamic_forms_admin_forms(),
+            # *get_dynamic_forms_admin_forms(),
+            FieldGroupView(FieldGroup, db.session),
+            FieldView(Field, db.session),
             UserView(User, db.session),
             OrganisationView(Organisation, db.session),
             QuoteRequirementTypeView(QuoteRequirementType, db.session),
             QuoteWorkLineNameSuggestionView(QuoteWorkLineNameSuggestion, db.session),
+            AnalyticsView(name='Analytics', endpoint='analytics'),
         ],
     )
