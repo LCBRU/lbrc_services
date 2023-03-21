@@ -1,0 +1,12 @@
+Flask
+-e git+https://github.com/LCBRU/lbrc_flask.git@main#egg=lbrc_flask
+flask-api
+pymysql
+openpyxl
+pygal
+lxml
+python-dateutil
+cairosvg
+weasyprint<53.0
+flask_weasyprint
+WTForms
