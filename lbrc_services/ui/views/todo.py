@@ -16,7 +16,7 @@ from .. import blueprint
 
 @blueprint.route("/task/<int:task_id>/todo_list", methods=["GET", "POST"])
 def task_todo_list(task_id):
-    task = Task.query.get_or_404(task_id)
+    task = db.get_or_404(Task, task_id)
     search_form = SearchForm(formdata=request.args)
     todo_form = EditToDoForm(task_id=task_id)
 
@@ -46,18 +46,14 @@ def task_save_todo():
 
     if form.validate_on_submit():
         if form.todo_id.data:
-            todo = ToDo.query.get_or_404(form.todo_id.data)
+            todo = db.get_or_404(ToDo, form.todo_id.data)
         else:
-            task = Task.query.get_or_404(form.task_id.data)
+            task = db.get_or_404(Task, form.task_id.data)
             todo = ToDo(task_id=task.id)
         
         todo.description = form.description.data
         db.session.add(todo)
         db.session.commit()
-
-    print('*'* 100)
-    print(request.args.get('prev', ''))
-    print('*'* 100)
 
     return redirect(url_for("ui.task_todo_list", task_id=form.task_id.data, prev=get_value_from_all_arguments('prev')))
 
@@ -67,7 +63,7 @@ def task_save_todo():
 def todo_update_status():
     data = request.get_json()
 
-    todo = ToDo.query.get_or_404(data['todo_id'])
+    todo = db.get_or_404(ToDo, data['todo_id'])
 
     if data['action'] == 'check':
         todo.status = 1

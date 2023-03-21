@@ -51,7 +51,7 @@ def quote_update_status():
     quote_update_status_form = QuoteUpdateStatusForm()
 
     if quote_update_status_form.validate_on_submit():
-        status_type = QuoteStatusType.query.get_or_404(quote_update_status_form.status_type_id.data)
+        status_type = db.get_or_404(QuoteStatusType, quote_update_status_form.status_type_id.data)
 
         _update_quote_status(
             quote_update_status_form.quote_id.data,
@@ -63,7 +63,7 @@ def quote_update_status():
 
 
 def _update_quote_status(quote_id, new_quote_status_type, notes):
-        quote = Quote.query.get_or_404(quote_id)
+        quote = db.get_or_404(Quote, quote_id)
 
         quote_status = QuoteStatus(
             quote=quote,
@@ -115,7 +115,7 @@ def quote_status_history(quote_id):
 def save_quote(quote, form, context):
 
     if not quote.reference:
-        requestor = User.query.get_or_404(form.requestor_id.data)
+        requestor = db.get_or_404(User, form.requestor_id.data)
         quote.reference = f'{requestor.username}_{form.date_requested.data:%Y%m%d}_{round((time.time() % 1) * 1_000_000)}'
 
     quote.requestor_id = form.requestor_id.data
@@ -164,7 +164,7 @@ def create_quote():
 @blueprint.route("/quotes/<int:quote_id>/edit", methods=["GET", "POST"])
 @roles_required(ROLE_QUOTER)
 def edit_quote(quote_id):
-    quote = Quote.query.get_or_404(quote_id)
+    quote = db.get_or_404(Quote, quote_id)
 
     form = QuoteUpdateForm(obj=quote)
 
@@ -186,7 +186,7 @@ def edit_quote(quote_id):
 def edit_quote_requirements(quote_id):
     return render_template(
         "ui/quote/requirements.html",
-        quote=Quote.query.get_or_404(quote_id),
+        quote=db.get_or_404(Quote, quote_id),
         types=QuoteRequirementType.query.order_by(QuoteRequirementType.importance.desc()).order_by(QuoteRequirementType.name).all(),
         quote_edit_form=QuoteRequirementForm(),
         delete_form=ConfirmForm(),
@@ -199,8 +199,8 @@ def save_quote_requirement():
     form = QuoteRequirementForm()
 
     if form.validate_on_submit():
-        quote = Quote.query.get_or_404(form.quote_id.data)
-        requirement_type = QuoteRequirementType.query.get_or_404(form.quote_requirement_type_id.data)
+        quote = db.get_or_404(Quote, form.quote_id.data)
+        requirement_type = db.get_or_404(QuoteRequirementType, form.quote_requirement_type_id.data)
 
         requirement = QuoteRequirement.query.filter(QuoteRequirement.id == form.id.data).one_or_none()
 
@@ -223,7 +223,7 @@ def delete_quote_requirement():
     form = ConfirmForm()
 
     if form.validate_on_submit():
-        r = QuoteRequirement.query.get_or_404(form.id.data)
+        r = db.get_or_404(QuoteRequirement, form.id.data)
         db.session.delete(r)
         db.session.commit()
 
@@ -235,7 +235,7 @@ def delete_quote_requirement():
 def edit_quote_work(quote_id):
     return render_template(
         "ui/quote/work.html",
-        quote=Quote.query.get_or_404(quote_id),
+        quote=db.get_or_404(Quote, quote_id),
         quote_work_section_form=QuoteWorkSectionForm(),
         quote_work_line_form=QuoteWorkLineForm(),
         delete_form=ConfirmForm(),
@@ -248,7 +248,7 @@ def save_quote_work_section():
     form = QuoteWorkSectionForm()
 
     if form.validate_on_submit():
-        quote = Quote.query.get_or_404(form.quote_id.data)
+        quote = db.get_or_404(Quote, form.quote_id.data)
         section = QuoteWorkSection.query.filter(QuoteWorkSection.id == form.id.data).one_or_none()
 
         if not section:
@@ -269,7 +269,7 @@ def delete_quote_work_section():
     form = ConfirmForm()
 
     if form.validate_on_submit():
-        s = QuoteWorkSection.query.get_or_404(form.id.data)
+        s = db.get_or_404(QuoteWorkSection, form.id.data)
 
         for l in s.lines:
             db.session.delete(l)
@@ -285,7 +285,7 @@ def save_quote_work_line():
     form = QuoteWorkLineForm()
 
     if form.validate_on_submit():
-        qws = QuoteWorkSection.query.get_or_404(form.quote_work_section_id.data)
+        qws = db.get_or_404(QuoteWorkSection, form.quote_work_section_id.data)
         line = QuoteWorkLine.query.filter(QuoteWorkLine.id == form.id.data).one_or_none()
 
         if not line:
@@ -307,7 +307,7 @@ def delete_quote_work_line():
     form = ConfirmForm()
 
     if form.validate_on_submit():
-        l = QuoteWorkLine.query.get_or_404(form.id.data)
+        l = db.get_or_404(QuoteWorkLine, form.id.data)
         db.session.delete(l)
         db.session.commit()
 
@@ -316,6 +316,6 @@ def delete_quote_work_line():
 
 @blueprint.route("/quotes/<int:quote_id>/pdf")
 def quote_pdf(quote_id):
-    quote = Quote.query.get_or_404(quote_id)
+    quote = db.get_or_404(Quote, quote_id)
 
     return pdf_download('ui/quote/pdf.html', title=f'quote_{quote.reference}', quote=quote, path='./lbrc_services/ui/templates/ui/quote/')

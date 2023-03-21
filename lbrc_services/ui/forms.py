@@ -6,8 +6,9 @@ from lbrc_flask.forms import ElementDisplayField, DataListField
 from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
+from lbrc_flask.database import db
 from wtforms import SelectField, TextAreaField, StringField, SelectMultipleField
-from wtforms.fields.html5 import DateField, DecimalField
+from wtforms.fields import DateField, DecimalField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
 from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, QuoteStatusType, QuoteWorkLineNameSuggestion
@@ -55,7 +56,7 @@ def _get_task_assigned_user_choices():
 
 
 def _get_service_assigned_user_choices(service_id):
-    service = Service.query.get_or_404(service_id)
+    service = db.get_or_404(Service, service_id)
     return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in service.owners]
 
 

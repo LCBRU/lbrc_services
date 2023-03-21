@@ -57,8 +57,6 @@ def test__my_jobs__search__name(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__task_status_type(client, faker, loggedin_user):
-    s = faker.service_details(owners=[loggedin_user])
-
     matching = faker.get_test_owned_task(current_status_type=TaskStatusType.get_done(), owner=loggedin_user)
     non_matching = faker.get_test_owned_task(current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user)
 

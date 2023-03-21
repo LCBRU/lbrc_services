@@ -78,6 +78,6 @@ def user_search():
 @blueprint.route("/task/<int:task_id>/assigned_user_options")
 def task_assigned_user_options(task_id):
 
-    task = Task.query.get_or_404(task_id)
+    task = db.get_or_404(Task, task_id)
 
     return {'results': [{'id': 0, 'name': 'Unassigned'}] + [{'id': o.id, 'name': o.full_name} for o in task.service.owners]}

@@ -69,7 +69,7 @@ def get_chart(search_form):
         group_category = [{'group': t.service.name, 'category': t.organisation.name} for t in tasks]
     
     else:
-        field = Field.query.get_or_404(report_grouper_id)
+        field = db.get_or_404(Field, report_grouper_id)
 
         if len(field.get_choices()) > 0:
             buckets = [c[0] for c in field.get_choices() if c[0]]
@@ -92,7 +92,7 @@ def get_report_name(report_id):
     if report_id in static_groupers.keys():
         grouper = static_groupers[report_id]
     else:
-        grouper = Field.query.get_or_404(report_id).get_label()
+        grouper = db.get_or_404(Field, report_id).get_label()
 
     return 'Jobs by {}'.format(grouper)
 

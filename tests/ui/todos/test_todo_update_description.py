@@ -34,7 +34,6 @@ def _create_todo_post(client, task_id, description, prev=None):
     )
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__post__requires_login(client, faker):
     assert__requires_login(client, _url(external=False), post=True)
 

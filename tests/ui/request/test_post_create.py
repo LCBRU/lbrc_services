@@ -18,7 +18,6 @@ def _create_task_post(client, task, field_data=None):
     return post_task(client,  _url(service_id=task.service_id), task, field_data)
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__post__requires_login(client, faker):
     s = faker.get_test_service()
     assert__requires_login(client, _url(service_id=s.id, external=False), post=True)
@@ -86,10 +85,10 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
         (FieldType.INTEGER, None, None),
         (FieldType.INTEGER, 1, '1'),
         (FieldType.INTEGER, 678, '678'),
-        (FieldType.STRING, None, ''),
+        (FieldType.STRING, None, None),
         (FieldType.STRING, '', ''),
         (FieldType.STRING, 'Makes a tackle for a loss!', 'Makes a tackle for a loss!'),
-        (FieldType.TEXTAREA, None, ''),
+        (FieldType.TEXTAREA, None, None),
         (FieldType.TEXTAREA, '', ''),
         (FieldType.TEXTAREA, 'This is the Mahomes magic', 'This is the Mahomes magic'),
     ],
@@ -108,6 +107,10 @@ def test__create_task__fields(client, faker, field_type, value, expected_value, 
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
+    print('*'*1000)
+    print(f)
+    print(expected_value)
+    print('*'*1000)
     assert__task(expected, loggedin_user, data=[
         {
             'field': f,

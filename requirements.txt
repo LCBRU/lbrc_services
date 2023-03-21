@@ -10,4 +10,4 @@ python-dateutil
 cairosvg
 weasyprint<53.0
 flask_weasyprint
-WTForms==2.3.3
+WTForms

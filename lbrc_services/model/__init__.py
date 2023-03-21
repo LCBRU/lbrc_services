@@ -4,7 +4,7 @@ from lbrc_flask.database import db
 
 
 def init_model(app):
-    
+
     @app.before_first_request
     def task_status_type_setup():
         for name, details in TaskStatusType.all_details.items():

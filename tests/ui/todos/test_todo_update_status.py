@@ -2,6 +2,7 @@ from flask import url_for
 from flask_api import status
 import pytest
 from lbrc_services.model.services import ToDo
+from lbrc_flask.database import db
 from lbrc_flask.pytest.asserts import assert__requires_login
 
 
@@ -19,7 +20,6 @@ def _update_status_post(client, todo_id, action):
     )
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__post__requires_login(client, faker):
     assert__requires_login(client, _url(external=False), post=True)
 
@@ -46,7 +46,7 @@ def test__update_todo_status__correct_values(client, faker, starting_status, act
     resp = _update_status_post(client, todo_id=todo.id, action=action)
     assert resp.status_code == status.HTTP_205_RESET_CONTENT
 
-    actual = ToDo.query.get(todo.id)
+    actual = db.session.get(ToDo, todo.id)
 
     assert actual.status == ToDo.get_status_code_from_name(expect_status)
 
@@ -56,7 +56,7 @@ def test__update_todo_status__invalid_action(client, faker, loggedin_user):
     resp = _update_status_post(client, todo_id=todo.id, action='This is not correct')
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
-    actual = ToDo.query.get(todo.id)
+    actual = db.session.get(ToDo, todo.id)
     assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING)
 
 

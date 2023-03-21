@@ -17,7 +17,6 @@ def _edit_post(client, quote):
     return post_quote(client,  _url(quote_id=quote.id), quote)
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__post__requires_login(client, faker):
     quote = faker.get_test_quote()
 

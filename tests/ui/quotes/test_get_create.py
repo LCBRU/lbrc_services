@@ -12,7 +12,6 @@ def _url(external=True, prev=None):
     return url_for('ui.create_quote', prev=prev, _external=external)
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__get__requires_login(client, faker):
     assert__requires_login(client, _url(external=False))
 

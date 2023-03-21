@@ -96,7 +96,7 @@ def task_update_status():
     task_update_status_form = TaskUpdateStatusForm()
 
     if task_update_status_form.validate_on_submit():
-        status_type = TaskStatusType.query.get_or_404(task_update_status_form.status.data)
+        status_type = db.get_or_404(TaskStatusType, task_update_status_form.status.data)
 
         update_task_status(
             task_update_status_form.task_id.data,
@@ -108,7 +108,7 @@ def task_update_status():
 
 
 def update_task_status(task_id, new_task_status_type, notes):
-        task = Task.query.get_or_404(task_id)
+        task = db.get_or_404(Task, task_id)
 
         task_status = TaskStatus(
             task=task,
@@ -151,7 +151,7 @@ def assign_to_me(task_id):
 
 
 def _update_assigned_user(task_id, user_id, notes=''):
-    task = Task.query.get_or_404(task_id)
+    task = db.get_or_404(Task, task_id)
 
     tau = TaskAssignedUser(
         task=task,
@@ -253,7 +253,7 @@ def save_task(task, form, context):
 
 @blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])
 def create_task(service_id):
-    service = Service.query.get_or_404(service_id)
+    service = db.get_or_404(Service, service_id)
 
     form = get_create_task_form(service)
 
@@ -280,7 +280,7 @@ def create_task(service_id):
 @blueprint.route("/task/<int:task_id>/edit", methods=["GET", "POST"])
 @must_be_task_owner_or_requestor("task_id")
 def edit_task(task_id):
-    task = Task.query.get_or_404(task_id)
+    task = db.get_or_404(Task, task_id)
 
     form = get_create_task_form(task.service, task)
 
@@ -302,7 +302,7 @@ def edit_task(task_id):
 @blueprint.route("/task/<int:task_id>/file/<int:task_file_id>")
 @must_be_task_file_owner_or_requestor("task_file_id")
 def download_task_file(task_id, task_file_id):
-    t = Task.query.get_or_404(task_id)
-    tf = TaskFile.query.get_or_404(task_file_id)
+    t = db.get_or_404(Task, task_id)
+    tf =db.get_or_404(TaskFile, task_file_id)
 
     return send_file(tf.local_filepath, as_attachment=True, attachment_filename=tf.filename)

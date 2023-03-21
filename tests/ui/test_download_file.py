@@ -16,7 +16,6 @@ def mock_send_file(app):
         yield m
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test_url_requires_login_get(client, faker):
     tf = faker.get_test_task_file()
     assert__requires_login(client, _url(tf.id, tf.task.id, external=False))
