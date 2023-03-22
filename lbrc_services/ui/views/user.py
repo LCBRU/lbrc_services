@@ -18,29 +18,15 @@ def user_search():
 
         users = {}
 
-        if db.session.bind.dialect.name == 'sqlite':
-            query = User.query.filter(
+        query = User.query.filter(
+            or_(
+                User.username.like(f'%{q}%'),
                 or_(
-                    User.username.like(f'%{q}%'),
-                    or_(
-                        User.first_name.like(f'%{q}%'),
-                        or_(
-                            User.last_name.like(f'%{q}%'),
-                            User.email.like(f'%{q}%'),
-                        )
-                    )
+                    func.concat(User.first_name, ' ', User.last_name).like(f'%{q}%'),
+                    User.email.like(f'%{q}%'),
                 )
             )
-        elif db.session.bind.dialect.name == 'mysql':
-            query = User.query.filter(
-                or_(
-                    User.username.like(f'%{q}%'),
-                    or_(
-                        func.concat(User.first_name, ' ', User.last_name).like(f'%{q}%'),
-                        User.email.like(f'%{q}%'),
-                    )
-                )
-            )
+        )
 
         for u in query.all():
             users[u.username] = {
