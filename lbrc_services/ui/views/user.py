@@ -18,7 +18,7 @@ def user_search():
 
         users = {}
 
-        if db.dialect.name == 'sqlite':
+        if db.session.dialect.name == 'sqlite':
             query = User.query.filter(
                 or_(
                     User.username.like(f'%{q}%'),
@@ -31,7 +31,7 @@ def user_search():
                     )
                 )
             )
-        elif db.dialect.name == 'mysql':
+        elif db.session.dialect.name == 'mysql':
             query = User.query.filter(
                 or_(
                     User.username.like(f'%{q}%'),
