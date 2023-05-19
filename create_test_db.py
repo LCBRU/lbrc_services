@@ -6,7 +6,7 @@ from lbrc_flask.database import db
 
 load_dotenv()
 
-from academics import create_app
+from lbrc_services import create_app
 
 application = create_app()
 application.app_context().push()

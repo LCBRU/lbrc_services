@@ -24,8 +24,7 @@ pip install -r requirements.txt
 Staying in the `lbrc_services` directory and type the command:
 
 ```bash
-./manage.py version_control
-./manage.py upgrade
+python create_test_db.py
 ```
 
 4. Run the application

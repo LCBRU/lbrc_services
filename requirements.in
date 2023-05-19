@@ -10,3 +10,4 @@ cairosvg
 weasyprint<53.0
 flask_weasyprint
 WTForms
+flask-security-too[fsqla,common]
