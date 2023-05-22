@@ -1,4 +1,3 @@
-from lbrc_services.model.security import get_roles
 from lbrc_services.model.services import User
 from flask import Flask
 from lbrc_flask import init_lbrc_flask
@@ -18,7 +17,7 @@ def create_app(config=Config):
 
     with app.app_context():
         init_lbrc_flask(app, TITLE)
-        init_security(app, user_class=User, role_class=Role, roles=get_roles())
+        init_security(app, user_class=User, role_class=Role)
         init_admin(app, TITLE)
         init_dynamic_forms(app)
         init_model(app)

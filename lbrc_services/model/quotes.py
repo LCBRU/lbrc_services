@@ -143,13 +143,13 @@ class Quote(AuditMixin, CommonMixin, db.Model):
     requestor = db.relationship(User, lazy="joined", backref='quotes', foreign_keys=[requestor_id])
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(QuoteStatusType.id), nullable=False)
     current_status_type = db.relationship(QuoteStatusType)
-    introduction = db.Column(db.String())
-    conclusion = db.Column(db.String())
+    introduction = db.Column(db.String(1000))
+    conclusion = db.Column(db.String(1000))
     quote_pricing_type_id = db.Column(db.Integer, db.ForeignKey(QuotePricingType.id), nullable=False)
     quote_pricing_type = db.relationship(QuotePricingType)
     date_requested = db.Column(db.Date, nullable=False)
     date_required = db.Column(db.Date, nullable=True)
-    reference = db.Column(db.String())
+    reference = db.Column(db.String(1000))
 
     @property
     def total_days(self):
@@ -184,7 +184,7 @@ class QuoteRequirement(AuditMixin, CommonMixin, db.Model):
     quote = db.relationship(Quote, backref="requirements")
     quote_requirement_type_id = db.Column(db.Integer, db.ForeignKey(QuoteRequirementType.id), nullable=False)
     quote_requirement_type = db.relationship(QuoteRequirementType)
-    notes = db.Column(db.String())
+    notes = db.Column(db.String(1000))
 
 
 class QuoteWorkSection(AuditMixin, CommonMixin, db.Model):
