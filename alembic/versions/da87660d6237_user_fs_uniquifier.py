@@ -17,7 +17,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.drop_column('user', 'fs_uniquifier')
     op.add_column('user', sa.Column('fs_uniquifier', sa.String(255), nullable=True))
     op.create_unique_constraint("uq_user_fs_uniquifier", "user", ["fs_uniquifier"])
 
