@@ -18,8 +18,8 @@ depends_on = None
 
 def upgrade() -> None:
 	op.add_column(
-        'field',  
-        sa.Column('do_not_show', sa.Boolean(), nullable=True)  
+        'field',
+        sa.Column('do_not_show', sa.Boolean(), nullable=True)
 	)
 	op.execute("UPDATE field SET do_not_show = false")
 	op.alter_column('field', 'do_not_show', existing_type=sa.Boolean(), nullable=False)
