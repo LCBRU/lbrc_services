@@ -1,14 +1,14 @@
 {% macro render_tasks_list(tasks, show_owner_controls=False) %}
 
-<ul class="list-group">
+<div class="accordion" id="tasks">
     {% for t in tasks.items %}
-        <li class="list-group-item">
-            <div class='summary_details'>
+        <div class="card">
+            <div class="card-header">
                 <div class="row">
                     <div class="col-7">
-                        <header>
+                        <header class="list_item_header collapsed" id="task_heading_{{t.id}}" data-toggle="collapse" data-target="#task_body_{{t.id}}" aria-expanded="true" aria-controls="task_body_{{t.id}}">
                             <h1>
-                                <span>#{{t.id}} {{t.service.name}}: {{ t.name }}</span>
+                                <span class="text-info">#{{t.id}}</span> <span class="text-secondary">{{t.service.name}}:</span> <span>{{ t.name }}</span>
                                 {% if not show_owner_controls %}
                                     <span class="badge badge-secondary">{{ t.current_status_type.name }}</span>
                                 {% endif %}
@@ -88,41 +88,47 @@
                                             href="#">Show History</a>
                                     </div>
                                 </div>
-
                             {% endif %}
-
                         </div>
                     </div>
                 </div>
-
-                <dl>
-                    {% for field_name, files in t.files | groupby("field.field_name") %}
-                        <dt>{{ field_name }}</dt>
-                        <dd>
-                            {% for f in files %}
-                                <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}">
-                                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
-                                    {{ f.filename }}
-                                </a>
-                            {% endfor %}
-                        </dd>
-                    {% endfor %}
-                </dl>
-
-                <dl>
-                    {% for d in t.data %}
-                        <dt>{{ d.field.field_name }}</dt>
-                        {% if d.field.field_type.is_textarea %}
-                            <dd>{{ d.formated_value | blank_if_none | br }}</dd>
-                        {% else %}
-                            <dd>{{ d.formated_value | blank_if_none }}</dd>
-                        {% endif %}
-                    {% endfor %}
-                </dl>
-                
             </div>
-        </li>
+        
+            <div id="task_body_{{t.id}}" class="collapse collapsed" aria-labelledby="task_heading_{{t.id}}" data-parent="#tasks">
+                <div class="card-body">
+                    <dl>
+                        {% for field_name, files in t.files | groupby("field.field_name") %}
+                            <div>
+                                <dt>{{ field_name }}</dt>
+                                <dd>
+                                    {% for f in files %}
+                                        <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}">
+                                            <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                                            {{ f.filename }}
+                                        </a>
+                                    {% endfor %}
+                                </dd>
+                            </div>
+                        {% endfor %}
+                    </dl>
+    
+                    <dl class="cols">
+                        {% for d in t.data %}
+                            <div>
+                                <dt>{{ d.field.field_name }}</dt>
+                                {% if d.field.field_type.is_textarea %}
+                                    <dd>{{ d.formated_value | blank_if_none | br }}</dd>
+                                {% else %}
+                                    <dd>{{ d.formated_value | blank_if_none }}</dd>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </dl>
+                </div>
+            </div>
+        </div>
     {% endfor %}
-</ul>
+</div>
+
 
 {% endmacro %}
