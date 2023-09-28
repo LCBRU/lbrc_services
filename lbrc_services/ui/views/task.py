@@ -238,19 +238,6 @@ def save_task(task, form, context):
     db.session.add(task_status)
     db.session.commit()
 
-    email(
-        subject="{} Request {}".format(task.service.name, context),
-        message="Request has been {} for {} by {}.".format(
-            context,
-            task.service.name,
-            current_user.full_name,
-        ),
-        recipients=task.notification_email_addresses,
-        html_template='ui/email/owner_email.html',
-        context=context,
-        task=task,
-    )
-
 
 @blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])
 def create_task(service_id):
@@ -265,6 +252,14 @@ def create_task(service_id):
         )
 
         save_task(task, form, 'created')
+
+        email(
+            subject=f"{task.service.name} Request Created",
+            message=f"Request has been created for {task.service.name} by {current_user.full_name}.",
+            recipients=task.notification_email_addresses,
+            html_template='ui/email/owner_email.html',
+            task=task,
+        )
 
         return redirect(url_for("ui.index"))
 
