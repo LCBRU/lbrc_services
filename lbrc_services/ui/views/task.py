@@ -29,7 +29,7 @@ def my_requests():
 
     tasks = q.paginate(
             page=search_form.page.data,
-            per_page=5,
+            per_page=10,
             error_out=False,
         )
 
@@ -70,7 +70,7 @@ def my_jobs():
 
     tasks = q.paginate(
             page=search_form.page.data,
-            per_page=5,
+            per_page=10,
             error_out=False,
         )
 
