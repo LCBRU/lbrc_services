@@ -83,15 +83,11 @@
 
     {% if task.files | length > 0 %}
         <h3>Files Included with Request</h3>
-        <dl>
-            {% for files in task.files %}
-                <dd>
-                    {% for f in files %}
-                        {{ f.filename }}
-                    {% endfor %}
-                </dd>
+        <ul>
+            {% for f in task.files %}
+                <li>{{ f.filename }}</li>
             {% endfor %}
-        </dl>
+        </ul>
     {% endif %}
 
     {% if task.data | length > 0 %}
