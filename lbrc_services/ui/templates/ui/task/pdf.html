@@ -84,7 +84,7 @@
     {% if task.files | length > 0 %}
         <h3>Files Included with Request</h3>
         <ul>
-            {% for f in task.files | rejectattr('filename', '') %}
+            {% for f in task.files | rejectattr('filename', 'equalto', '') %}
                 <li>{{ f.filename }}</li>
             {% endfor %}
         </ul>
