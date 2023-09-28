@@ -1,0 +1,121 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Leicester BRC {{ task.service.name}} Request #{{ task.id }}</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        @page {
+            size: A4 portrait;
+            
+            @bottom-right {
+                content: "Page " counter(page)
+                            " of " counter(pages);
+                font-size: 10px;
+            }                 
+
+            @bottom-left {
+                content: "Downloaded: {{ current_date }}";
+                font-size: 10px;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: x-small;
+        }
+
+        header {
+            background-image: url(brc.png);
+            background-repeat: no-repeat;
+            background-position: top left;
+            background-size: 40%;
+            height: 45px;
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            text-align: right;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: normal;
+        }
+
+        h2 {
+            color: #777;
+            font-size: 1.5em;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        h3 {
+            margin-top: 2em;
+            color: #193e72;
+            font-size: 1.4rem;
+            margin-bottom: 1em;
+        }
+
+        dt {
+            font-weight: 700;
+        }
+        dd {
+            margin-bottom: 10px;
+            margin-left: 0;
+        }
+
+</style>
+</head>
+
+<body>
+    <header>
+        <h1>{{task.service.name}}</h1>
+    </header>
+
+    <h1>{{ task.name }}</h1>
+    <h2>Request #{{task.id}} for {{task.requestor.full_name }} created {{ task.created_date | datetime_format }}</h2>
+
+    {% if task.files | length > 0 %}
+        <h3>Files Included with Request</h3>
+        <dl>
+            {% for field_name, files in task.files | groupby("field.field_name") %}
+                <div>
+                    <dt>{{ field_name }}</dt>
+                    <dd>
+                        {% for f in files %}
+                            <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}">
+                                <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                                {{ f.filename }}
+                            </a>
+                        {% endfor %}
+                    </dd>
+                </div>
+            {% endfor %}
+        </dl>
+    {% endif %}
+
+    {% if task.data | length > 0 %}
+        <h3>Information Submitted with Request</h3>
+        <dl class="cols">
+            {% for d in task.data %}
+                {% if d.formated_value | blank_if_none | length > 0 %}
+                    <div>
+                        <dt>{{ d.field.field_name }}</dt>
+                        {% if d.field.field_type.is_textarea %}
+                            <dd>{{ d.formated_value | blank_if_none | br }}</dd>
+                        {% else %}
+                            <dd>{{ d.formated_value | blank_if_none }}</dd>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </dl>
+    {% endif %}
+</body>
+</html>

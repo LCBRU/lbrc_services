@@ -39,6 +39,12 @@
                             {% else %}
 
                                 <div class="btn-group mr-1 mb-1" role="group">
+                                    <a class="btn btn-primary" href="{{ url_for('ui.pdf_task', task_id=t.id) }}">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                </div>
+
+                                <div class="btn-group mr-1 mb-1" role="group">
                                     <a class="btn btn-primary" href="{{ url_for('ui.task_todo_list', task_id=t.id, prev=request.full_path) }}">
                                         <i class="fas fa-clipboard-check"></i>
                                         {% if t.required_todos > 0 %}

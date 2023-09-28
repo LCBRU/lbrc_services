@@ -17,6 +17,7 @@ from .. import blueprint
 from sqlalchemy import or_
 from lbrc_flask.security import current_user_id
 from flask import current_app
+from lbrc_flask.export import pdf_download
 
 
 @blueprint.route("/my_requests")
@@ -306,3 +307,11 @@ def download_task_file(task_id, task_file_id):
     tf =db.get_or_404(TaskFile, task_file_id)
 
     return send_file(tf.local_filepath, as_attachment=True, attachment_filename=tf.filename)
+
+
+@blueprint.route("/task/<int:task_id>/pdf")
+@must_be_task_owner_or_requestor("task_id")
+def pdf_task(task_id):
+    task : Task = db.get_or_404(Task, task_id)
+
+    return pdf_download('ui/task/pdf.html', title=f'task_{task.service.name}_{task.name}', task=task, path='./lbrc_services/ui/templates/ui/task/')
