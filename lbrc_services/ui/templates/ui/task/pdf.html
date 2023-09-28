@@ -84,14 +84,12 @@
     {% if task.files | length > 0 %}
         <h3>Files Included with Request</h3>
         <dl>
-            {% for field_name, files in task.files | groupby("field.field_name") %}
-                <div>
-                    <dd>
-                        {% for f in files %}
-                            {{ f.filename }}
-                        {% endfor %}
-                    </dd>
-                </div>
+            {% for files in task.files %}
+                <dd>
+                    {% for f in files %}
+                        {{ f.filename }}
+                    {% endfor %}
+                </dd>
             {% endfor %}
         </dl>
     {% endif %}
