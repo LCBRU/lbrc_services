@@ -89,10 +89,7 @@
                     <dt>{{ field_name }}</dt>
                     <dd>
                         {% for f in files %}
-                            <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}">
-                                <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
-                                {{ f.filename }}
-                            </a>
+                            {{ f.filename }}
                         {% endfor %}
                     </dd>
                 </div>
