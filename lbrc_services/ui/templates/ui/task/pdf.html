@@ -86,7 +86,6 @@
         <dl>
             {% for field_name, files in task.files | groupby("field.field_name") %}
                 <div>
-                    <dt>{{ field_name }}</dt>
                     <dd>
                         {% for f in files %}
                             {{ f.filename }}
