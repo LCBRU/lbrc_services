@@ -81,7 +81,7 @@
     <h1>{{ task.name }}</h1>
     <h2>Request #{{task.id}} for {{task.requestor.full_name }} created {{ task.created_date | date_format }}</h2>
 
-    {% if task.files | rejectattr('filename', 'equalto', '') | length > 0 %}
+    {% if task.files | rejectattr('filename', 'equalto', '') | list | length > 0 %}
         <h3>Files Included with Request</h3>
         <ul>
             {% for f in task.files | rejectattr('filename', 'equalto', '') %}
