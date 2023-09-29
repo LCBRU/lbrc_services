@@ -13,9 +13,18 @@
         see the details and current status of your requests and make amendments, if required.  Notifications of amendments will be sent
         to the appropriate service providers.
     </p>
-    {% for s in services %}
-        <a href="{{ url_for('ui.create_task', service_id=s.id, prev=url_for('ui.index') ) }}" class="btn btn-primary btn-lg btn-block">{{ s.name }}</a>
-    {% endfor %}
+    <div class="service_cards">
+        {% for s in services %}
+            <div class="card">
+                <div class="card-header">
+                    <h1>{{ s.name }}</h1>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('ui.create_task', service_id=s.id, prev=url_for('ui.index') ) }}">Request {{s.name}}</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 </section>
 
 {% endblock %}
