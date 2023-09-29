@@ -11,7 +11,7 @@
         {% for s in services %}
             <div class="card">
                 <div class="card-header">
-                    <h3>{{ s.name }}</h3>
+                    <h4>{{ s.name }}</h4>
                 </div>
                 <div class="card-body">
                     <p>{{ s.description | blank_if_none | markdown }}</p>
