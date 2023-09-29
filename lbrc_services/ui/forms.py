@@ -170,7 +170,7 @@ class EditToDoForm(FlashingForm):
 def _get_organisation_choices():
     orgs = Organisation.query.order_by(Organisation.name.asc()).all()
 
-    return [('', '')] + [(t.id, t.name) for t in orgs]
+    return [(t.id, t.name) for t in orgs]
 
 def required_when_other_organisation(form, field):
     if field.data and (not isinstance(field.data, str) or field.data.strip()):
@@ -269,7 +269,7 @@ def get_create_task_form(service, task=None):
     builder.add_form_field('requestor_id', SelectField('Requesting User', coerce=_user_coerce, default=current_user_id, choices=requestor_choices, validate_choice=False, validators=[DataRequired()]))
     builder.add_form_field('assigned_user_id', SelectField('Assigned User', coerce=_user_coerce, default=default_assigned_user_id, choices=_get_service_assigned_user_choices(service.id), validate_choice=False))
     builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
-    builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired()]))
+    builder.add_form_field('organisation_id', SelectMultipleField('Organisations', choices=_get_organisation_choices(), validators=[DataRequired()]))
     builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
     builder.add_field_group(service.field_group)
 

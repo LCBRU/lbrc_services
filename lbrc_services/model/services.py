@@ -14,8 +14,13 @@ services_owners = db.Table(
     "services_owners",
     db.Column("service_id", db.Integer(), db.ForeignKey("service.id")),
     db.Column("user_id", db.Integer(), db.ForeignKey("user.id")),
+)
 
 
+tasks_organisations = db.Table(
+    "tasks_organisations",
+    db.Column("task_id", db.Integer(), db.ForeignKey("task.id")),
+    db.Column("organisation_id", db.Integer(), db.ForeignKey("organisation.id")),
 )
 
 
