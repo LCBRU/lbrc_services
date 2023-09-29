@@ -20,7 +20,7 @@
                     <h3>{{ s.name }}</h3>
                 </div>
                 <div class="card-body">
-                    <p>{{ s.description | blank_if_none}}</p>
+                    <p>{{ s.description | blank_if_none | markdown }}</p>
                     <a href="{{ url_for('ui.create_task', service_id=s.id, prev=url_for('ui.index') ) }}" class="btn btn-primary">Request {{s.name}}</a>
                 </div>
             </div>
