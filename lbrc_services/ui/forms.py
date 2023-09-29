@@ -280,9 +280,6 @@ def get_create_task_form(service, task=None):
         dt.id = task.id
         dt.name = task.name
         dt.organisations = [str(o.id) for o in task.organisations]
-
-        print(dt.organisations)
-
         dt.organisation_description = task.organisation_description
 
         for field, data in groupby(task.data, lambda d: d.field):
