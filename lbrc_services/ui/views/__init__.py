@@ -9,15 +9,63 @@ __all__ = [
 
 
 from datetime import timedelta
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
 from lbrc_services.model.quotes import Quote, QuoteStatusType
-from lbrc_services.model.services import Service, Task, TaskStatusType, User
+from lbrc_services.model.services import Organisation, Service, Task, TaskStatusType, User
 from lbrc_flask.export import excel_download
 
 
 def _get_tasks_query(search_form, owner_id=None, requester_id=None, sort_asc=False):
+    q = select(Task)
 
+    if search_form.search.data:
+        q = q.where(Task.name.like(f"%{search_form.search.data}%"))
+
+    if search_form.data.get('service_id', 0) not in (0, "0", None):
+        q = q.where(Task.service_id == search_form.data['service_id'])
+
+    if search_form.data.get('organisation_id', 0) not in (0, "0", None):
+        q = q.where(Task.organisations.any(Organisation.id == search_form.data['organisation_id']))
+
+    if search_form.data.get('requestor_id', 0) not in (0, "0", None):
+        q = q.where(Task.requestor_id == search_form.data['requestor_id'])
+
+    if search_form.data.get('created_date_from', None):
+        q = q.where(Task.created_date >= search_form.data['created_date_from'])
+
+    if search_form.data.get('created_date_to', None):
+        q = q.where(Task.created_date < search_form.data['created_date_to'] + timedelta(days=1))
+
+    if 'task_status_type_id' in search_form.data:
+        option = search_form.data.get('task_status_type_id', 0) or 0
+
+        q = q.join(Task.current_status_type)
+
+        if option == 0:
+            q = q.where(TaskStatusType.is_complete == False)
+        elif option == -1:
+            q = q.where(TaskStatusType.is_complete == True)
+        elif option != -2:
+            q = q.where(TaskStatusType.id == option)
+
+    if owner_id is not None:
+        q = q.join(Task.service)
+        q = q.join(Service.owners)
+        q = q.where(User.id == owner_id)
+
+    if requester_id is not None:
+        q = q.where(Task.requestor_id == requester_id)
+
+    if sort_asc:
+        q = q.order_by(Task.created_date.asc())
+    else:
+        q = q.order_by(Task.created_date.desc())
+
+    return q
+
+
+def _get_tasks_query_old(search_form, owner_id=None, requester_id=None, sort_asc=False):
     q = Task.query.options(
         joinedload(Task.data),
         joinedload(Task.files),

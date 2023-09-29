@@ -27,11 +27,12 @@ def my_requests():
 
     q = _get_tasks_query(search_form=search_form, requester_id=current_user.id)
 
-    tasks = q.paginate(
-            page=search_form.page.data,
-            per_page=10,
-            error_out=False,
-        )
+    tasks = db.paginate(
+        select=q,
+        page=search_form.page.data,
+        per_page=10,
+        error_out=False,
+    )
 
     return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form, cancel_request_form=cancel_request_form)
 
@@ -68,7 +69,8 @@ def my_jobs():
     else:
         q = q.filter(Task.current_assigned_user_id == assigned_user_id)
 
-    tasks = q.paginate(
+    tasks = db.paginate(
+            select=q,
             page=search_form.page.data,
             per_page=10,
             error_out=False,
