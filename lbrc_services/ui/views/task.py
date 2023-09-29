@@ -14,7 +14,7 @@ from flask_security import current_user
 from ..decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_task_owner
 from ..forms import MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form, TaskUpdateAssignedUserForm
 from .. import blueprint
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from lbrc_flask.security import current_user_id
 from flask import current_app
 from lbrc_flask.export import pdf_download
@@ -187,7 +187,7 @@ def task_assignment_history(task_id):
 def save_task(task, form, context):
 
     task.requestor_id = form.requestor_id.data
-    task.organisation_id = form.organisation_id.data
+    task.organisations = list(db.session.execute(select(Organisation).where(Organisation.id.in_(form.organisations.data))).scalars())
     task.organisation_description = form.organisation_description.data
     task.name = form.name.data
 

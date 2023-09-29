@@ -170,7 +170,6 @@ class Task(AuditMixin, CommonMixin, db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
     organisation_id = db.Column(db.Integer, db.ForeignKey(Organisation.id))
-    organisation = db.relationship(Organisation, lazy="joined", backref='tasks')
     organisation_description = db.Column(db.String(255))
     service_id = db.Column(db.Integer, db.ForeignKey(Service.id))
     service = db.relationship(Service, lazy="joined", backref='tasks')
@@ -180,6 +179,8 @@ class Task(AuditMixin, CommonMixin, db.Model):
     current_status_type = db.relationship(TaskStatusType)
     current_assigned_user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
     current_assigned_user = db.relationship(User, foreign_keys=[current_assigned_user_id])
+
+    organisations = db.relationship("Organisation", lazy="joined", secondary=tasks_organisations, backref='tasks')
 
     @property
     def long_name(self):
