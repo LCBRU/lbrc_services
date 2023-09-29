@@ -169,7 +169,6 @@ class Task(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
-    organisation_id = db.Column(db.Integer, db.ForeignKey(Organisation.id))
     organisation_description = db.Column(db.String(255))
     service_id = db.Column(db.Integer, db.ForeignKey(Service.id))
     service = db.relationship(Service, lazy="joined", backref='tasks')
