@@ -9,6 +9,7 @@ from .. import blueprint
 from lbrc_flask.charting import grouped_bar_chart
 from ..forms import ReportSearchForm
 from tempfile import NamedTemporaryFile
+from lbrc_flask.database import db
 
 
 @blueprint.route("/reports")
@@ -42,7 +43,7 @@ def report_png():
 
 
 def get_chart(search_form):
-    tasks = _get_tasks_query(search_form=search_form, requester_id=current_user.id).all()
+    tasks = list(db.session.execute(_get_tasks_query(search_form=search_form, requester_id=current_user.id)).unique().scalars())
 
     report_grouper_id = search_form.data.get('report_grouper_id', -3)
     buckets = None
