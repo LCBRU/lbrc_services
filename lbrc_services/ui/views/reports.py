@@ -10,6 +10,7 @@ from lbrc_flask.charting import grouped_bar_chart
 from ..forms import ReportSearchForm
 from tempfile import NamedTemporaryFile
 from lbrc_flask.database import db
+from lbrc_flask.charting import BarChart, BarChartItem
 
 
 @blueprint.route("/reports")
@@ -18,7 +19,7 @@ from lbrc_flask.database import db
 def reports():
     search_form = ReportSearchForm(formdata=request.args)
 
-    return render_template("ui/reports.html", search_form=search_form, chart=get_chart(search_form).render_data_uri())
+    return render_template("ui/reports.html", search_form=search_form, chart=get_chart(search_form).get_chart().render_data_uri())
 
 
 @blueprint.route("/report_png")
@@ -28,18 +29,7 @@ def report_png():
     search_form = ReportSearchForm(formdata=request.args)
 
     chart = get_chart(search_form)
-    report_grouper_id = search_form.data.get('report_grouper_id', -3)
-
-    with NamedTemporaryFile() as tmp:
-        chart.render_to_png(tmp.name)
-
-        return send_file(
-            tmp.name,
-            as_attachment=True,
-            attachment_filename='{}_{}.png'.format(get_report_name(report_grouper_id), datetime.utcnow().strftime("%Y%m%d_%H%M%S")),
-            cache_timeout=0,
-            mimetype='image/png',
-        )
+    chart.send_as_attachment()
 
 
 def get_chart(search_form):
@@ -61,13 +51,28 @@ def get_chart(search_form):
                 until=date(max_date.year, max_date.month, 1),
             )]
 
-        group_category = [{'group': t.service.name, 'category': t.created_date.strftime('%b %Y')} for t in tasks]
+        group_category = [BarChartItem(
+            series=t.service.name,
+            bucket=t.created_date.strftime('%b %Y'),
+            count=1,
+        ) for t in tasks]
 
     elif report_grouper_id == -2:
-        group_category = [{'group': t.service.name, 'category': t.current_status_type.name} for t in tasks]
+        group_category = [BarChartItem(
+            series=t.service.name,
+            bucket=t.current_status_type.name,
+            count=1,
+        ) for t in tasks]
 
     elif report_grouper_id == -1:
-        group_category = [{'group': t.service.name, 'category': t.organisation.name} for t in tasks]
+        group_category = []
+        for t in tasks:
+            for o in t.organisations:
+                group_category.append(BarChartItem(
+                    series=t.service.name,
+                    bucket=o.name,
+                    count=1,
+                ))
     
     else:
         field = db.get_or_404(Field, report_grouper_id)
@@ -78,9 +83,21 @@ def get_chart(search_form):
         group_category = []
 
         for t in tasks:
-            group_category.extend([{'group': t.service.name, 'category': d.formated_value} for d in t.data if d.field_id == report_grouper_id])
+            group_category.extend([
+                BarChartItem(
+                    series=t.service.name,
+                    bucket=d.formated_value,
+                    count=1,
+                ) for d in t.data if d.field_id == report_grouper_id
+            ])
 
-    return grouped_bar_chart(get_report_name(report_grouper_id), group_category, buckets=buckets)
+    bc: BarChart = BarChart(
+        title=get_report_name(report_grouper_id),
+        items=group_category,
+        y_title='Jobs',
+    )
+
+    return bc
 
 
 def get_report_name(report_id):
