@@ -36,21 +36,8 @@ def get_chart(search_form):
     tasks = list(db.session.execute(_get_tasks_query(search_form=search_form, requester_id=current_user.id)).unique().scalars())
 
     report_grouper_id = search_form.data.get('report_grouper_id', -3)
-    buckets = None
 
     if report_grouper_id == -3:
-        if len(tasks) < 1:
-            buckets = []
-        else:
-            min_date = min([t.created_date for t in tasks])
-            max_date = max([t.created_date for t in tasks])
-
-            buckets = [d.strftime('%b %Y') for d in rrule(
-                MONTHLY,
-                dtstart=date(min_date.year, min_date.month, 1),
-                until=date(max_date.year, max_date.month, 1),
-            )]
-
         group_category = [BarChartItem(
             series=t.service.name,
             bucket=t.created_date.strftime('%b %Y'),
@@ -75,11 +62,6 @@ def get_chart(search_form):
                 ))
     
     else:
-        field = db.get_or_404(Field, report_grouper_id)
-
-        if len(field.get_choices()) > 0:
-            buckets = [c[0] for c in field.get_choices() if c[0]]
-        
         group_category = []
 
         for t in tasks:
