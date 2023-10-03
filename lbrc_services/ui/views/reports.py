@@ -1,14 +1,10 @@
 from lbrc_flask.forms.dynamic import Field
 from lbrc_services.ui.views import _get_tasks_query
-from dateutil.rrule import rrule, MONTHLY
-from datetime import date, datetime
-from flask import render_template, request, send_file
+from flask import render_template, request
 from flask_security import current_user
 from ..decorators import must_be_service_owner, must_own_a_service
 from .. import blueprint
-from lbrc_flask.charting import grouped_bar_chart
 from ..forms import ReportSearchForm
-from tempfile import NamedTemporaryFile
 from lbrc_flask.database import db
 from lbrc_flask.charting import BarChart, BarChartItem
 
@@ -33,7 +29,7 @@ def report_png():
 
 
 def get_chart(search_form):
-    tasks = list(db.session.execute(_get_tasks_query(search_form=search_form, requester_id=current_user.id)).unique().scalars())
+    tasks = list(db.session.execute(_get_tasks_query(search_form=search_form)).unique().scalars())
 
     report_grouper_id = search_form.data.get('report_grouper_id', -3)
 
