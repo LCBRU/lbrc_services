@@ -53,6 +53,8 @@ def get_chart(search_form):
                     series=t.service.name,
                     bucket=o.name,
                 ))
+        
+        print(group_category)
     
     else:
         group_category = []
