@@ -26,6 +26,7 @@ def my_requests():
     cancel_request_form = ConfirmForm()
 
     q = _get_tasks_query(search_form=search_form, requester_id=current_user.id)
+    q = q.order_by(Task.created_date.desc())
 
     tasks = db.paginate(
         select=q,
@@ -49,7 +50,7 @@ def cancel_request():
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
     search_form = MyJobsSearchForm(formdata=request.args)
-    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
 
     assigned_user_id = search_form.data.get('assigned_user_id', 0)
 
@@ -68,6 +69,8 @@ def my_jobs():
         ))
     else:
         q = q.filter(Task.current_assigned_user_id == assigned_user_id)
+
+    q = q.order_by(Task.created_date.asc())
 
     tasks = db.paginate(
             select=q,
@@ -88,9 +91,10 @@ def my_jobs():
 @blueprint.route("/my_jobs/export")
 def my_jobs_export():
     search_form = MyJobsSearchForm(formdata=request.args)
-    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
+    q = q.order_by(Task.created_date.asc())
 
-    return send_task_export('My Jobs', q.all())
+    return send_task_export('My Jobs', db.session.execute(q).unique().scalars())
 
 
 @blueprint.route("/task/update_status", methods=["POST"])
