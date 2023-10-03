@@ -13,7 +13,6 @@
     {% endfor %}
     <dt>Current Status</dt>
     <dd>{{ task.current_status_type.name }}</dd>
-    <dt>{{ context.capitalize() }}</dt>
     <dd>{{ task.last_update_date | datetime_format }}</dd>
 </dl>
 
