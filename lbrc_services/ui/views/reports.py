@@ -55,6 +55,7 @@ def get_chart(search_form):
                 ))
         
         print(group_category)
+        print(len(group_category))
     
     else:
         group_category = []
