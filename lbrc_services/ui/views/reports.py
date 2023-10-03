@@ -41,14 +41,12 @@ def get_chart(search_form):
         group_category = [BarChartItem(
             series=t.service.name,
             bucket=t.created_date.strftime('%b %Y'),
-            count=1,
         ) for t in tasks]
 
     elif report_grouper_id == -2:
         group_category = [BarChartItem(
             series=t.service.name,
             bucket=t.current_status_type.name,
-            count=1,
         ) for t in tasks]
 
     elif report_grouper_id == -1:
@@ -58,7 +56,6 @@ def get_chart(search_form):
                 group_category.append(BarChartItem(
                     series=t.service.name,
                     bucket=o.name,
-                    count=1,
                 ))
     
     else:
@@ -69,7 +66,6 @@ def get_chart(search_form):
                 BarChartItem(
                     series=t.service.name,
                     bucket=d.formated_value,
-                    count=1,
                 ) for d in t.data if d.field_id == report_grouper_id
             ])
 
