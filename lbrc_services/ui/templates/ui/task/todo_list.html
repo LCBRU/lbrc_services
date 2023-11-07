@@ -84,21 +84,17 @@
 
     $(document).ready(function(){
         $('#add_item').click(function (event) {
-            show_edit_dialog('', '');
             event.preventDefault();
+            show_edit_dialog('', '');
             return false;
         });
-    });
 
-    $(document).ready(function(){
         $('.todo_edit').click(function (event) {
             show_edit_dialog(this.getAttribute("data-todo-id"), this.getAttribute("data-description"));
             event.preventDefault();
             return false;
         });
-    });
 
-    $(document).ready(function(){
         url = "{{ url_for('ui.todo_update_status') }}";
 
         $('.todo_checkbox').click(function (event) {

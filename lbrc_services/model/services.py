@@ -14,8 +14,13 @@ services_owners = db.Table(
     "services_owners",
     db.Column("service_id", db.Integer(), db.ForeignKey("service.id")),
     db.Column("user_id", db.Integer(), db.ForeignKey("user.id")),
+)
 
 
+tasks_organisations = db.Table(
+    "tasks_organisations",
+    db.Column("task_id", db.Integer(), db.ForeignKey("task.id")),
+    db.Column("organisation_id", db.Integer(), db.ForeignKey("organisation.id")),
 )
 
 
@@ -38,6 +43,7 @@ class Service(AuditMixin, CommonMixin, db.Model):
     field_group_id = db.Column(db.Integer, db.ForeignKey(FieldGroup.id))
     field_group = db.relationship(FieldGroup)
     introduction = db.Column(db.UnicodeText())
+    description = db.Column(db.UnicodeText())
 
     def __str__(self):
         return self.name
@@ -164,8 +170,6 @@ class Task(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
-    organisation_id = db.Column(db.Integer, db.ForeignKey(Organisation.id))
-    organisation = db.relationship(Organisation, lazy="joined", backref='tasks')
     organisation_description = db.Column(db.String(255))
     service_id = db.Column(db.Integer, db.ForeignKey(Service.id))
     service = db.relationship(Service, lazy="joined", backref='tasks')
@@ -175,6 +179,8 @@ class Task(AuditMixin, CommonMixin, db.Model):
     current_status_type = db.relationship(TaskStatusType)
     current_assigned_user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
     current_assigned_user = db.relationship(User, foreign_keys=[current_assigned_user_id])
+
+    organisations = db.relationship("Organisation", lazy="joined", secondary=tasks_organisations, backref='tasks')
 
     @property
     def long_name(self):

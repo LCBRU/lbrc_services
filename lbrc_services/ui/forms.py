@@ -170,19 +170,17 @@ class EditToDoForm(FlashingForm):
 def _get_organisation_choices():
     orgs = Organisation.query.order_by(Organisation.name.asc()).all()
 
-    return [('', '')] + [(t.id, t.name) for t in orgs]
+    return [(str(t.id), t.name) for t in orgs]
+
 
 def required_when_other_organisation(form, field):
     if field.data and (not isinstance(field.data, str) or field.data.strip()):
         return
 
-    if not form.organisation_id.data:
+    if not form.organisations.data:
         return
     
-    if not form.organisation_id.data.isnumeric():
-        return
-
-    if int(form.organisation_id.data) == Organisation.get_other().id:
+    if any(int(oid) == Organisation.get_other().id for oid in form.organisations.data):
         raise ValidationError('This field is required.')
 
 
@@ -269,7 +267,7 @@ def get_create_task_form(service, task=None):
     builder.add_form_field('requestor_id', SelectField('Requesting User', coerce=_user_coerce, default=current_user_id, choices=requestor_choices, validate_choice=False, validators=[DataRequired()]))
     builder.add_form_field('assigned_user_id', SelectField('Assigned User', coerce=_user_coerce, default=default_assigned_user_id, choices=_get_service_assigned_user_choices(service.id), validate_choice=False))
     builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
-    builder.add_form_field('organisation_id', SelectField('Organisation', choices=_get_organisation_choices(), validators=[DataRequired()]))
+    builder.add_form_field('organisations', SelectMultipleField('Organisations', choices=_get_organisation_choices(), validators=[DataRequired()]))
     builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
     builder.add_field_group(service.field_group)
 
@@ -281,7 +279,7 @@ def get_create_task_form(service, task=None):
     if task is not None:
         dt.id = task.id
         dt.name = task.name
-        dt.organisation_id = task.organisation_id
+        dt.organisations = [str(o.id) for o in task.organisations]
         dt.organisation_description = task.organisation_description
 
         for field, data in groupby(task.data, lambda d: d.field):

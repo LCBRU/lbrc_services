@@ -2,7 +2,7 @@ from wtforms import validators
 from lbrc_services.model.quotes import QuoteRequirementType, QuoteWorkLineNameSuggestion
 from lbrc_services.model.services import Organisation, Service, User
 from lbrc_flask.admin import init_admin as flask_init_admin, AdminCustomView
-from lbrc_flask.forms.dynamic import FieldGroup, get_dynamic_forms_admin_forms, Field, FieldType
+from lbrc_flask.forms.dynamic import FieldGroup, Field
 from lbrc_flask.database import db
 from flask_admin.model.form import InlineFormAdmin
 from flask_admin.form.rules import BaseRule
@@ -25,6 +25,7 @@ class ServiceView(AdminCustomView):
     ]
     form_columns = [
         Service.name,
+        Service.description,
         Service.introduction,
         "field_group",
         "owners",
@@ -127,7 +128,6 @@ class MultiLink(BaseRule):
         return Markup('<br>'.join(links))
 
 
-
 class FieldlineView(InlineFormAdmin):
     form_edit_rules = (
         'name',
@@ -135,19 +135,10 @@ class FieldlineView(InlineFormAdmin):
     )
 
 class FieldGroupView(AdminCustomView):
-    # form_args = dict(
-    #     name=dict(validators=[validators.DataRequired()]),
-    # )
-    # form_columns = [
-    #     FieldGroup.name,
-    #     FieldGroup.fields,
-    # ]
     form_edit_rules = (
         'name',
         MultiLink(endpoint='field.edit_view', relation='fields', id_attribute='id', name_attribute="field_name", order_attribute="order"),
     )
-    # column_searchable_list = [FieldGroup.name]
-    # inline_models = (FieldlineView(Field),)
 
 
 class FieldView(AdminCustomView):
@@ -166,7 +157,6 @@ def init_admin(app, title):
         title,
         [
             ServiceView(Service, db.session),
-            # *get_dynamic_forms_admin_forms(),
             FieldGroupView(FieldGroup, db.session),
             FieldView(Field, db.session),
             UserView(User, db.session),

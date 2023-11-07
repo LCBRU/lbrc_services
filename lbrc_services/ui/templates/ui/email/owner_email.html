@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h1>{{ task.service.name }} request {{ context }}</h1>
+<h1>{{ task.service.name }} request created</h1>
 
 <dl>
     <dt>Name</dt>
@@ -11,7 +11,7 @@
     <dd><a href='mailto:{{ task.requestor.email}}'>{{ task.requestor.full_name }}</a></dd>
     <dt>Current Status</dt>
     <dd>{{ task.current_status_type.name }}</dd>
-    <dt>{{ context.capitalize() }}</dt>
+    <dt>Created</dt>
     <dd>{{ task.last_update_date | datetime_format }}</dd>
 </dl>
 

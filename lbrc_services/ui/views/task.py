@@ -14,9 +14,10 @@ from flask_security import current_user
 from ..decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_task_owner
 from ..forms import MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_create_task_form, TaskUpdateAssignedUserForm
 from .. import blueprint
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from lbrc_flask.security import current_user_id
 from flask import current_app
+from lbrc_flask.export import pdf_download
 
 
 @blueprint.route("/my_requests")
@@ -25,12 +26,14 @@ def my_requests():
     cancel_request_form = ConfirmForm()
 
     q = _get_tasks_query(search_form=search_form, requester_id=current_user.id)
+    q = q.order_by(Task.created_date.desc())
 
-    tasks = q.paginate(
-            page=search_form.page.data,
-            per_page=5,
-            error_out=False,
-        )
+    tasks = db.paginate(
+        select=q,
+        page=search_form.page.data,
+        per_page=10,
+        error_out=False,
+    )
 
     return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form, cancel_request_form=cancel_request_form)
 
@@ -47,7 +50,7 @@ def cancel_request():
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
     search_form = MyJobsSearchForm(formdata=request.args)
-    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
 
     assigned_user_id = search_form.data.get('assigned_user_id', 0)
 
@@ -67,9 +70,12 @@ def my_jobs():
     else:
         q = q.filter(Task.current_assigned_user_id == assigned_user_id)
 
-    tasks = q.paginate(
+    q = q.order_by(Task.created_date.asc())
+
+    tasks = db.paginate(
+            select=q,
             page=search_form.page.data,
-            per_page=5,
+            per_page=10,
             error_out=False,
         )
 
@@ -85,9 +91,10 @@ def my_jobs():
 @blueprint.route("/my_jobs/export")
 def my_jobs_export():
     search_form = MyJobsSearchForm(formdata=request.args)
-    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id, sort_asc=True)
+    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
+    q = q.order_by(Task.created_date.asc())
 
-    return send_task_export('My Jobs', q.all())
+    return send_task_export('My Jobs', db.session.execute(q).unique().scalars())
 
 
 @blueprint.route("/task/update_status", methods=["POST"])
@@ -186,7 +193,7 @@ def task_assignment_history(task_id):
 def save_task(task, form, context):
 
     task.requestor_id = form.requestor_id.data
-    task.organisation_id = form.organisation_id.data
+    task.organisations = list(db.session.execute(select(Organisation).where(Organisation.id.in_(form.organisations.data))).scalars())
     task.organisation_description = form.organisation_description.data
     task.name = form.name.data
 
@@ -237,19 +244,6 @@ def save_task(task, form, context):
     db.session.add(task_status)
     db.session.commit()
 
-    email(
-        subject="{} Request {}".format(task.service.name, context),
-        message="Request has been {} for {} by {}.".format(
-            context,
-            task.service.name,
-            current_user.full_name,
-        ),
-        recipients=task.notification_email_addresses,
-        html_template='ui/email/owner_email.html',
-        context=context,
-        task=task,
-    )
-
 
 @blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])
 def create_task(service_id):
@@ -264,6 +258,14 @@ def create_task(service_id):
         )
 
         save_task(task, form, 'created')
+
+        email(
+            subject=f"{task.service.name} Request Created",
+            message=f"Request has been created for {task.service.name} by {current_user.full_name}.",
+            recipients=task.notification_email_addresses,
+            html_template='ui/email/owner_email.html',
+            task=task,
+        )
 
         return redirect(url_for("ui.index"))
 
@@ -306,3 +308,11 @@ def download_task_file(task_id, task_file_id):
     tf =db.get_or_404(TaskFile, task_file_id)
 
     return send_file(tf.local_filepath, download_name=True, attachment_filename=tf.filename)
+
+
+@blueprint.route("/task/<int:task_id>/pdf")
+@must_be_task_owner_or_requestor("task_id")
+def pdf_task(task_id):
+    task : Task = db.get_or_404(Task, task_id)
+
+    return pdf_download('ui/task/pdf.html', title=f'task_{task.service.name}_{task.name}', task=task, path='./lbrc_services/ui/templates/ui/task/')

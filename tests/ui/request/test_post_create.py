@@ -107,10 +107,6 @@ def test__create_task__fields(client, faker, field_type, value, expected_value, 
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__redirect(resp, endpoint='ui.index')
-    print('*'*1000)
-    print(f)
-    print(expected_value)
-    print('*'*1000)
     assert__task(expected, loggedin_user, data=[
         {
             'field': f,

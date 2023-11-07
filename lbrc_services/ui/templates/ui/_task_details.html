@@ -1,128 +1,162 @@
 {% macro render_tasks_list(tasks, show_owner_controls=False) %}
 
-<ul class="list-group">
+<div class="accordion" id="tasks">
     {% for t in tasks.items %}
-        <li class="list-group-item">
-            <div class='summary_details'>
+        <div class="card">
+            <div class="card-header">
                 <div class="row">
                     <div class="col-7">
-                        <header>
+                        <header class="list_item_header collapsed" id="task_heading_{{t.id}}" data-toggle="collapse" data-target="#task_body_{{t.id}}" aria-expanded="true" aria-controls="task_body_{{t.id}}">
                             <h1>
-                                <span>#{{t.id}} {{t.service.name}}: {{ t.name }}</span>
+                                <span class="text-secondary">{{t.service.name}}:</span>
+                                <span>{{ t.name }}</span>
                                 {% if not show_owner_controls %}
                                     <span class="badge badge-secondary">{{ t.current_status_type.name }}</span>
                                 {% endif %}
                             </h1>
-                            <h2>For <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
+                            <h2>Request <span class="text-info">#{{t.id}}</span> for <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
                         </header>
                     </div>
                     <div class="col-5">
-                        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
-                            <div class="btn-group mr-1 mb-1" role="group">
-                                <a class="btn btn-primary" href="{{ url_for('ui.edit_task', task_id=t.id, prev=request.full_path) }}">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </div>
-
-                            {% if not show_owner_controls %}
-
-                                <div class="btn-group mr-1 mb-1" role="group">
-                                    <a class="btn btn-primary"
-                                        data-toggle="modal"
-                                        data-task-id="{{ t.id }}"
-                                        data-name="{{ t.name }}"
-                                        data-target="#cancelRequestModal"
-                                        href="#">Cancel Request</a>
-                                </div>
-
-                            {% else %}
-
-                                <div class="btn-group mr-1 mb-1" role="group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.task_todo_list', task_id=t.id, prev=request.full_path) }}">
-                                        <i class="fas fa-clipboard-check"></i>
-                                        {% if t.required_todos > 0 %}
-                                            <span>({{t.complete_todos}} / {{t.required_todos}})</span>
-                                        {% endif %}
-                                    </a>
-                                </div>
-
-                                <div class="btn-group mr-1 mb-1" role="group">
-                                    <button id="btnGroupAssignedUser" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        {{ t.current_assigned_user.full_name | default_if_none('Unassigned') }}
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="btnGroupAssignedUser">
-                                        <a class="dropdown-item" href="{{ url_for('ui.assign_to_me', task_id=t.id, prev=request.full_path) }}">Assign to Me</a>
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-current-assigned-user-id="{{ t.current_assigned_user.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#updateAssignedUserModal"
-                                            href="#">Assign to User</a>
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#showAssignedUserHistoryModal"
-                                            href="#">Show History</a>
-                                    </div>
-                                </div>
-
-                                <div class="btn-group mb-1" role="group">
-                                    <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        {{ t.current_status_type.name }}
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-current-status-type-id="{{ t.current_status_type.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#updateStatusModal"
-                                            href="#">Update Status</a>
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-task-id="{{ t.id }}"
-                                            data-name="{{ t.name }}"
-                                            data-target="#showStatusHistoryModal"
-                                            href="#">Show History</a>
-                                    </div>
-                                </div>
-
-                            {% endif %}
-
-                        </div>
+                        {% if show_owner_controls %}
+                            {{ render_task_owner_buttons(t) }}
+                        {% else %}
+                            {{ render_task_requestor_buttons(t) }}
+                        {% endif %}
                     </div>
                 </div>
-
-                <dl>
-                    {% for field_name, files in t.files | groupby("field.field_name") %}
-                        <dt>{{ field_name }}</dt>
-                        <dd>
-                            {% for f in files %}
-                                <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}">
-                                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
-                                    {{ f.filename }}
-                                </a>
-                            {% endfor %}
-                        </dd>
-                    {% endfor %}
-                </dl>
-
-                <dl>
-                    {% for d in t.data %}
-                        <dt>{{ d.field.field_name }}</dt>
-                        {% if d.field.field_type.is_textarea %}
-                            <dd>{{ d.formated_value | blank_if_none | br }}</dd>
-                        {% else %}
-                            <dd>{{ d.formated_value | blank_if_none }}</dd>
-                        {% endif %}
-                    {% endfor %}
-                </dl>
-                
             </div>
-        </li>
+        
+            <div id="task_body_{{t.id}}" class="collapse collapsed" aria-labelledby="task_heading_{{t.id}}" data-parent="#tasks">
+                <div class="card-body">
+                    {% if t.files | length > 0 %}
+                        <dl>
+                            {% for field_name, files in t.files | groupby("field.field_name") %}
+                                <div>
+                                    <dt>{{ field_name }}</dt>
+                                    <dd>
+                                        {% for f in files %}
+                                            <a class='download' href="{{ url_for('ui.download_task_file', task_id=t.id, task_file_id=f.id) }}">
+                                                <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                                                {{ f.filename }}
+                                            </a>
+                                        {% endfor %}
+                                    </dd>
+                                </div>
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+    
+                    {% if t.data | length > 0 %}
+                        <dl class="cols">
+                            {% for d in t.data %}
+                                {% if d.formated_value | blank_if_none | length > 0 %}
+                                    <div>
+                                        <dt>{{ d.field.field_name }}</dt>
+                                        {% if d.field.field_type.is_textarea %}
+                                            <dd>{{ d.formated_value | blank_if_none | br }}</dd>
+                                        {% else %}
+                                            <dd>{{ d.formated_value | blank_if_none }}</dd>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     {% endfor %}
-</ul>
+</div>
 
+{% endmacro %}
+
+
+{% macro render_task_requestor_buttons(task) %}
+    <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group mr-1 mb-1" role="group">
+            <a class="btn btn-primary" href="{{ url_for('ui.edit_task', task_id=task.id, prev=request.full_path) }}">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+
+        <div class="btn-group mr-1 mb-1" role="group">
+            <a class="btn btn-primary"
+                data-toggle="modal"
+                data-task-id="{{ task.id }}"
+                data-name="{{ task.name }}"
+                data-target="#cancelRequestModal"
+                href="#">Cancel Request</a>
+        </div>
+    </div>
+{% endmacro %}
+
+
+{% macro render_task_owner_buttons(task) %}
+    <div class="btn-toolbar justify-content-end" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group mr-1 mb-1" role="group">
+            <a class="btn btn-primary" href="{{ url_for('ui.edit_task', task_id=task.id, prev=request.full_path) }}">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+
+        <div class="btn-group mr-1 mb-1" role="group">
+            <a class="btn btn-primary" href="{{ url_for('ui.pdf_task', task_id=task.id) }}">
+                <i class="fas fa-file-pdf"></i>
+            </a>
+        </div>
+
+        <div class="btn-group mr-1 mb-1" role="group">
+            <a class="btn btn-primary" href="{{ url_for('ui.task_todo_list', task_id=task.id, prev=request.full_path) }}">
+                <i class="fas fa-clipboard-check"></i>
+                {% if task.required_todos > 0 %}
+                    <span>({{task.complete_todos}} / {{task.required_todos}})</span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+    <div class="btn-toolbar justify-content-end" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group mr-1 mb-1" role="group">
+            <button id="btnGroupAssignedUser" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{ task.current_assigned_user.full_name | default_if_none('Unassigned') }}
+            </button>
+            <div class="dropdown-menu" aria-labelledby="btnGroupAssignedUser">
+                <a class="dropdown-item" href="{{ url_for('ui.assign_to_me', task_id=task.id, prev=request.full_path) }}">Assign to Me</a>
+                <a class="dropdown-item"
+                    data-toggle="modal"
+                    data-task-id="{{ task.id }}"
+                    data-current-assigned-user-id="{{ task.current_assigned_user.id }}"
+                    data-name="{{ task.name }}"
+                    data-target="#updateAssignedUserModal"
+                    href="#">Assign to User</a>
+                <a class="dropdown-item"
+                    data-toggle="modal"
+                    data-task-id="{{ task.id }}"
+                    data-name="{{ task.name }}"
+                    data-target="#showAssignedUserHistoryModal"
+                    href="#">Show History</a>
+            </div>
+        </div>
+
+        <div class="btn-group mb-1" role="group">
+            <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{ task.current_status_type.name }}
+            </button>
+            <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                <a class="dropdown-item"
+                    data-toggle="modal"
+                    data-task-id="{{ task.id }}"
+                    data-current-status-type-id="{{ task.current_status_type.id }}"
+                    data-name="{{ task.name }}"
+                    data-target="#updateStatusModal"
+                    href="#">Update Status</a>
+                <a class="dropdown-item"
+                    data-toggle="modal"
+                    data-task-id="{{ task.id }}"
+                    data-name="{{ task.name }}"
+                    data-target="#showStatusHistoryModal"
+                    href="#">Show History</a>
+            </div>
+        </div>
+    </div>        
 {% endmacro %}
