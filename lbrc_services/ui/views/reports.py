@@ -35,7 +35,7 @@ def report_png():
         return send_file(
             tmp.name,
             as_attachment=True,
-            attachment_filename='{}_{}.png'.format(get_report_name(report_grouper_id), datetime.utcnow().strftime("%Y%m%d_%H%M%S")),
+            download_name='{}_{}.png'.format(get_report_name(report_grouper_id), datetime.utcnow().strftime("%Y%m%d_%H%M%S")),
             cache_timeout=0,
             mimetype='image/png',
         )
