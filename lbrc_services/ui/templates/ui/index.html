@@ -2,6 +2,12 @@
 
 {% block content %}
 
+<style>
+    .droptarget.dragover {
+        background-color: bisque;
+    }
+</style>
+
 <section>
     <div class="jumbotron p-2 p-md-3 text-white rounded bg-dark">
         <h1>BRC Core Team Services</h1>
@@ -9,7 +15,7 @@
     </div>
     <div class="card-columns">
         {% for s in services %}
-            <div class="card" data-service-id="{{ s.id }}">
+            <div class="card droptarget" data-service-id="{{ s.id }}">
                 <div class="card-header">
                     <h4>{{ s.name }}</h4>
                 </div>
@@ -39,6 +45,10 @@
         ;['dragleave', 'drop'].forEach(eventName => {
             element.addEventListener(eventName, unhighlight, false)
         })
+
+        ;['drop'].forEach(eventName => {
+            element.addEventListener(eventName, drop, false)
+        })
     });
 
     function preventDefaults (e) {
@@ -47,13 +57,34 @@
     }
 
     function highlight(e) {
-        // element.classList.add('highlight');
-        console.log('Highlight');
+        var target = e.target.closest(".droptarget");
+        target.classList.add("dragover");
     }
 
     function unhighlight(e) {
-        // element.classList.remove('highlight')
-        console.log('Unhighlight');
+        var target = e.target.closest(".droptarget");
+        target.classList.remove("dragover");
+    }
+
+    function drop(e) {
+        var files = e.dataTransfer.files;
+        console.log(files);
+    }
+
+    function uploadFile(file) {
+        let url = 'YOUR URL HERE'
+        let formData = new FormData()
+
+        formData.append('file', file)
+
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        }).then(() => {
+            /* Done. Inform the user */
+        }).catch(() => {
+            /* Error. Inform the user */
+        })
     }
 
 </script>

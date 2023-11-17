@@ -177,11 +177,13 @@ def required_when_other_organisation(form, field):
     if field.data and (not isinstance(field.data, str) or field.data.strip()):
         return
 
-    if not form.organisations.data:
-        return
-    
-    if any(int(oid) == Organisation.get_other().id for oid in form.organisations.data):
-        raise ValidationError('This field is required.')
+    if form.__contains__('organisations'):
+        if any(int(oid) == Organisation.get_other().id for oid in form.organisations.data):
+            raise ValidationError('This field is required.')
+    elif form.__contains__('organisation_id') and form.organisation_id.data.isnumeric():
+        if int(form.organisation_id.data) == Organisation.get_other().id:
+            raise ValidationError('This field is required.')
+
 
 
 def _user_coerce(value):
