@@ -307,7 +307,7 @@ def download_task_file(task_id, task_file_id):
     t = db.get_or_404(Task, task_id)
     tf =db.get_or_404(TaskFile, task_file_id)
 
-    return send_file(tf.local_filepath, as_attachment=True, attachment_filename=tf.filename)
+    return send_file(tf.local_filepath, download_name=True, attachment_filename=tf.filename)
 
 
 @blueprint.route("/task/<int:task_id>/pdf")

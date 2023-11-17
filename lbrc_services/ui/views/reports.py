@@ -25,7 +25,7 @@ def report_png():
     search_form = ReportSearchForm(formdata=request.args)
 
     chart = get_chart(search_form)
-    chart.send_as_attachment()
+    return chart.send_as_attachment()
 
 
 def get_chart(search_form):
