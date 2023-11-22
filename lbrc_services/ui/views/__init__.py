@@ -14,6 +14,7 @@ from sqlalchemy.orm import joinedload
 from lbrc_services.model.quotes import Quote, QuoteStatusType
 from lbrc_services.model.services import Organisation, Service, Task, TaskStatusType, User
 from lbrc_flask.export import excel_download
+from lbrc_flask.formatters import format_datetime
 
 
 def _get_tasks_query(search_form, owner_id=None, requester_id=None):
@@ -113,6 +114,7 @@ def send_task_export(title, tasks):
         'requestor': None,
         'status': None,
         'assigned to': None,
+        'created_date': None,
     }
 
     task_details = []
@@ -127,6 +129,7 @@ def send_task_export(title, tasks):
         td['service'] = t.service.name
         td['requestor'] = t.requestor.full_name
         td['status'] = t.current_status_type.name
+        td['created_date'] = format_datetime(t.created_date)
 
         if t.current_assigned_user:
             td['assigned to'] = t.current_assigned_user.full_name
