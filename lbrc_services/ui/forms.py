@@ -1,4 +1,3 @@
-from flask import url_for
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
@@ -7,13 +6,14 @@ from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
 from lbrc_flask.database import db
+from sqlalchemy import select, alias
 from wtforms import SelectField, TextAreaField, StringField, SelectMultipleField
 from wtforms.fields import DateField, DecimalField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
 from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, QuoteStatusType, QuoteWorkLineNameSuggestion
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
-
+from sqlalchemy.orm import aliased
 
 def _get_requestor_choices(add_all=True):
     service_ids = Service.query.with_entities(Service.id.distinct()).join(Service.owners).filter(User.id == current_user.id)
@@ -61,15 +61,22 @@ def _get_service_assigned_user_choices(service_id):
 
 
 def _get_task_assigned_user_search_choices():
-    owners = User.query.join(User.owned_services).all()
+    owner = aliased(User)
+    current = aliased(User)
 
-    print(owners)
+    owners = db.session.execute(
+        select(owner)
+        .join(owner.owned_services)
+        .join(current, Service.owners)
+        .where(current.id == current_user_id())
+        .where(owner.id != current_user_id())
+    ).unique().scalars()
 
     return [
         (-3, 'Mine and Unassigned'),
         (-2, 'Mine'),
         (-1, 'All'),
-        (0, 'Unassigned')] + [(o.id, o.full_name) for o in owners if o.id != current_user.id]
+        (0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
 
 
 def _get_combined_task_status_type_choices():
