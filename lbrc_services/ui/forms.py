@@ -15,6 +15,7 @@ from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, Q
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 from sqlalchemy.orm import aliased
 
+
 def _get_requestor_choices(add_all=True):
     service_ids = Service.query.with_entities(Service.id.distinct()).join(Service.owners).filter(User.id == current_user.id)
     requestor_ids = Task.query.with_entities(Task.requestor_id.distinct()).filter(Task.service_id.in_(service_ids))
@@ -50,9 +51,22 @@ def _get_quote_status_type_choices():
     return [(rt.id, rt.name) for rt in quote_status_types]
 
 
+def _owners_of_my_services():
+    owner = aliased(User)
+    current = aliased(User)
+
+    return db.session.execute(
+        select(owner)
+        .join(owner.owned_services)
+        .join(current, Service.owners)
+        .where(current.id == current_user_id())
+        .where(owner.id != current_user_id())
+    ).unique().scalars()
+
+
+
 def _get_task_assigned_user_choices():
-    owners = User.query.join(User.owned_services).all()
-    return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
+    return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in _owners_of_my_services()]
 
 
 def _get_service_assigned_user_choices(service_id):
@@ -61,22 +75,11 @@ def _get_service_assigned_user_choices(service_id):
 
 
 def _get_task_assigned_user_search_choices():
-    owner = aliased(User)
-    current = aliased(User)
-
-    owners = db.session.execute(
-        select(owner)
-        .join(owner.owned_services)
-        .join(current, Service.owners)
-        .where(current.id == current_user_id())
-        .where(owner.id != current_user_id())
-    ).unique().scalars()
-
     return [
         (-3, 'Mine and Unassigned'),
         (-2, 'Mine'),
         (-1, 'All'),
-        (0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
+        (0, 'Unassigned')] + [(o.id, o.full_name) for o in _owners_of_my_services()]
 
 
 def _get_combined_task_status_type_choices():
