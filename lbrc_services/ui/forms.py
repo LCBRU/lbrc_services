@@ -62,6 +62,9 @@ def _get_service_assigned_user_choices(service_id):
 
 def _get_task_assigned_user_search_choices():
     owners = User.query.join(User.owned_services).all()
+
+    print(owners)
+
     return [
         (-3, 'Mine and Unassigned'),
         (-2, 'Mine'),
