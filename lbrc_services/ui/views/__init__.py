@@ -8,11 +8,11 @@ __all__ = [
 ]
 
 
-from datetime import timedelta
+from datetime import timedelta, date
 from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
 from lbrc_services.model.quotes import Quote, QuoteStatusType
-from lbrc_services.model.services import Organisation, Service, Task, TaskStatusType, User
+from lbrc_services.model.services import Organisation, Service, Task, TaskStatus, TaskStatusType, User
 from lbrc_flask.export import excel_download
 from lbrc_flask.formatters import format_datetime
 
@@ -46,8 +46,14 @@ def _get_tasks_query(search_form, owner_id=None, requester_id=None):
         if option == 0:
             q = q.where(TaskStatusType.is_complete == False)
         elif option == -1:
+            q = q.join(Task.status_history)
+            q = q.where(or_(
+                TaskStatusType.is_complete == False,
+                TaskStatus.created_date > (date.today() - timedelta(days=7)),
+            ))
+        elif option == -2:
             q = q.where(TaskStatusType.is_complete == True)
-        elif option != -2:
+        elif option != -3:
             q = q.where(TaskStatusType.id == option)
 
     if owner_id is not None:

@@ -14,7 +14,7 @@
                                     <span class="badge badge-secondary">{{ t.current_status_type.name }}</span>
                                 {% endif %}
                             </h1>
-                            <h2>Request <span class="text-info">#{{t.id}}</span> for <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }}</h2>
+                            <h2>Request <span class="text-info">#{{t.id}}</span> for <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }} {% if t.completed_date %}completed {{ t.completed_date | datetime_humanize }}{% endif %}</h2>
                         </header>
                     </div>
                     <div class="col-5">

@@ -54,12 +54,14 @@ def my_jobs():
 
     assigned_user_id = search_form.data.get('assigned_user_id', 0)
 
-    if assigned_user_id == -2:
+    if assigned_user_id == -3:
         q = q.filter(or_(
             Task.current_assigned_user_id == 0,
             Task.current_assigned_user_id == None,
             Task.current_assigned_user_id == current_user_id(),
         ))
+    elif assigned_user_id == -2:
+        q = q.filter(Task.current_assigned_user_id == current_user_id())
     elif assigned_user_id == -1:
         pass
     elif assigned_user_id in (0, "0", None):

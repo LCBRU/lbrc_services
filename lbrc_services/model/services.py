@@ -205,6 +205,16 @@ class Task(AuditMixin, CommonMixin, db.Model):
     def get_data_for_task_id(self, field_id):
         return next((t for t in self.data if t.field_id == field_id), None)
 
+    @property
+    def completed_date(self):
+        last_status = next((
+            ts for ts in reversed(sorted(self.status_history, key=lambda sh: sh.created_date))
+        ), None)
+
+        if last_status and last_status.task_status_type.is_complete:
+            return last_status.created_date
+
+
 class TaskStatus(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)

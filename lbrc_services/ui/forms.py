@@ -62,11 +62,19 @@ def _get_service_assigned_user_choices(service_id):
 
 def _get_task_assigned_user_search_choices():
     owners = User.query.join(User.owned_services).all()
-    return [(-2, 'Mine and Unassigned'), (-1, 'All'), (0, 'Unassigned')] + [(o.id, o.full_name) for o in owners]
+    return [
+        (-3, 'Mine and Unassigned'),
+        (-2, 'Mine'),
+        (-1, 'All'),
+        (0, 'Unassigned')] + [(o.id, o.full_name) for o in owners if o.id != current_user.id]
 
 
 def _get_combined_task_status_type_choices():
-    return [(0, 'Open (created, in progress or awaiting information)'), (-1, 'Closed (done, declined or cancelled)'), (-2, 'All')] + _get_task_status_type_choices()
+    return [
+        (0, 'Open (created, in progress or awaiting information)'),
+        (-1, 'Open or recently closed'),
+        (-2, 'Closed (done, declined or cancelled)'),
+        (-3, 'All')] + _get_task_status_type_choices()
 
 
 def _get_combined_quote_status_type_choices():
@@ -110,7 +118,7 @@ class TaskSearchForm(SearchForm):
 
 class MyJobsSearchForm(TaskSearchForm):
     requestor_id = SelectField('Requesterd By', coerce=int, choices=[], render_kw={'class': 'select2 form-control'})
-    assigned_user_id = SelectField('Assigned User', coerce=int, choices=[], default=-2)
+    assigned_user_id = SelectField('Assigned User', coerce=int, choices=[], default=-3)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
