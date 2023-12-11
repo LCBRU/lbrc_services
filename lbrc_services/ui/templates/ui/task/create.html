@@ -40,7 +40,6 @@
 
 {% block js %}
 <script type="text/javascript">
-    enable_child_control_on_parent_value('#organisation_id', '#organisation_description', '{{ other_organisation.id }}');
     select2_remote('#requestor_id', "{{ url_for('ui.user_search') }}");
 </script>
 {% endblock %}
