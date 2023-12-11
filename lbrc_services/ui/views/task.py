@@ -261,13 +261,14 @@ def create_task(service_id):
 
         save_task(task, form, 'created')
 
-        email(
-            subject=f"{task.service.name} Request Created",
-            message=f"Request has been created for {task.service.name} by {current_user.full_name}.",
-            recipients=task.notification_email_addresses,
-            html_template='ui/email/owner_email.html',
-            task=task,
-        )
+        if current_user not in service.owners:
+            email(
+                subject=f"{task.service.name} Request Created",
+                message=f"Request has been created for {task.service.name} by {current_user.full_name}.",
+                recipients=task.notification_email_addresses,
+                html_template='ui/email/owner_email.html',
+                task=task,
+            )
 
         return redirect(url_for("ui.index"))
 
