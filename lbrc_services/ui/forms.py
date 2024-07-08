@@ -188,10 +188,13 @@ class EditToDoForm(FlashingForm):
     description = TextAreaField("Description", validators=[Length(max=500)])
 
 
-def _get_organisation_choices():
-    orgs = Organisation.query.order_by(Organisation.name.asc()).all()
+def _get_organisation_choices(service=None):
+    q = select(Organisation).order_by(Organisation.name.asc())
 
-    return [(str(t.id), t.name) for t in orgs]
+    if service:
+        q = q.where(~Organisation.excluded_services.any(Service.id == service.id))
+
+    return [(str(t.id), t.name) for t in db.session.execute(q).scalars()]
 
 
 def required_when_other_organisation(form, field):
@@ -303,7 +306,7 @@ def get_create_task_form(service, task=None):
         validate_choice=False,
     ))
     builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
-    builder.add_form_field('organisations', SelectMultipleField('Organisations', choices=_get_organisation_choices(), validators=[DataRequired()]))
+    builder.add_form_field('organisations', SelectMultipleField('Organisations', choices=_get_organisation_choices(service), validators=[DataRequired()]))
     builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
     builder.add_field_group(service.field_group)
 

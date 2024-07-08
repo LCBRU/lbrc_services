@@ -32,6 +32,10 @@ class User(BaseUser):
     @property
     def service_owner(self):
         return len(self.owned_services) > 0
+    
+    @property
+    def ppi_owner(self):
+        return any([s.is_ppie for s in self.owned_services])
 
 
 class Service(AuditMixin, CommonMixin, db.Model):
@@ -55,6 +59,10 @@ class Service(AuditMixin, CommonMixin, db.Model):
     @property
     def notification_email_addresses(self):
         return list(filter(len, [r.email for r in self.owners if not self.suppress_owner_email] + re.split(r'[;,\s]+', self.generic_recipients or '')))
+
+    @property
+    def is_ppie(self):
+        return self.id == 4
 
 
 class TaskStatusType(db.Model, CommonMixin):
@@ -99,6 +107,13 @@ class TaskStatusType(db.Model, CommonMixin):
     }
 
     @classmethod
+    def get_all_task_statuses(cls):
+        return [
+            TaskStatusType.get_task_status(n)
+            for n in TaskStatusType.all_details
+        ]
+
+    @classmethod
     def get_task_status(cls, name):
         return TaskStatusType.query.filter_by(name=name).one()
 
@@ -140,6 +155,23 @@ class TaskStatusType(db.Model, CommonMixin):
     is_active = db.Column(db.Boolean)
 
 
+organisations_excluded_services = db.Table(
+    "services_excluded_organisations",
+    db.Column(
+        "service_id",
+        db.Integer(),
+        db.ForeignKey("service.id"),
+        primary_key=True,
+    ),
+    db.Column(
+        "organisation_id",
+        db.Integer(),
+        db.ForeignKey("organisation.id"),
+        primary_key=True,
+    ),
+)
+
+
 class Organisation(db.Model, CommonMixin):
 
     CARDIOVASCULAR = 'BRC Cardiovascular Theme'
@@ -156,6 +188,19 @@ class Organisation(db.Model, CommonMixin):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
 
+    excluded_services = db.relationship(
+        Service,
+        secondary=organisations_excluded_services,
+        backref=backref("excluded_organisations"),
+    )
+
+    @classmethod
+    def get_all_organisations(cls):
+        return [
+            Organisation.get_organisation(n)
+            for n in Organisation.all_organisations
+        ]
+
     @classmethod
     def get_organisation(cls, name):
         return Organisation.query.filter_by(name=name).one()
@@ -164,6 +209,9 @@ class Organisation(db.Model, CommonMixin):
     def get_other(cls):
 
         return cls.get_organisation(Organisation.OTHER)
+
+    def __str__(self):
+        return self.name
 
 
 class Task(AuditMixin, CommonMixin, db.Model):
@@ -202,8 +250,19 @@ class Task(AuditMixin, CommonMixin, db.Model):
     def notification_email_addresses(self):
         return self.service.notification_email_addresses + [self.requestor.email]
 
-    def get_data_for_task_id(self, field_id):
-        return next((t for t in self.data if t.field_id == field_id), None)
+    def get_data_for_field_name(self, field_name):
+        return next((t for t in self.data if t.field.field_name == field_name), None)
+
+    def get_value_for_field_name(self, field_name, default=None):
+        data = self.get_data_for_field_name(field_name)
+
+        if not data:
+            return default
+        else:
+            return data.formated_value
+
+    def organisations_joined(self):
+        return '; '.join([o.name for o in self.organisations])
 
     @property
     def completed_date(self):

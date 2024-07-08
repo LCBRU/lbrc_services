@@ -12,3 +12,4 @@ flask_weasyprint
 WTForms
 flask-security-too[fsqla,common]
 alembic
+Faker

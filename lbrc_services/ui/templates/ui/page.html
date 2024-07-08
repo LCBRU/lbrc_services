@@ -14,8 +14,6 @@
     {{ render_nav_item('ui.quotes', 'Quotes') }}
 {% endif %}
 
-{% if current_user.has_role('exporter') %}
-    {{ render_nav_item('ui.export', 'Export') }}
-{% endif %}
+{{ render_nav_item('ui.exports', 'Export') }}
 
 {% endblock %}

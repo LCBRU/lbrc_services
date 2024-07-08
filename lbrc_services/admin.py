@@ -17,6 +17,7 @@ class ServiceView(AdminCustomView):
         name=dict(validators=[validators.DataRequired()]),
         field_group=dict(query_factory=lambda: FieldGroup.query.order_by(FieldGroup.name)),
         owners=dict(query_factory=lambda: User.query.order_by(User.last_name, User.first_name, User.email)),
+        excluded_organisations=dict(query_factory=lambda: Organisation.query.order_by(Organisation.name)),
     )
     column_list = [
         Service.name,
@@ -29,6 +30,7 @@ class ServiceView(AdminCustomView):
         Service.introduction,
         "field_group",
         "owners",
+        "excluded_organisations",
         Service.generic_recipients,
         Service.suppress_owner_email,
     ]
@@ -142,7 +144,7 @@ class FieldGroupView(AdminCustomView):
 
 
 class FieldView(AdminCustomView):
-    pass
+    column_filters = ['field_group']
 
 
 class AnalyticsView(BaseView):

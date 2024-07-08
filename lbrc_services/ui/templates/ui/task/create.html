@@ -40,6 +40,45 @@
 
 {% block js %}
 <script type="text/javascript">
-    select2_remote('#requestor_id', "{{ url_for('ui.user_search') }}");
+    $(document).ready(function(){
+        select2_remote('#requestor_id', "{{ url_for('ui.user_search') }}");
+
+        $('select#ppie_required').on('change', hide_controls);
+
+        hide_controls();
+    });
+
+    function hide_controls() {
+        var ppi_requirement_values = $('select#ppie_required').val() || [];
+
+        var ppie_funded = $('#ppie_funded').parent();
+        var ppie_funding_body = $('#ppie_funding_body').parent();
+        var bid_expected_outcome_date = $('#bid_expected_outcome_date').parent();
+        var bid_funder = $('#bid_funder').parent();
+        var bid_funding_call = $('#bid_funding_call').parent();
+
+        if (ppi_requirement_values.includes('Bid Writing')) {
+            bid_expected_outcome_date.show();
+            bid_funder.show();
+            bid_funding_call.show();
+        } else {
+            bid_expected_outcome_date.hide();
+            bid_funder.hide();
+            bid_funding_call.hide();
+        }
+
+        var index = ppi_requirement_values.indexOf('Bid Writing');
+        if (index !== -1) {
+            ppi_requirement_values.splice(index, 1);
+        }
+
+        if (ppi_requirement_values.length > 0) {
+            ppie_funded.show();
+            ppie_funding_body.show();
+        } else {
+            ppie_funded.hide();
+            ppie_funding_body.hide();
+        }
+    }
 </script>
 {% endblock %}
