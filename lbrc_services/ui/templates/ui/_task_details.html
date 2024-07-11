@@ -114,6 +114,11 @@
                 {% endif %}
             </a>
         </div>
+        <div class="btn-group mr-1 mb-1" role="group">
+            <a class="btn btn-primary" href="{{ url_for('ui.export_single_task', id=task.id, prev=request.full_path) }}">
+                <i class="fas fa-download"></i>
+            </a>
+        </div>
     </div>
     <div class="btn-toolbar justify-content-end" role="toolbar" aria-label="Toolbar with button groups">
         <div class="btn-group mr-1 mb-1" role="group">

@@ -23,15 +23,25 @@ def exports():
     )
 
 
+@blueprint.route("/export_single_task/<int:id>")
+def export_single_task(id):
+    task = db.get_or_404(Task, id)
+
+    if task.service.is_ppie:
+        return send_ppi_task_export('Task Export', [task])
+    else:
+        return send_task_export('Task Export', [task])
+
+
 @blueprint.route("/export_ppi")
 def export_ppi():
     services = db.session.execute(select(Service)).unique().scalars()
     ppie_service = next((s for s in services if s.is_ppie), None)
     tasks = db.session.execute(select(Task).where(Task.service == ppie_service)).unique().scalars()
-    return send_task_export('PPIE Tasks', tasks)
+    return send_ppi_task_export('PPIE Tasks', tasks)
 
 
-def send_task_export(title, tasks):
+def send_ppi_task_export(title, tasks):
     # Use of dictionary instead of set to maintain order of headers
     headers = {
         'request_date': None,
