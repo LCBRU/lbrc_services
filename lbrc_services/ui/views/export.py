@@ -44,9 +44,9 @@ def export_ppi():
 def send_ppi_task_export(title, tasks):
     # Use of dictionary instead of set to maintain order of headers
     headers = {
+        'organisation': None,
         'request_date': None,
         'deadline': None,
-        'organisation': None,
         'pi': None,
         'requestor': None,
         'requestor_email': None,
@@ -75,9 +75,9 @@ def send_ppi_task_export(title, tasks):
         td = {}
         task_details.append(td)
 
+        td['organisation'] = t.organisations_joined()
         td['request_date'] = format_datetime(t.created_date)
         td['deadline'] = t.get_value_for_field_name('deadline')
-        td['organisation'] = t.organisations_joined()
         td['pi'] = t.get_value_for_field_name('pi')
         td['requestor'] = t.requestor.full_name
         td['requestor_email'] = t.requestor.email
