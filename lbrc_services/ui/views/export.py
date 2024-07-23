@@ -50,7 +50,7 @@ def send_ppi_task_export(title, tasks):
         'pi': None,
         'requestor': None,
         'requestor_email': None,
-        'study': None,
+        'research title': None,
         'objectives': None,
         'summary': None,
         'plain_english_summary': None,
@@ -61,6 +61,7 @@ def send_ppi_task_export(title, tasks):
         'ppie_required_event': None,
         'ppie_required_other_arts': None,
         'ppie_required_bid_writing': None,
+        'ppie_required_other': None,
         'ppie_funded': None,
         'ppie_funding_body': None,
         'bid_expected_outcome_date': None,
@@ -80,7 +81,7 @@ def send_ppi_task_export(title, tasks):
         td['pi'] = t.get_value_for_field_name('pi')
         td['requestor'] = t.requestor.full_name
         td['requestor_email'] = t.requestor.email
-        td['study'] = t.get_value_for_field_name('study')
+        td['research title'] = t.get_value_for_field_name('study')
         td['objectives'] = '; '.join([d.formated_value for d in t.data if d.field.field_name == 'objectives'])
         td['summary'] = t.get_value_for_field_name('summary')
         td['plain_english_summary'] = t.get_value_for_field_name('plain_english_summary')
@@ -94,6 +95,7 @@ def send_ppi_task_export(title, tasks):
         td['ppie_required_event'] = format_yesno('Event' in requirements)
         td['ppie_required_other_arts'] = format_yesno('Other arts based approach' in requirements)
         td['ppie_required_bid_writing'] = format_yesno('Bid Writing' in requirements)
+        td['ppie_required_other'] = format_yesno('Other' in requirements)
         td['ppie_funded'] = t.get_value_for_field_name('ppie_funded')
         td['ppie_funding_body'] = t.get_value_for_field_name('ppie_funding_body')
         td['bid_expected_outcome_date'] = t.get_value_for_field_name('bid_expected_outcome_date')

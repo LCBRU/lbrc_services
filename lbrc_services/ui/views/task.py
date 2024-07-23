@@ -81,6 +81,9 @@ def my_jobs():
             error_out=False,
         )
 
+    the_task = tasks.items[0]
+    print(the_task.data)
+
     return render_template(
         "ui/my_jobs.html",
         tasks=tasks,
