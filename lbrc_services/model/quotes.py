@@ -203,7 +203,7 @@ class QuoteWorkLine(AuditMixin, CommonMixin, db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     quote_work_section_id = db.Column(db.Integer, db.ForeignKey(QuoteWorkSection.id), nullable=False)
-    quote_work_section = db.relationship(QuoteWorkSection, backref="lines", cascade="all, delete")
+    quote_work_section = db.relationship(QuoteWorkSection, backref="lines")
     name = db.Column(db.String(255))
     days = db.Column(db.DECIMAL())
 
