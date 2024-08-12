@@ -308,6 +308,9 @@ def delete_quote_work_line():
 
     if form.validate_on_submit():
         l = db.get_or_404(QuoteWorkLine, form.id.data)
+
+        print(l)
+
         db.session.delete(l)
         db.session.commit()
 
