@@ -1,15 +1,3 @@
-Flask
--e git+https://github.com/LCBRU/lbrc_flask.git@main#egg=lbrc_flask
-flask-api
+git+https://github.com/LCBRU/lbrc_flask.git
 pymysql
-openpyxl
-pygal
-lxml
-python-dateutil
-cairosvg
-weasyprint<53.0
-flask_weasyprint
-WTForms
-flask-security-too[fsqla,common]
-alembic
 Faker
