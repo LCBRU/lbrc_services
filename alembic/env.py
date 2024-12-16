@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from dotenv import load_dotenv
-from lbrc_services.model import db
+from lbrc_flask.database import db
 
 load_dotenv()
 
