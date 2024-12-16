@@ -5,12 +5,12 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from dotenv import load_dotenv
 from lbrc_services.model import db
+
+load_dotenv()
+
 import lbrc_services.model.quotes
 import lbrc_services.model.security
 import lbrc_services.model.services
-
-
-load_dotenv()
 
 
 from alembic import context
