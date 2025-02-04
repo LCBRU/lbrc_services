@@ -1,40 +1,33 @@
-{% extends "ui/page.html" %}
-{% import "lbrc_flask/form_macros.html" as formhelper %}
+{% extends "lbrc/modal.html" %}
+{% from "lbrc/form_macros.html" import render_field, render_modal_button_bar %}
 
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-8">
-        <div class="card">
-            <div class="card-header">
-                <div>Create {{ service.name }} Request</div>
-            </div>
+    <h2>{{ title }}</h2>
 
-            <div class="card-body">
+    <p>{{ service.introduction | markdown }}</p>
 
-                {{ service.introduction | markdown }}
-    
-                <form id="request_form" method="POST" enctype="multipart/form-data">
-                    <fieldset>
-                        {{ form.hidden_tag() }}
+    <form action="{{ url }}" method="POST" hx-post="{{ url }}" hx-indicator="#spinner" enctype="multipart/form-data">
+        <fieldset>
+            {% if warning %}
+                <div class="pill warning icon exclamation">{{warning}}</div>
+            {% endif %}
 
-                        {% for f in form %}
-                            {% if f.name not in ('requestor_id', 'assigned_user_id') %}
-                                {{ formhelper.render_field(f) }}
-                            {% elif f.name in ('requestor_id') and allow_requestor_selection %}
-                                {{ formhelper.render_field(f, class='no_select form-control') }}
-                            {% elif f.name in ('assigned_user_id') and allow_assignee_selection %}
-                                {{ formhelper.render_field(f, class='no_select form-control') }}
-                            {% endif %}
-                        {% endfor %}
+            {{ form.hidden_tag() }}
 
-                        {{ formhelper.render_button_bar(cancel_url=previous_page, submit_label="Save") }}
-                    </fieldset>                   
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+            {% for f in form %}
+                {% if f.name not in ('requestor_id', 'assigned_user_id') %}
+                    {{ render_field(f) }}
+                {% elif f.name in ('requestor_id') and allow_requestor_selection %}
+                    {{ render_field(f, class='no_select form-control') }}
+                {% elif f.name in ('assigned_user_id') and allow_assignee_selection %}
+                    {{ render_field(f, class='no_select form-control') }}
+                {% endif %}
+            {% endfor %}
+
+            {{ render_modal_button_bar(submit_label=submit_label) }}
+        </fieldset>                   
+    </form>
 {% endblock %}
 
 

@@ -62,7 +62,7 @@ def test__create_post__ok(client, faker, loggedin_user):
     actual = ToDo.query.one()
     assert actual.task_id == task.id
     assert actual.description == expected
-    assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING)
+    assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING_NAME)
 
 
 def test__update_post__ok(client, faker, loggedin_user):
@@ -77,7 +77,7 @@ def test__update_post__ok(client, faker, loggedin_user):
     actual = ToDo.query.one()
     assert actual.id == todo.id
     assert actual.description == expected
-    assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING)
+    assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING_NAME)
 
 
 def test__update_post__not_owner(client, faker, loggedin_user):

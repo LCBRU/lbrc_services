@@ -1,92 +1,25 @@
-{% extends "ui/page.html" %}
+{% extends "ui/menu_page.html" %}
 
-{% block content %}
+{% block menu_page_content %}
 
-<style>
-    .droptarget.dragover {
-        background-color: bisque;
-    }
-</style>
-
-<section>
-    <div class="jumbotron p-2 p-md-3 text-white rounded bg-dark">
-        <h1>BRC Core Team Services</h1>
-        <p>Create a request for one of the BRC Core teams by clicking on a button below</p>
-    </div>
-    <div class="card-columns">
+<section class="container">
+    <header>
+        <h2>BRC Core Team Services</h2>
+        <h3>Create a request for one of the BRC Core teams by clicking on a button below</h3>
+    </header>
+    <ul class="cards">
         {% for s in services %}
-            <div class="card droptarget" data-service-id="{{ s.id }}">
-                <div class="card-header">
-                    <h4>{{ s.name }}</h4>
+            <li>
+                <header>
+                    <h2>{{ s.name }}</h2>
+                </header>
+                <p>{{ s.description | blank_if_none | markdown }}</p>
+                <div class="button_bar">
+                    <a hx-get="{{ url_for('ui.create_task', service_id=s.id ) }}" hx-target="body" hx-swap="beforeend" role="button">Request {{s.name}} Services</a>
                 </div>
-                <div class="card-body">
-                    <p>{{ s.description | blank_if_none | markdown }}</p>
-                    <a href="{{ url_for('ui.create_task', service_id=s.id, prev=url_for('ui.index') ) }}" class="btn btn-primary">Request {{s.name}} Services</a>
-                </div>
-            </div>
+            </li>
         {% endfor %}
-    </div>
+        </ul>
 </section>
-
-{% endblock %}
-
-{% block js %}
-
-<script>
-    Array.from(document.getElementsByClassName("card")).forEach(element => {
-        ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            element.addEventListener(eventName, preventDefaults, false)
-        })
-
-        ;['dragenter', 'dragover'].forEach(eventName => {
-            element.addEventListener(eventName, highlight, false)
-        })
-
-        ;['dragleave', 'drop'].forEach(eventName => {
-            element.addEventListener(eventName, unhighlight, false)
-        })
-
-        ;['drop'].forEach(eventName => {
-            element.addEventListener(eventName, drop, false)
-        })
-    });
-
-    function preventDefaults (e) {
-        e.preventDefault()
-        e.stopPropagation()
-    }
-
-    function highlight(e) {
-        var target = e.target.closest(".droptarget");
-        target.classList.add("dragover");
-    }
-
-    function unhighlight(e) {
-        var target = e.target.closest(".droptarget");
-        target.classList.remove("dragover");
-    }
-
-    function drop(e) {
-        var files = e.dataTransfer.files;
-        console.log(files);
-    }
-
-    function uploadFile(file) {
-        let url = 'YOUR URL HERE'
-        let formData = new FormData()
-
-        formData.append('file', file)
-
-        fetch(url, {
-            method: 'POST',
-            body: formData
-        }).then(() => {
-            /* Done. Inform the user */
-        }).catch(() => {
-            /* Error. Inform the user */
-        })
-    }
-
-</script>
 
 {% endblock %}

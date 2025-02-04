@@ -1,3 +1,4 @@
+from operator import or_
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
@@ -64,9 +65,22 @@ def _owners_of_my_services():
     ).unique().scalars()
 
 
-
 def _get_task_assigned_user_choices():
     return [(0, 'Unassigned')] + [(o.id, o.full_name) for o in _owners_of_my_services()]
+
+
+def _get_task_choices():
+    q = select(Task)
+    q = q.where(or_(
+        Task.current_assigned_user_id == 0,
+        or_(
+            Task.current_assigned_user_id == None,
+            Task.current_assigned_user_id == current_user_id(),
+        )
+    ))
+    q = q.where(Task.todos.any())
+
+    return [(0, 'All')] + [(t.id, t.name) for t in db.session.execute(q).unique().scalars()]
 
 
 def _get_service_assigned_user_choices(service_id):
@@ -114,6 +128,15 @@ class QuoteSearchForm(SearchForm):
         self.organisation_id.choices = _get_organisation_search_choices()
 
 
+class TodoSearchForm(SearchForm):
+    task_id = SelectField('Job', coerce=int, choices=[])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.task_id.choices = _get_task_choices()
+
+
 class TaskSearchForm(SearchForm):
     created_date_from = DateField('Request Made From', format='%Y-%m-%d')
     created_date_to = DateField('Request Made To', format='%Y-%m-%d')
@@ -155,7 +178,6 @@ class TaskUpdateAssignedUserForm(FlashingForm):
 
         self.assigned_user.choices = _get_task_assigned_user_choices()
 
-    task_id = HiddenField()
     assigned_user = SelectField("Assigned User", validators=[DataRequired()])
     notes = TextAreaField("Notes", validators=[Length(max=255)])
 
@@ -184,7 +206,6 @@ class QuoteUpdateStatusForm(FlashingForm):
 
 class EditToDoForm(FlashingForm):
     task_id = HiddenField()
-    todo_id = HiddenField()
     description = TextAreaField("Description", validators=[Length(max=500)])
 
 

@@ -310,7 +310,7 @@ class LbrcServicesFakerProvider(BaseProvider):
 
     def get_test_owned_todo(self, user, status_name=None):
         if status_name is None:
-            status_name = ToDo.OUTSTANDING
+            status_name = ToDo.OUTSTANDING_NAME
 
         s = self.get_test_service(owners=[user])
         task = self.get_test_task(service=s)

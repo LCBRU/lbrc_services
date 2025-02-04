@@ -1,0 +1,31 @@
+<a id="task_view_{{task.id}}" hx-swap-oob="true" title="Hide request {{ task.name }}" hx-get="{{ url_for('ui.hide_task_details', task_id=task.id) }}" hx-target="#task_details_{{task.id}}" hx-swap="innerHTML" href="javascript:;" class="icon hide"></a>
+
+{% if task.files | length > 0 %}
+    <dl>
+        {% for field_name, files in task.files | groupby("field.field_name") %}
+            <div>
+                <dt>{{ field_name }}</dt>
+                <dd>
+                    {% for f in files %}
+                        <a href="{{ url_for('ui.download_task_file', task_id=task.id, task_file_id=f.id) }}" class="icon download">{{ f.filename }}</a>
+                    {% endfor %}
+                </dd>
+            </div>
+        {% endfor %}
+    </dl>
+{% endif %}
+
+{% if task.data | length > 0 %}
+    <dl class="columns">
+        {% for d in task.data %}
+            {% if d.formated_value | blank_if_none | length > 0 %}
+                <dt>{{ d.field.field_name }}</dt>
+                {% if d.field.field_type.is_textarea %}
+                    <dd>{{ d.formated_value | blank_if_none | br }}</dd>
+                {% else %}
+                    <dd>{{ d.formated_value | blank_if_none }}</dd>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </dl>
+{% endif %}

@@ -1,0 +1,50 @@
+{% extends "lbrc/page.html" %}
+
+{% block page_content %}
+  <nav class="main_menu">
+    <div class="container">
+      <menu>
+        <li><a href="{{url_for('ui.index')}}">Home</a></li>
+        <li><a href="{{url_for('ui.my_requests')}}" class="icon publication">My Requests</a></li>
+
+        {% if current_user.service_owner %}
+            <li><a href="{{url_for('ui.my_jobs')}}" class="icon publication">My Jobs</a></li>
+            <li><a href="{{url_for('ui.todos')}}" class="icon check_list">Todos</a></li>
+            <li><a href="{{url_for('ui.reports')}}" class="icon report">Reports</a></li>
+        {% endif %}
+
+        {% if current_user.has_role('quoter') %}
+            <li><a href="{{url_for('ui.quotes')}}" class="icon quote">Quotes</a></li>
+        {% endif %}
+
+        <li><a href="{{url_for('ui.exports')}}" class="icon folder">Exports</a></li>
+      </menu>
+      <menu>
+        {% if current_user.is_admin %}
+          <li>
+                <a>Admin</a>
+                <menu>
+                    <li><a href="{{url_for('admin.index')}}">Maintenance</a></li>
+                </menu>
+            </li>
+        {% endif %}
+        <li>
+            <a>{{ current_user.full_name }}</a>
+            <menu>
+              {% if not current_user.ldap_user %}
+                <li><a href="{{ url_for_security('change_password') }}">Change Password</a></li>
+              {% endif %}
+            <li><a href="{{ url_for_security('logout') }}">Log Out</a></li>
+            </menu>
+        </li>
+      </menu>
+    </div>
+  </nav>
+
+  {% block menu_page_content %}{% endblock %}
+
+<script>
+  htmx.logAll();
+</script>
+
+{% endblock %}

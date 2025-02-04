@@ -1,0 +1,24 @@
+{% extends "lbrc/modal.html" %}
+
+{% block content %}
+    <h2>Assignment History for '{{task.name}}'</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ta in task_assignments %}
+                <tr>
+                    <td>Created {{ ta.created_date | datetime_humanize }}</td>
+                    <td>{{ta.user.full_name | default_if_none('Unassigned') }}</td>
+                    <td>{{ ta.notes }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

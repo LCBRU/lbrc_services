@@ -9,9 +9,84 @@ from flask import (
     url_for,
     request,
 )
+
+from lbrc_services.ui.views import get_todo_query
 from ..decorators import must_be_task_owner_or_requestor, must_be_todo_owner
-from ..forms import EditToDoForm
+from ..forms import EditToDoForm, TodoSearchForm
 from .. import blueprint
+from lbrc_flask.response import refresh_response
+
+
+@blueprint.route("/todo/")
+def todos():
+    search_form = TodoSearchForm(search_placeholder='Search Requests', formdata=request.args)
+
+    q = get_todo_query(search_form=search_form)
+    q = q.order_by(ToDo.created_date.desc(), ToDo.id.desc())
+
+    todos = db.paginate(
+        select=q,
+        page=search_form.page.data,
+        per_page=10,
+        error_out=False,
+    )
+
+    return render_template("ui/todo/index.html", search_form=search_form, todos=todos)
+
+
+@blueprint.route("/todo/<int:todo_id>/edit", methods=["GET", "POST"])
+@must_be_todo_owner("todo_id")
+def todo_edit(todo_id):
+    todo = db.get_or_404(ToDo, todo_id)
+
+    form = EditToDoForm(obj=todo)
+
+    if form.validate_on_submit():
+        todo.description = form.description.data
+        db.session.add(todo)
+        db.session.commit()
+        return refresh_response()
+
+
+    return render_template(
+        "lbrc/form_modal.html",
+        title=f"Edit To Do",
+        form=form,
+        url=url_for('ui.todo_edit', todo_id=todo_id),
+    )
+
+
+@blueprint.route("/todo/<int:todo_id>/set_complete", methods=["POST"])
+@must_be_todo_owner("todo_id")
+def todo_set_complete(todo_id):
+    todo = db.get_or_404(ToDo, todo_id)
+
+    todo.status = todo.COMPLETED_VALUE
+    db.session.add(todo)
+    db.session.commit()
+    return refresh_response()
+
+
+@blueprint.route("/todo/<int:todo_id>/set_unneeded", methods=["POST"])
+@must_be_todo_owner("todo_id")
+def todo_set_unneeded(todo_id):
+    todo = db.get_or_404(ToDo, todo_id)
+
+    todo.status = todo.NOT_REQUIRED_VALUE
+    db.session.add(todo)
+    db.session.commit()
+    return refresh_response()
+
+
+@blueprint.route("/todo/<int:todo_id>/set_oustanding", methods=["POST"])
+@must_be_todo_owner("todo_id")
+def todo_set_outstanding(todo_id):
+    todo = db.get_or_404(ToDo, todo_id)
+
+    todo.status = todo.OUTSTANDING_VALUE
+    db.session.add(todo)
+    db.session.commit()
+    return refresh_response()
 
 
 @blueprint.route("/task/<int:task_id>/todo_list", methods=["GET", "POST"])

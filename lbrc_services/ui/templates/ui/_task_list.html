@@ -1,0 +1,83 @@
+{% macro render_tasks_list(tasks, show_owner_controls=False) %}
+
+<ul class="panel_list">
+    {% for t in tasks.items %}
+        <li>
+            <header>
+                <div class="flex_two_left_grow">
+                    <div>
+                        <h3>
+                            <span class="text-secondary">{{t.service.name}}:</span>
+                            <span>{{ t.name }}</span>
+                            {% if not show_owner_controls %}
+                                <span class="badge badge-secondary">{{ t.current_status_type.name }}</span>
+                            {% endif %}
+                        </h3>
+                        <h4>Request #{{t.id}} for <a href="mailto:{{t.requestor.email}}">{{t.requestor.full_name }}</a> created {{ t.created_date | datetime_humanize }} {% if t.completed_date %}completed {{ t.completed_date | datetime_humanize }}{% endif %}</h4>
+                    </div>
+                    <div>
+                        {% if show_owner_controls %}
+                            {{ render_task_owner_buttons(t) }}
+                        {% else %}
+                            {{ render_task_requestor_buttons(t) }}
+                        {% endif %}
+                    </div>    
+                </div>
+                {% if show_owner_controls %}
+                    {{ render_task_owner_button_bar(t) }}
+                {% endif %}
+            </header>
+        
+            <div id="task_details_{{t.id}}">
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+{% endmacro %}
+
+
+{% macro render_task_requestor_buttons(task) %}
+    <nav class="linked_list">
+        <a id="task_view_{{task.id}}" title="View request {{ task.name }}" hx-get="{{ url_for('ui.show_task_details', task_id=task.id) }}" hx-target="#task_details_{{task.id}}" hx-swap="innerHTML" href="javascript:;" class="icon view"></a>
+        <a title="Edit request {{ task.name }}" hx-get="{{ url_for('ui.edit_task', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+        <a title="Cancel request {{ task.name }}" hx-post="{{ url_for('ui.cancel_task', task_id=task.id) }}" hx-confirm="Are you sure you wish to cancel the request '{{ task.name }}'?" href="javascript:;" class="icon delete"></a>
+    </div>
+{% endmacro %}
+
+
+{% macro render_task_owner_buttons(task) %}
+    <div class="grid_stacked_right">
+        <nav class="linked_list">
+            <a id="task_view_{{task.id}}" title="View job {{ task.name }}" hx-get="{{ url_for('ui.show_task_details', task_id=task.id) }}" hx-target="#task_details_{{task.id}}" hx-swap="innerHTML" href="javascript:;" class="icon view"></a>
+            <a title="Edit job {{ task.name }}" hx-get="{{ url_for('ui.edit_task', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+            <a title="{{ task.name }} To Do This" href="{{ url_for('ui.task_todo_list', task_id=task.id) }}" class="icon check_list">
+                {% if task.required_todos > 0 %}
+                    <span>({{task.complete_todos}} / {{task.required_todos}})</span>
+                {% endif %}
+            </a>
+            <a title="Download job {{ task.name }}" href="{{ url_for('ui.pdf_task', task_id=task.id) }}" class="icon download"></a>
+            <a title="Export job {{ task.name }}" href="{{ url_for('ui.export_single_task', id=task.id) }}" class="icon export"></a>
+        </nav>
+    </div>
+{% endmacro %}
+
+
+{% macro render_task_owner_button_bar(task) %}
+    <nav class="button_bar">
+        <div class="dropdown">
+            <a href="javascript:;" role="button">{{ task.current_status_type.name }}</a>
+            <ul>
+                <li><a hx-get="{{ url_for('ui.task_update_status', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;">Update Status</a></li>
+                <li><a hx-get="{{ url_for('ui.task_status_history', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;">Status History</a></li>
+            </ul>
+        </div>
+        <div class="dropdown">
+            <a href="javascript:;" role="button">{{ task.current_assigned_user.full_name | default_if_none('Unassigned') }}</a>
+            <ul>
+                <li><a href="javascript:;" hx-post="{{url_for('ui.assign_to_me', task_id=task.id)}}">Assign to Me</a></li>
+                <li><a hx-get="{{ url_for('ui.task_assign_to_user', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;">Assign to User</a></li>
+                <li><a hx-get="{{ url_for('ui.task_assignment_history', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;">Assignment History</a></li>
+            </ul>
+        </div>
+    </nav>
+{% endmacro %}

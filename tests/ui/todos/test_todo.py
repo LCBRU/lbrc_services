@@ -72,9 +72,9 @@ def task_matches_li(todo, li):
     todo_checkbox = li.find("a", "todo_checkbox")
     assert todo_checkbox is not None
 
-    if todo.status == ToDo.OUTSTANDING:
+    if todo.status == ToDo.OUTSTANDING_NAME:
         assert todo_checkbox['data-action'] == 'check'
-    elif todo.status == ToDo.COMPLETED:
+    elif todo.status == ToDo.COMPLETED_NAME:
         assert todo_checkbox['data-action'] == 'unneeded'
-    elif todo.status == ToDo.NOT_REQUIRED:
+    elif todo.status == ToDo.NOT_REQUIRED_NAME:
         assert todo_checkbox['data-action'] == 'uncheck'

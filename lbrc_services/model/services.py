@@ -348,14 +348,18 @@ class TaskFile(AuditMixin, CommonMixin, db.Model):
 
 class ToDo(AuditMixin, CommonMixin, db.Model):
 
-    OUTSTANDING = 'Outstanding'
-    COMPLETED = 'Completed'
-    NOT_REQUIRED = 'Not Required'
+    OUTSTANDING_VALUE = 0
+    COMPLETED_VALUE = 1
+    NOT_REQUIRED_VALUE = -1
+
+    OUTSTANDING_NAME = 'Outstanding'
+    COMPLETED_NAME = 'Completed'
+    NOT_REQUIRED_NAME = 'Not Required'
 
     _status_map = {
-        -1: NOT_REQUIRED,
-        0: OUTSTANDING,
-        1: COMPLETED,
+        NOT_REQUIRED_VALUE: NOT_REQUIRED_NAME,
+        OUTSTANDING_VALUE: OUTSTANDING_NAME,
+        COMPLETED_VALUE: COMPLETED_NAME,
     }
 
     @staticmethod
@@ -374,12 +378,12 @@ class ToDo(AuditMixin, CommonMixin, db.Model):
 
     @property
     def is_outstanding(self):
-        return self.status == 0
+        return self.status == ToDo.OUTSTANDING_VALUE
 
     @property
     def is_required(self):
-        return self.status > -1
+        return self.status != ToDo.NOT_REQUIRED_VALUE
 
     @property
     def is_complete(self):
-        return self.status == 1
+        return self.status == ToDo.COMPLETED_VALUE

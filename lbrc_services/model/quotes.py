@@ -119,7 +119,7 @@ class QuoteRequirementType(db.Model, CommonMixin):
 
 class QuotePricingType(db.Model, CommonMixin):
     initial_types = [
-        ('BRC', 300),
+        ('BRC', 350),
         ('External', 500),
         ('PhD', 0),
         ('LDC', 0),

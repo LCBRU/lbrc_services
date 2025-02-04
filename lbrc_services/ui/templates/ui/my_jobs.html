@@ -1,175 +1,24 @@
-{% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search, render_pagination, render_field, render_button_bar %}
-{% from "lbrc_flask/modal_macros.html" import render_modal %}
-{% from "ui/_task_details.html" import render_tasks_list %}
+{% extends "ui/menu_page.html" %}
+{% from "ui/_task_list.html" import render_tasks_list %}
+{% from "lbrc/form_macros.html" import render_form_fields %}
+{% from "lbrc/pagination.html" import render_pagination, pagination_summary %}
 
-{% block content %}
+{% block menu_page_content %}
 
-<section>
-    <div class="page-header">
-        <h1>My Jobs</h1>
+<section class="container">
+    <header>
+        <h2>My Jobs</h2>
 
-        {{ render_search(
-            search_form,
-            'ui.my_jobs',
-            placeholder='enter search text - searches names',
-            buttons=[
-                {
-                    'id': 'export',
-                    'text': 'Export',
-                    'endpoint': 'ui.my_jobs_export',
-                    'add_form_fields': True,
-                },
-            ],
-        ) }}
-    </div>
+        <form action="{{ url_for('ui.my_jobs') }}" method="GET" enctype="multipart/form-data">
+            <fieldset class="columns">
+                {{ render_form_fields(search_form) }}
+            </fieldset>
+        </form>
+    </header>
 
+    {{ pagination_summary(tasks, 'task') }}
     {{ render_tasks_list(tasks, show_owner_controls=True) }}
-
+    {{ render_pagination(tasks, 'ui.my_requests', form=search_form) }}
 </section>
-
-{{ render_pagination(tasks, 'ui.my_jobs', form=search_form) }}
-
-{% call render_modal('updateStatusModal', 'Update Status') %}
-    <p id="modal_description">Set new status for "<span id="task_name"></span>".</p>
-    <form id="task_status_form" action="{{ url_for('ui.task_update_status', prev=request.full_path) }}" method="POST" enctype="multipart/form-data">
-        <fieldset>
-            {{ task_update_status_form.hidden_tag() }}
-
-            {% for f in task_update_status_form %}
-                {{ render_field(f) }}
-            {% endfor %}
-
-            {{ render_button_bar(cancel_url=request.full_path, submit_label="Save") }}
-        </fieldset>
-    </form>
-{% endcall %}
-
-{% call render_modal('updateAssignedUserModal', 'Update Assigned User') %}
-    <p id="modal_description">Set assigned user for "<span id="task_name"></span>".</p>
-    <form id="task_update_assigned_user_form" action="{{ url_for('ui.update_assigned_user', prev=request.full_path) }}" method="POST" class="form panel-body" enctype="multipart/form-data">
-        <fieldset>
-            {{ task_update_assigned_user_form.hidden_tag() }}
-
-            {% for f in task_update_assigned_user_form %}
-                {{ render_field(f) }}
-            {% endfor %}
-
-            {{ render_button_bar(cancel_url=request.full_path, submit_label="Save") }}
-        </fieldset>
-    </form>
-{% endcall %}
-
-{% call render_modal('showStatusHistoryModal', 'Status History') %}
-    <p id="modal_description">Status history for "<span id="task_name"></span>".</p>
-
-    <div id="showStatusHistoryModal_content"></div>
-{% endcall %}
-
-{% call render_modal('showAssignedUserHistoryModal', 'Assignment History') %}
-    <p id="modal_description">Assignment history for "<span id="task_name"></span>".</p>
-
-    <div id="showAssignedUserHistoryModal_content"></div>
-{% endcall %}
-
-{% endblock %}
-
-{% block js %}
-
-<script>
-    $(document).ready(function(){
-        $('#updateStatusModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var task_id = button.data('task-id');
-            var current_status_type_id = button.data('current-status-type-id');
-            var name = button.data('name');
-
-            var modal = $(this);
-            modal.find('#task_name').text(name);
-
-            modal.find("#status").val(current_status_type_id);
-            modal.find("#task_id").val(task_id);
-        });
-    });
-
-    $(document).ready(function(){
-        $('#updateAssignedUserModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var task_id = button.data('task-id');
-            var current_assigned_user_id = button.data('current-assigned-user-id');
-            var name = button.data('name');
-
-            var modal = $(this);
-            modal.find('#task_name').text(name);
-
-            url = `{{ request.script_root | safe }}/task/${task_id}/assigned_user_options`;
-
-            fetch(url).then(function(response) {
-                response.json().then(function(data){
-                    let option_html = '';
-
-                    for (let u of data.results) {
-                        option_html += `<option value="${u.id}">${u.name}</option>`;
-                    }
-
-                    let assigned_user_select = document.getElementById('assigned_user')
-                    assigned_user_select.innerHTML = option_html;
-
-                    assigned_user_select.value = current_assigned_user_id;
-                })
-            })
-
-            modal.find("#task_id").val(task_id);
-
-        });
-    });
-
-    $(document).ready(function(){
-        $('#showStatusHistoryModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var task_id = button.data('task-id');
-            var name = button.data('name');
-
-            var modal = $(this);
-            modal.find('#task_name').text(name);
-
-            let showStatusHistoryModal_content = document.getElementById('showStatusHistoryModal_content')
-            showStatusHistoryModal_content.innerHTML = '';
-
-            url = `{{ request.script_root | safe }}/task/${task_id}/status_history`;
-
-            fetch(url).then(function(response) {
-                return response.text();
-            }).then(function (html) {
-                showStatusHistoryModal_content.innerHTML = html;
-            })
-
-        });
-    });
-
-    $(document).ready(function(){
-        $('#showAssignedUserHistoryModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var task_id = button.data('task-id');
-            var name = button.data('name');
-
-            var modal = $(this);
-            modal.find('#task_name').text(name);
-
-            url = `{{ request.script_root | safe }}/task/${task_id}/assignment_history`;
-
-            let showAssignedUserHistoryModal_content = document.getElementById('showAssignedUserHistoryModal_content')
-            showAssignedUserHistoryModal_content.innerHTML = '';
-
-            fetch(url).then(function(response) {
-                return response.text();
-            }).then(function (html) {
-                showAssignedUserHistoryModal_content.innerHTML = html;
-            })
-
-        });
-    });
-
-</script>
 
 {% endblock %}

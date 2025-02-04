@@ -1,0 +1,24 @@
+{% extends "lbrc/modal.html" %}
+
+{% block content %}
+    <h2>Status History for '{{task.name}}'</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in statuses %}
+                <tr>
+                    <td>{{ s.created_date | datetime_humanize }}</td>
+                    <td>{{ s.task_status_type.name }}</td>
+                    <td>{{ s.notes }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

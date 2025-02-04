@@ -12,7 +12,7 @@ from datetime import timedelta, date
 from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
 from lbrc_services.model.quotes import Quote, QuoteStatusType
-from lbrc_services.model.services import Organisation, Service, Task, TaskStatus, TaskStatusType, User
+from lbrc_services.model.services import Organisation, Service, Task, TaskStatus, TaskStatusType, ToDo, User
 from lbrc_flask.export import excel_download
 from lbrc_flask.formatters import format_datetime
 
@@ -106,6 +106,18 @@ def _get_quote_query(search_form, owner_id=None, sort_asc=False):
         q = q.order_by(Quote.created_date.asc())
     else:
         q = q.order_by(Quote.created_date.desc())
+
+    return q
+
+
+def get_todo_query(search_form):
+    q = select(ToDo)
+
+    if search_form.search.data:
+        q = q.where(ToDo.name.like(f"%{search_form.search.data}%"))
+
+    if search_form.has_value('task_id') and search_form.task_id.data:
+        q = q.where(ToDo.task_id == search_form.task_id.data)
 
     return q
 

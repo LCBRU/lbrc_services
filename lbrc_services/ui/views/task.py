@@ -1,14 +1,14 @@
 from lbrc_flask.forms import ConfirmForm
 from lbrc_services.ui.views import _get_tasks_query, send_task_export
-from lbrc_services.model.services import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation, User
+from lbrc_services.model.services import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
 from flask import (
     render_template,
     redirect,
-    url_for,
     send_file,
     request,
+    url_for,
 )
 from flask_security import current_user
 from ..decorators import must_be_task_file_owner_or_requestor, must_be_task_owner_or_requestor, must_be_task_owner
@@ -18,15 +18,15 @@ from sqlalchemy import or_, select
 from lbrc_flask.security import current_user_id
 from flask import current_app
 from lbrc_flask.export import pdf_download
+from lbrc_flask.response import refresh_response
 
 
 @blueprint.route("/my_requests")
 def my_requests():
-    search_form = TaskSearchForm(formdata=request.args)
-    cancel_request_form = ConfirmForm()
+    search_form = TaskSearchForm(search_placeholder='Search Requests', formdata=request.args)
 
     q = _get_tasks_query(search_form=search_form, requester_id=current_user.id)
-    q = q.order_by(Task.created_date.desc())
+    q = q.order_by(Task.created_date.desc(), Task.id.desc())
 
     tasks = db.paginate(
         select=q,
@@ -35,21 +35,24 @@ def my_requests():
         error_out=False,
     )
 
-    return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form, cancel_request_form=cancel_request_form)
+    return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form)
 
 
-@blueprint.route("/cancel_request", methods=["POST"])
-def cancel_request():
-    cancel_request_form = ConfirmForm()
+@blueprint.route("/task/<int:task_id>/show_details")
+@must_be_task_owner_or_requestor("task_id")
+def show_task_details(task_id):
+    return render_template("ui/task/show_task_details.html", task=db.get_or_404(Task, task_id))
 
-    update_task_status(cancel_request_form.id.data, TaskStatusType.get_cancelled(), 'Cancelled by user')
 
-    return redirect(request.args.get('prev', ''))
+@blueprint.route("/task/<int:task_id>/hide_details")
+@must_be_task_owner_or_requestor("task_id")
+def hide_task_details(task_id):
+    return render_template("ui/task/hide_task_details.html", task=db.get_or_404(Task, task_id))
 
 
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
-    search_form = MyJobsSearchForm(formdata=request.args)
+    search_form = MyJobsSearchForm(search_placeholder='Search My Jobs', formdata=request.args)
     q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
 
     assigned_user_id = search_form.data.get('assigned_user_id', 0)
@@ -72,7 +75,7 @@ def my_jobs():
     else:
         q = q.filter(Task.current_assigned_user_id == assigned_user_id)
 
-    q = q.order_by(Task.created_date.asc())
+    q = q.order_by(Task.created_date.asc(), Task.id.asc())
 
     tasks = db.paginate(
             select=q,
@@ -90,47 +93,28 @@ def my_jobs():
     )
 
 
-@blueprint.route("/my_jobs/export")
-def my_jobs_export():
-    search_form = MyJobsSearchForm(formdata=request.args)
-    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
-    q = q.order_by(Task.created_date.asc())
+# Task Assignment
 
-    return send_task_export('My Jobs', db.session.execute(q).unique().scalars())
+@blueprint.route("/task/<int:task_id>/assign_to_user", methods=["GET", "POST"])
+@must_be_task_owner_or_requestor("task_id")
+def task_assign_to_user(task_id):
+    task = db.get_or_404(Task, task_id)
+    form = TaskUpdateAssignedUserForm()
 
-
-@blueprint.route("/task/update_status", methods=["POST"])
-@must_be_task_owner("task_id")
-def task_update_status():
-    task_update_status_form = TaskUpdateStatusForm()
-
-    if task_update_status_form.validate_on_submit():
-        status_type = db.get_or_404(TaskStatusType, task_update_status_form.status.data)
-
-        update_task_status(
-            task_update_status_form.task_id.data,
-            status_type,
-            task_update_status_form.notes.data,
+    if form.validate_on_submit():
+        _update_assigned_user(
+            task_id,
+            form.assigned_user.data,
+            notes=form.notes.data,
         )
+        return refresh_response()
 
-    return redirect(request.args.get('prev', ''))
-
-
-def update_task_status(task_id, new_task_status_type, notes):
-        task = db.get_or_404(Task, task_id)
-
-        task_status = TaskStatus(
-            task=task,
-            task_status_type=new_task_status_type,
-            notes=notes,
-        )
-
-        db.session.add(task_status)
-
-        task.current_status_type = new_task_status_type
-
-        db.session.add(task)
-        db.session.commit()
+    return render_template(
+        "lbrc/form_modal.html",
+        title=f"Assign {task.name}",
+        form=form,
+        url=url_for('ui.task_assign_to_user', task_id=task_id),
+    )
 
 
 @blueprint.route("/task/update_assigned_user", methods=["POST"])
@@ -148,7 +132,7 @@ def update_assigned_user():
     return redirect(request.args.get('prev', ''))
 
 
-@blueprint.route("/task/<int:task_id>/assign_to_me")
+@blueprint.route("/task/<int:task_id>/assign_to_me", methods=["POST"])
 @must_be_task_owner("task_id")
 def assign_to_me(task_id):
     _update_assigned_user(
@@ -156,7 +140,16 @@ def assign_to_me(task_id):
         current_user_id(),
     )
 
-    return redirect(request.args.get('prev', ''))
+    return refresh_response()
+
+
+@blueprint.route("/task/<int:task_id>/assignment_history")
+@must_be_task_owner_or_requestor("task_id")
+def task_assignment_history(task_id):
+    task = db.get_or_404(Task, task_id)
+    task_assignments = TaskAssignedUser.query.filter(TaskAssignedUser.task_id == task_id).order_by(TaskAssignedUser.created_date.desc()).all()
+
+    return render_template("ui/task/assignment_history.html", task=task, task_assignments=task_assignments)
 
 
 def _update_assigned_user(task_id, user_id, notes=''):
@@ -176,20 +169,127 @@ def _update_assigned_user(task_id, user_id, notes=''):
     db.session.commit()
 
 
+# Task Status
+
+@blueprint.route("/task/<int:task_id>/update_status", methods=["GET", "POST"])
+# @must_be_task_owner_or_requestor("task_id")
+def task_update_status(task_id):
+    task = db.get_or_404(Task, task_id)
+    form = TaskUpdateStatusForm()
+
+    if form.validate_on_submit():
+        status_type = db.get_or_404(TaskStatusType, form.status.data)
+
+        update_task_status(
+            task_id,
+            status_type,
+            form.notes.data,
+        )
+
+        return refresh_response()
+
+    return render_template(
+        "lbrc/form_modal.html",
+        title=f"Update Status for Task {task.name}",
+        form=form,
+        url=url_for('ui.task_update_status', task_id=task_id),
+    )
+
+
 @blueprint.route("/task/<int:task_id>/status_history")
 @must_be_task_owner_or_requestor("task_id")
 def task_status_history(task_id):
+    task = db.get_or_404(Task, task_id)
     task_statuses = TaskStatus.query.filter(TaskStatus.task_id == task_id).order_by(TaskStatus.created_date.desc()).all()
 
-    return render_template("ui/_status_history.html", statuses=task_statuses)
+    return render_template(
+        "ui/task/status_history.html",
+        task=task,
+        statuses=task_statuses,
+    )
 
 
-@blueprint.route("/task/<int:task_id>/assignment_history")
+def update_task_status(task_id, new_task_status_type, notes):
+        task = db.get_or_404(Task, task_id)
+
+        task_status = TaskStatus(
+            task=task,
+            task_status_type=new_task_status_type,
+            notes=notes,
+        )
+
+        db.session.add(task_status)
+
+        task.current_status_type = new_task_status_type
+
+        db.session.add(task)
+        db.session.commit()
+
+
+# Task CRUD
+
+@blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])
+def create_task(service_id):
+    service = db.get_or_404(Service, service_id)
+
+    form = get_create_task_form(service)
+
+    if form.validate_on_submit():
+        task = Task(
+            service=service,
+            current_status_type=TaskStatusType.get_created(),
+        )
+
+        save_task(task, form, 'created')
+
+        if current_user not in service.owners:
+            email(
+                subject=f"{task.service.name} Request Created",
+                message=f"Request has been created for {task.service.name} by {current_user.full_name}.",
+                recipients=task.notification_email_addresses,
+                html_template='ui/email/owner_email.html',
+                task=task,
+            )
+
+        return refresh_response()
+
+    return render_template(
+        "ui/task/create.html",
+        title=f"Create Request for {service.name}",
+        form=form,
+        url=url_for('ui.create_task', service_id=service_id),
+        service=service,
+        allow_requestor_selection=current_user.service_owner,
+        allow_assignee_selection=current_user.service_owner,
+    )
+
+
+@blueprint.route("/task/<int:task_id>/edit", methods=["GET", "POST"])
 @must_be_task_owner_or_requestor("task_id")
-def task_assignment_history(task_id):
-    task_assignments = TaskAssignedUser.query.filter(TaskAssignedUser.task_id == task_id).order_by(TaskAssignedUser.created_date.desc()).all()
+def edit_task(task_id):
+    task = db.get_or_404(Task, task_id)
 
-    return render_template("ui/_task_assignment_history.html", task_assignments=task_assignments)
+    form = get_create_task_form(task.service, task)
+
+    if form.validate_on_submit():
+        save_task(task, form, 'updated')
+        return refresh_response()
+
+    return render_template(
+        "ui/task/create.html",
+        title=f"Edit task {task.name}",
+        form=form,
+        url=url_for('ui.edit_task', task_id=task_id),
+        service=task.service,
+        allow_assignee_selection=current_user.service_owner,
+    )
+
+
+@blueprint.route("/task/<int:task_id>/cancel", methods=["POST"])
+def cancel_task(task_id):
+    update_task_status(task_id, TaskStatusType.get_cancelled(), 'Cancelled by user')
+
+    return refresh_response()
 
 
 def save_task(task, form, context):
@@ -247,61 +347,15 @@ def save_task(task, form, context):
     db.session.commit()
 
 
-@blueprint.route("/service/<int:service_id>/create_task", methods=["GET", "POST"])
-def create_task(service_id):
-    service = db.get_or_404(Service, service_id)
+# Task Export
 
-    form = get_create_task_form(service)
+@blueprint.route("/my_jobs/export")
+def my_jobs_export():
+    search_form = MyJobsSearchForm(formdata=request.args)
+    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
+    q = q.order_by(Task.created_date.asc())
 
-    if form.validate_on_submit():
-        task = Task(
-            service=service,
-            current_status_type=TaskStatusType.get_created(),
-        )
-
-        save_task(task, form, 'created')
-
-        if current_user not in service.owners:
-            email(
-                subject=f"{task.service.name} Request Created",
-                message=f"Request has been created for {task.service.name} by {current_user.full_name}.",
-                recipients=task.notification_email_addresses,
-                html_template='ui/email/owner_email.html',
-                task=task,
-            )
-
-        return redirect(url_for("ui.index"))
-
-    return render_template(
-        "ui/task/create.html",
-        form=form,
-        service=service,
-        other_organisation=Organisation.get_other(),
-        allow_requestor_selection=current_user.service_owner,
-        allow_assignee_selection=current_user.service_owner,
-    )
-
-
-@blueprint.route("/task/<int:task_id>/edit", methods=["GET", "POST"])
-@must_be_task_owner_or_requestor("task_id")
-def edit_task(task_id):
-    task = db.get_or_404(Task, task_id)
-
-    form = get_create_task_form(task.service, task)
-
-    if form.validate_on_submit():
-
-        save_task(task, form, 'updated')
-
-        return redirect(request.args.get('prev', ''))
-
-    return render_template(
-        "ui/task/create.html",
-        form=form,
-        service=task.service,
-        other_organisation=Organisation.get_other(),
-        allow_assignee_selection=current_user.service_owner,
-    )
+    return send_task_export('My Jobs', db.session.execute(q).unique().scalars())
 
 
 @blueprint.route("/task/<int:task_id>/file/<int:task_file_id>")

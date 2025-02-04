@@ -55,7 +55,7 @@ db.session.add_all(field_groups)
 db.session.commit()
 
 services = [
-    Service(name=fg.name, field_group=fg, owners=[me])
+    Service(name=fg.name, field_group=fg, description='\n\n'.join(fake.paragraphs(nb=randint(1,5))), owners=[me])
     for fg in field_groups
 ]
 db.session.add_all(services)
