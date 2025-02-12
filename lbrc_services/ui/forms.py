@@ -205,7 +205,6 @@ class QuoteUpdateStatusForm(FlashingForm):
 
 
 class EditToDoForm(FlashingForm):
-    task_id = HiddenField()
     description = TextAreaField("Description", validators=[Length(max=500)])
 
 

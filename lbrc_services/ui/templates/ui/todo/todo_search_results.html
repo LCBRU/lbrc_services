@@ -1,0 +1,35 @@
+{% from "lbrc/pagination.html" import pagination_summary, render_pagination_htmx %}
+{% from "ui/todo/todo_status_icon.html" import render_todo_status %}
+<div id="search_results_results" hx-target="#search_results_results" hx-swap="outerHTML">
+
+    <nav class="button_bar">
+        <a title="Add todo to task {{ task.name }}" hx-get="{{ url_for('ui.todo_add', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon add" role="button">Add To Do</a>
+    </nav>
+
+    <p>
+        {{ pagination_summary(results, 'result') }}
+    </p>
+
+    <table>
+        <thead></thead>
+        <tbody>
+            {% for t in results.items %}
+                <tr>
+                    <td>
+                        <a class="icon edit" href="javascript:;" title="Edit To Do" hx-get="{{ url_for('ui.todo_edit', todo_id=t.id ) }}" hx-target="body" hx-swap="beforeend"></a>
+                        {{ render_todo_status(t) }}
+                    </td>
+                    <td>
+                        <span>{{ t.description }}</span>
+                    </td>
+                    <td>{{ t.created_date | datetime_humanize | nbsp }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+        {% set rargs = results_url_args or {} %}
+        {{ render_pagination_htmx(results, 'ui.task_todos_search_results', task_id=task.id) }}
+    </p>
+</div>

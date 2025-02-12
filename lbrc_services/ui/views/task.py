@@ -35,7 +35,7 @@ def my_requests():
         error_out=False,
     )
 
-    return render_template("ui/my_requests.html", tasks=tasks, search_form=search_form)
+    return render_template("ui/task/my_requests.html", tasks=tasks, search_form=search_form)
 
 
 @blueprint.route("/task/<int:task_id>/show_details")
@@ -85,7 +85,7 @@ def my_jobs():
         )
 
     return render_template(
-        "ui/my_jobs.html",
+        "ui/task/my_jobs.html",
         tasks=tasks,
         search_form=search_form,
         task_update_status_form=TaskUpdateStatusForm(),

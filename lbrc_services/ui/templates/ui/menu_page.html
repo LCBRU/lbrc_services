@@ -9,7 +9,6 @@
 
         {% if current_user.service_owner %}
             <li><a href="{{url_for('ui.my_jobs')}}" class="icon publication">My Jobs</a></li>
-            <li><a href="{{url_for('ui.todos')}}" class="icon check_list">Todos</a></li>
             <li><a href="{{url_for('ui.reports')}}" class="icon report">Reports</a></li>
         {% endif %}
 

@@ -50,7 +50,7 @@
         <nav class="linked_list">
             <a id="task_view_{{task.id}}" title="View job {{ task.name }}" hx-get="{{ url_for('ui.show_task_details', task_id=task.id) }}" hx-target="#task_details_{{task.id}}" hx-swap="innerHTML" href="javascript:;" class="icon view"></a>
             <a title="Edit job {{ task.name }}" hx-get="{{ url_for('ui.edit_task', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
-            <a title="{{ task.name }} To Do This" href="{{ url_for('ui.task_todo_list', task_id=task.id) }}" class="icon check_list">
+            <a title="{{ task.name }} To Do List" hx-get="{{ url_for('ui.task_todos', task_id=task.id) }}" class="icon check_list" hx-target="body" hx-swap="beforeend" href="javascript:;">
                 {% if task.required_todos > 0 %}
                     <span>({{task.complete_todos}} / {{task.required_todos}})</span>
                 {% endif %}

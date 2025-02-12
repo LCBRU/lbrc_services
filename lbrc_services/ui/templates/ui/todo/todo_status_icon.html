@@ -1,0 +1,11 @@
+{% macro render_todo_status(todo) %}
+    <span id="todo_status_{{todo.id}}" hx-target="#todo_status_{{todo.id}}" hx-swap="morph:outerHTML" hx-indicator="#spinner">
+        {% if todo.status == 0 %}
+            <a class="icon tristate_unchecked" href="javascript:;" title="Set To Do as Complete" hx-post="{{ url_for('ui.todo_set_complete', todo_id=todo.id ) }}"></a>
+        {% elif todo.status == 1 %}
+            <a class="icon tristate_checked" href="javascript:;" title="Set To Do as Unneeded" hx-post="{{ url_for('ui.todo_set_unneeded', todo_id=todo.id ) }}"></a>
+        {% elif todo.status == -1 %}
+            <a class="icon tristate_none" href="javascript:;" title="Set To Do as Outstanding" hx-post="{{ url_for('ui.todo_set_outstanding', todo_id=todo.id ) }}"></a>
+        {% endif %}    
+    </span>
+{% endmacro %}
