@@ -1,0 +1,48 @@
+
+{% from "lbrc/tabbed_display.html" import tabbed_display_tab with context %}
+
+{% macro render_quote_details(quote, detail_selector) %}
+    <div id="details_{{quote.id}}" class="tabbed_display">
+        <div class="tabbed_display_tabs {{detail_selector}}" hx-target="#details_{{quote.id}}" hx-trigger="refreshDetails from:body" hx-swap="outerHTML" hx-get="{{ url_for('ui.quote_details', id=quote.id, detail_selector=details_selector) }}">
+            {{ tabbed_display_tab(detail_selector, 'quote', 'Quotation Details', url_for('ui.quote_details', id=quote.id, detail_selector='quote')) }}
+            {{ tabbed_display_tab(detail_selector, 'requirements', 'Requirements', url_for('ui.quote_details', id=quote.id, detail_selector='requirements')) }}
+            {{ tabbed_display_tab(detail_selector, 'work', 'Work Breakdown', url_for('ui.quote_details', id=quote.id, detail_selector='work')) }}
+        </div>
+        <div class="tabbed_display_content">
+            {% if detail_selector == 'quote' %}
+                {{ render_quote_quote_details(quote) }}
+            {% elif detail_selector == 'requirements' %}
+                {{ render_quote_requirements_details(quote) }}
+            {% elif detail_selector == 'work' %}
+                {{ render_quote_work_details(quote) }}
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro render_quote_quote_details(quote) %}
+    <dl class="columns">
+        <dt>Organisation</dt>
+        <dd>{{ quote.organisation.name | blank_if_none}}</dd>
+        <dt>Organisation Description</dt>
+        <dd>{{ quote.organisation_description | blank_if_none}}</dd>
+        <dt>Pricing Type</dt>
+        <dd>{{ quote.quote_pricing_type.name }}</dd>
+        <dt>Requested</dt>
+        <dd>{{ quote.date_requested | date_format }}</dd>
+        <dt>Required</dt>
+        <dd>{{ quote.date_required | date_format }}</dd>
+    </dl>
+
+    <h4>Introduction</h4>
+    <p>{{ quote.introduction }}</p>
+
+    <h4>Conclusion</h4>
+    <p>{{ quote.conclusion }}</p>
+{% endmacro %}
+
+{% macro render_quote_requirements_details(quote) %}
+{% endmacro %}
+
+{% macro render_quote_work_details(quote) %}
+{% endmacro %}

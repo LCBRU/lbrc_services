@@ -1,121 +1,45 @@
-{% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search, render_pagination, render_field, render_button_bar %}
-{% from "lbrc_flask/modal_macros.html" import render_modal, render_edit_modal %}
+{% extends "ui/menu_page.html" %}
+{% from "lbrc/form_macros.html" import render_form_fields %}
+{% from "lbrc/pagination.html" import render_pagination, pagination_summary %}
+{% from "ui/quote/_details.html" import render_quote_details %}
 
-{% block content %}
+{% block menu_page_content %}
 
-<section>
-    <div class="page-header">
-        <h1>Quotes</h1>
+<section class="container">
+    <header>
+        <h2>Quotes</h2>
 
-        {{ render_search(
-            search_form,
-            'ui.quotes',
-            placeholder='enter search text - searches names',
-            buttons=[
-                {
-                    'id': 'export',
-                    'text': 'Export',
-                    'endpoint': 'ui.quotes_export',
-                    'add_form_fields': True,
-                },
-                {
-                    'id': 'create',
-                    'text': 'Create',
-                    'endpoint': 'ui.create_quote',
-                },
-            ],
-        ) }}
-    </div>
+        <form action="{{ url_for('ui.quotes') }}" method="GET" enctype="multipart/form-data">
+            <fieldset class="columns">
+                {{ render_form_fields(search_form) }}
 
-    <ul class="list-group">
+                <div class="button_bar">
+                    <button type="submit" formaction="{{ url_for('ui.quotes_export') }}" formmethod="get">Export</button>
+                    <a title="Create Quote" hx-get="{{ url_for('ui.create_quote') }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon add" role="button">Create</a>
+                </div>
+            </fieldset>
+        </form>
+    </header>
+
+    <ul class="panel_list">
         {% for q in quotes.items %}
-            <li class="list-group-item">
-                <div class='summary_details'>
-                    <div class="row">
-                        <div class="col-7">
-                            <header>
-                                <h1>
-                                    <span>{{ q.name }}</span>
-                                </h1>
-                                <h2>For <a href="mailto:{{q.requestor.email}}">{{q.requestor.full_name }}</a> created {{ q.created_date | datetime_humanize }}</h2>
-                                <h4>ref: {{ q.reference }}</h4>
-                            </header>
+            <li>
+                <header>
+                    <div class="flex_two_left_grow">
+                        <div>
+                            <h3>{{ q.name }}</h3>
+                            <h4>For <a href="mailto:{{q.requestor.email}}">{{q.requestor.full_name }}</a> created {{ q.created_date | datetime_humanize }}</h4>
+                            <h5>ref: {{ q.reference }}</h5>    
                         </div>
-                        <div class="col-5">
-                            <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
-                                <div class="btn-group mr-1 mb-1" role="group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.edit_quote', quote_id=q.id, prev=request.full_path) }}">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </div>
-
-                                <div class="btn-group mr-1 mb-1" role="group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.edit_quote_requirements', quote_id=q.id, prev=request.full_path) }}">
-                                        <i class="fas fa-infinity"></i>
-                                    </a>
-                                </div>
-
-                                <div class="btn-group mr-1 mb-1" role="group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.edit_quote_work', quote_id=q.id, prev=request.full_path) }}">
-                                        <i class="fas fa-hammer"></i>
-                                    </a>
-                                </div>
-
-                                <div class="btn-group mr-1 mb-1" role="group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.quote_pdf', quote_id=q.id) }}">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </div>
-
-                                <div class="btn-group mb-1" role="group">
-                                    <button id="btnGroupStatus" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        {{ q.current_status_type.name }}
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-quote_id="{{ q.id }}"
-                                            data-status_type_id="{{ q.current_status_type.id }}"
-                                            data-name="{{ q.name }}"
-                                            data-target="#updateStatusModal"
-                                            href="#">Update Status</a>
-                                        <a class="dropdown-item"
-                                            data-toggle="modal"
-                                            data-quote-id="{{ q.id }}"
-                                            data-name="{{ q.name }}"
-                                            data-target="#showStatusHistoryModal"
-                                            href="#">Show History</a>
-                                    </div>
-                                </div>
-                            </div>
+                        <div>
+                            <nav class="link_list">
+                                <a title="Edit quote {{ q.name }}" hx-get="{{ url_for('ui.edit_quote', quote_id=q.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+                            </nav>
                         </div>
                     </div>
-                    {% if q.requirements_types | length > 0 %}
-                        <h5>Requirements</h5>
-                        <div class="row">
-                            <div class="col">
-                                {% for r in q.requirements_types %}
-                                    <div class="btn-group mr-1 mb-1" role="group">
-                                        <button type="button" class="btn btn-info btn-sm" data-display="static"><i class="fas fa-infinity"></i> {{ r.name }}</button>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-                    {% if q.work_sections | length > 0 %}
-                        <h5>Total Estinate of Work: {{ "%.2f days" | format(q.total_days) }}</h5>
-                        <div class="row">
-                            <div class="col">
-                                {% for ws in q.work_sections %}
-                                    <div class="btn-group mr-1 mb-1" role="group">
-                                        <button type="button" class="btn btn-info btn-sm" data-display="static"><i class="fas fa-hammer"></i> {{ ws.name }} {{ "(%.2f days)" | format(ws.total_days) }}</button>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
+                </header>
+
+                {{ render_quote_details(q, 'quote') }}
             </li>
         {% endfor %}
     </ul>
@@ -124,42 +48,5 @@
 
 {{ render_pagination(quotes, 'ui.quotes', form=search_form) }}
 
-{{ render_edit_modal('updateStatusModal', 'Update Status', url_for('ui.quote_update_status', prev=request.full_path), quote_update_status_form) }}
-
-{% call render_modal('showStatusHistoryModal', 'Status History') %}
-    <p id="modal_description">Status history for "<span id="quote_name"></span>".</p>
-
-    <div id="showStatusHistoryModal_content"></div>
-{% endcall %}
-
 {% endblock %}
 
-{% block js %}
-
-<script>
-    $(document).ready(function(){
-        $('#showStatusHistoryModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var quote_id = button.data('quote-id');
-            var name = button.data('name');
-
-            var modal = $(this);
-            modal.find('#quote_name').text(name);
-
-            let showStatusHistoryModal_content = document.getElementById('showStatusHistoryModal_content')
-            showStatusHistoryModal_content.innerHTML = '';
-
-            url = `{{ request.script_root | safe }}/quotes/${quote_id}/status_history`;
-
-            fetch(url).then(function(response) {
-                return response.text();
-            }).then(function (html) {
-                showStatusHistoryModal_content.innerHTML = html;
-            })
-
-        });
-    });
-
-</script>
-
-{% endblock %}

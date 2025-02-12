@@ -1,40 +1,16 @@
-{% extends "ui/page.html" %}
-{% import "lbrc_flask/form_macros.html" as formhelper %}
+{% extends "lbrc/modal.html" %}
+{% from "lbrc/form_macros.html" import render_form_fields, render_modal_button_bar %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-8">
-        <div class="card">
-            <div class="card-header">
-                <div>Create Quote</div>
-            </div>
+    <h2>{{ title }}</h2>
 
-            <div class="card-body">
-                <form id="request_form" method="POST" enctype="multipart/form-data">
-                    <fieldset>
-                        {{ form.hidden_tag() }}
-
-                        {% for f in form %}
-                            {% if f.name not in ('requestor_id') %}
-                                {{ formhelper.render_field(f) }}
-                            {% elif f.name in ('requestor_id') %}
-                                {{ formhelper.render_field(f, class='no_select form-control') }}
-                            {% endif %}
-                        {% endfor %}
-
-                        {{ formhelper.render_button_bar(cancel_url=previous_page, submit_label="Save") }}
-                    </fieldset>                   
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-
-{% block js %}
-<script type="text/javascript">
-    enable_child_control_on_parent_value('#organisation_id', '#organisation_description', '{{ other_organisation.id }}');
-    select2_remote('#requestor_id', "{{ url_for('ui.user_search') }}");
-</script>
+    <form action="{{ url }}" method="POST" hx-post="{{ url }}" hx-indicator="#spinner" enctype="multipart/form-data">
+        <fieldset>
+            {% if warning %}
+                <div class="pill warning icon exclamation">{{warning}}</div>
+            {% endif %}
+            {{render_form_fields(form)}}
+            {{render_modal_button_bar(submit_label=submit_label, delete_link=delete_link)}}
+        </fieldset>                   
+    </form>
 {% endblock %}

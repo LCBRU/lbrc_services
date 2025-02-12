@@ -103,9 +103,9 @@ def _get_quote_query(search_form, owner_id=None, sort_asc=False):
             q = q.filter(QuoteStatusType.id == option)
 
     if sort_asc:
-        q = q.order_by(Quote.created_date.asc())
+        q = q.order_by(Quote.created_date.asc(), Quote.id.asc())
     else:
-        q = q.order_by(Quote.created_date.desc())
+        q = q.order_by(Quote.created_date.desc(), Quote.id.desc())
 
     return q
 

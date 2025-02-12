@@ -1,4 +1,5 @@
 from operator import or_
+from flask import url_for
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
@@ -7,7 +8,7 @@ from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
 from lbrc_flask.database import db
-from sqlalchemy import select, alias
+from sqlalchemy import select
 from wtforms import SelectField, TextAreaField, StringField, SelectMultipleField
 from wtforms.fields import DateField, DecimalField
 from wtforms.fields.simple import HiddenField
@@ -249,7 +250,16 @@ def _user_coerce(value):
 
 class QuoteUpdateForm(FlashingForm):
     quote_id = HiddenField()
-    requestor_id = SelectField('Requesting User', coerce=_user_coerce, default=current_user_id, validate_choice=False, validators=[DataRequired()])
+    requestor_id = SelectField(
+        'Requesting User',
+        coerce=_user_coerce,
+        default=current_user_id,
+        validate_choice=False,
+        validators=[DataRequired()],
+        render_kw={
+            'class':' select2',
+        },
+    )
     name = StringField('Quote Title', validators=[Length(max=255), DataRequired()])
     organisation_id = SelectField('Organisation', validators=[DataRequired()])
     organisation_description = StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation])
@@ -262,7 +272,7 @@ class QuoteUpdateForm(FlashingForm):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.requestor_id.choices = _get_requestor_choices(add_all=False)
+        self.requestor_id.render_kw['data-options-href'] = url_for('ui.user_search')
         self.organisation_id.choices = _get_organisation_choices()
         self.quote_pricing_type_id.choices = [(0, '')] + [(pt.id, pt.name) for pt in QuotePricingType.query.all()]
 

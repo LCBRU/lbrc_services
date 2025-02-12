@@ -2,11 +2,12 @@
 
 from dotenv import load_dotenv
 from lbrc_flask.database import db
-from lbrc_flask.security import init_roles, init_users
+from lbrc_flask.security import init_roles, init_users, add_user_to_role
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import select
 from random import randint, choice, sample
+from lbrc_services.model.quotes import Quote, QuotePricingType, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType, QuoteWorkLine, QuoteWorkSection
 from lbrc_services.model.security import get_roles
 from lbrc_services.model import task_status_type_setup
 from lbrc_services.model.services import Organisation, Task, TaskStatusType, User, Service
@@ -39,6 +40,9 @@ create_field_types()
 me = db.session.execute(
     select(User).filter(User.id == 2)
 ).scalar()
+
+for r in get_roles():
+    add_user_to_role(user=me, role_name=r)
 
 other_users = [User(
     email=fake.email(),
@@ -94,6 +98,90 @@ for s in services:
             )
         )
 db.session.add_all(tasks)
+db.session.commit()
+
+quote_status_types = list(db.session.execute(select(QuoteStatusType)).scalars())
+quote_pricing_types = list(db.session.execute(select(QuotePricingType)).scalars())
+
+quotes = []
+for o in organisations:
+    for _ in range(randint(5,10)):
+        quotes.append(
+            Quote(
+                name=fake.sentence(),
+                organisation=o,
+                requestor=choice(other_users),
+                current_status_type=choice(quote_status_types),
+                introduction=fake.paragraph(nb_sentences=randint(2, 5)),
+                conclusion=fake.paragraph(nb_sentences=randint(2, 5)),
+                quote_pricing_type=choice(quote_pricing_types),
+                date_requested=fake.date(),
+                date_required=fake.date(),
+                reference=fake.sentence(),
+            )
+        )
+db.session.add_all(quotes)
+db.session.commit()
+
+quote_statuses = []
+for qws in quotes:
+    for _ in range(randint(2,10)):
+        quote_statuses.append(
+            QuoteStatus(
+                quote=qws,
+                notes=fake.paragraph(nb_sentences=randint(1, 3)),
+                quote_status_type=choice(quote_status_types),
+            )
+        )
+    quote_statuses.append(
+        QuoteStatus(
+            quote=qws,
+            notes=fake.paragraph(nb_sentences=randint(1, 3)),
+            quote_status_type=qws.current_status_type,
+        )
+    )
+db.session.add_all(quote_statuses)
+db.session.commit()
+
+
+quote_requirement_types = list(db.session.execute(select(QuoteRequirementType)).scalars())
+
+quote_requirements = []
+for qws in quotes:
+    for _ in range(randint(2,10)):
+        quote_requirements.append(
+            QuoteRequirement(
+                quote=qws,
+                notes=fake.paragraph(nb_sentences=randint(1, 3)),
+                quote_requirement_type=choice(quote_requirement_types),
+            )
+        )
+db.session.add_all(quote_requirements)
+db.session.commit()
+
+quote_work_sections = []
+for qws in quotes:
+    for _ in range(randint(2,10)):
+        quote_work_sections.append(
+            QuoteWorkSection(
+                quote=qws,
+                name=fake.sentence(nb_words=randint(1,10)),
+            )
+        )
+db.session.add_all(quote_work_sections)
+db.session.commit()
+
+quote_work_line = []
+for qws in quote_work_sections:
+    for _ in range(randint(2,10)):
+        quote_work_line.append(
+            QuoteWorkLine(
+                quote_work_section=qws,
+                name=fake.sentence(nb_words=randint(1,10)),
+                days=randint(1,20) * 0.5,
+            )
+        )
+db.session.add_all(quote_work_line)
 db.session.commit()
 
 db.session.close()

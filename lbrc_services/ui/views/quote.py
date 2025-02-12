@@ -1,8 +1,7 @@
-from datetime import datetime
 import time
 from flask_security import roles_required
 from lbrc_flask.forms import ConfirmForm
-from flask import redirect, render_template, request, url_for
+from flask import redirect, render_template, render_template_string, request, url_for
 from flask_login import current_user
 from lbrc_services.model.quotes import Quote, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType, QuoteWorkLine, QuoteWorkSection
 from lbrc_flask.database import db
@@ -13,6 +12,7 @@ from lbrc_services.model.services import Organisation
 from lbrc_services.ui.forms import QuoteRequirementForm, QuoteSearchForm, QuoteUpdateForm, QuoteUpdateStatusForm, QuoteWorkLineForm, QuoteWorkSectionForm
 from lbrc_services.ui.views import _get_quote_query, send_quote_export
 from lbrc_flask.export import pdf_download
+from lbrc_flask.response import refresh_response
 from .. import blueprint
 
 
@@ -36,6 +36,22 @@ def quotes():
         quote_update_status_form=QuoteUpdateStatusForm(),
     )
 
+
+
+@blueprint.route("/quote/<int:id>/<string:detail_selector>")
+def quote_details(id, detail_selector):
+    quote = db.get_or_404(Quote, id)
+
+    template = '''
+        {% from "ui/quote/_details.html" import render_quote_details %}
+        {{ render_quote_details(quote, detail_selector) }}
+    '''
+
+    return render_template_string(
+        template,
+        quote=quote,
+        detail_selector=detail_selector,
+    )
 
 
 @blueprint.route("/quotes/export")
@@ -152,12 +168,14 @@ def create_quote():
 
         save_quote(quote, form, 'created')
 
-        return redirect(url_for("ui.quotes"))
+        return refresh_response()
 
     return render_template(
         "ui/quote/create.html",
         form=form,
+        title="Add Quote",
         other_organisation=Organisation.get_other(),
+        url=url_for('ui.create_quote'),
     )
 
 
@@ -172,12 +190,14 @@ def edit_quote(quote_id):
 
         save_quote(quote, form, 'updated')
 
-        return redirect(request.args.get('prev', ''))
+        return refresh_response()
 
     return render_template(
         "ui/quote/create.html",
         form=form,
+        title="Edit Quote",
         other_organisation=Organisation.get_other(),
+        url=url_for('ui.edit_quote', quote_id=quote.id),
     )
 
 
