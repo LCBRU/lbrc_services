@@ -22,8 +22,8 @@ def reports():
 @must_own_a_service()
 @must_be_service_owner('service_id')
 def report_png():
-    search_form = ReportSearchForm(formdata=request.args)
-
+    search_form = ReportSearchForm(search_placeholder='Search Requests', formdata=request.args)
+    
     chart = get_chart(search_form)
     return chart.send_as_attachment()
 

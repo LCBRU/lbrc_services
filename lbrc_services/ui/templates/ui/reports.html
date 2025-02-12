@@ -1,26 +1,22 @@
-{% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search %}
+{% extends "ui/menu_page.html" %}
+{% from "lbrc/form_macros.html" import render_form_fields %}
 
-{% block content %}
+{% block menu_page_content %}
 
-<section>
-    <div class="page-header">
-        <h1>Reports</h1>
+<section class="container">
+    <header>
+        <h2>Reports</h2>
 
-        {{ render_search(
-            search_form,
-            'ui.reports',
-            placeholder='enter search text - searches names',
-            buttons=[
-                {
-                    'id': 'download',
-                    'text': 'Download',
-                    'endpoint': 'ui.report_png',
-                    'add_form_fields': True,
-                },
-            ],
-        ) }}
-    </div>
+        <form action="{{ url_for('ui.reports') }}" method="GET" enctype="multipart/form-data">
+            <fieldset class="columns">
+                {{ render_form_fields(search_form) }}
+
+                <div class="button_bar">
+                    <button type="submit" formaction="{{ url_for('ui.report_png') }}" formmethod="get">Download</button>
+                </div>
+            </fieldset>
+        </form>
+    </header>
 
     <div id="chart">
         <embed type="image/svg+xml" src= {{ chart|safe }} />

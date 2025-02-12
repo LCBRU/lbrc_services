@@ -16,7 +16,17 @@
             <li><a href="{{url_for('ui.quotes')}}" class="icon quote">Quotes</a></li>
         {% endif %}
 
-        <li><a href="{{url_for('ui.exports')}}" class="icon folder">Exports</a></li>
+        <li>
+            <a class="icon folder">Exports</a>
+            <menu>
+              {% if current_user.has_role('exporter') %}
+                  <li><a href="{{ url_for('ui.export') }}">Export all tasks</a></li>
+              {% endif %}
+              {% if current_user.ppi_owner %}
+                  <li><a href="{{ url_for('ui.export_ppi') }}">PPI Export</a></li>
+              {% endif %}
+            </menu>
+        </li>
       </menu>
       <menu>
         {% if current_user.is_admin %}
