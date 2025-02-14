@@ -5,6 +5,9 @@ __all__ = [
     "reports",
     "export",
     'quote',
+    'quote_requirements',
+    'quote_work',
+    'quote_status',
 ]
 
 

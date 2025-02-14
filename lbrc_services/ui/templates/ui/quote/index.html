@@ -1,7 +1,7 @@
 {% extends "ui/menu_page.html" %}
 {% from "lbrc/form_macros.html" import render_form_fields %}
 {% from "lbrc/pagination.html" import render_pagination, pagination_summary %}
-{% from "ui/quote/_details.html" import render_quote_details %}
+{% from "ui/quote/_details.html" import render_quote_details with context %}
 
 {% block menu_page_content %}
 
@@ -34,6 +34,14 @@
                         <div>
                             <nav class="link_list">
                                 <a title="Edit quote {{ q.name }}" hx-get="{{ url_for('ui.edit_quote', quote_id=q.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+                                <a title="Download quote {{ q.name }}" href="{{ url_for('ui.quote_pdf', quote_id=q.id) }}" class="icon pdf"></a>
+                                <div class="dropdown">
+                                    <a href="javascript:;" role="button">{{ q.current_status_type.name }}</a>
+                                    <ul>
+                                        <li><a hx-get="{{ url_for('ui.quote_status_update', quote_id=q.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;">Update Status</a></li>
+                                        <li><a hx-get="{{ url_for('ui.quote_status_history', quote_id=q.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;">Status History</a></li>
+                                    </ul>
+                                </div>            
                             </nav>
                         </div>
                     </div>

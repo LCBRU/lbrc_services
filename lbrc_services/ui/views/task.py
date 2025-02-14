@@ -171,7 +171,7 @@ def _update_assigned_user(task_id, user_id, notes=''):
 # Task Status
 
 @blueprint.route("/task/<int:task_id>/update_status", methods=["GET", "POST"])
-# @must_be_task_owner_or_requestor("task_id")
+@must_be_task_owner_or_requestor("task_id")
 def task_update_status(task_id):
     task = db.get_or_404(Task, task_id)
     form = TaskUpdateStatusForm()

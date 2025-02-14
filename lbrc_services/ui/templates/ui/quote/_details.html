@@ -2,8 +2,8 @@
 {% from "lbrc/tabbed_display.html" import tabbed_display_tab with context %}
 
 {% macro render_quote_details(quote, detail_selector) %}
-    <div id="details_{{quote.id}}" class="tabbed_display">
-        <div class="tabbed_display_tabs {{detail_selector}}" hx-target="#details_{{quote.id}}" hx-trigger="refreshDetails from:body" hx-swap="outerHTML" hx-get="{{ url_for('ui.quote_details', id=quote.id, detail_selector=details_selector) }}">
+    <div id="details_{{quote.id}}" class="tabbed_display"  hx-target="#details_{{quote.id}}" hx-trigger="refreshDetails from:body" hx-swap="outerHTML" hx-get="{{ url_for('ui.quote_details', id=quote.id, detail_selector=detail_selector) }}">
+        <div class="tabbed_display_tabs {{detail_selector}}">
             {{ tabbed_display_tab(detail_selector, 'quote', 'Quotation Details', url_for('ui.quote_details', id=quote.id, detail_selector='quote')) }}
             {{ tabbed_display_tab(detail_selector, 'requirements', 'Requirements', url_for('ui.quote_details', id=quote.id, detail_selector='requirements')) }}
             {{ tabbed_display_tab(detail_selector, 'work', 'Work Breakdown', url_for('ui.quote_details', id=quote.id, detail_selector='work')) }}
@@ -42,7 +42,90 @@
 {% endmacro %}
 
 {% macro render_quote_requirements_details(quote) %}
+    <ul class="panel_list">
+        {% for t in requirement_types %}
+            <li>
+                <header>
+                    <div class="flex_two_left_grow">
+                        <div>
+                            <h3>{{ t.name }}</h3>
+                            <h5>{{ t.description | blank_if_none | markdown }}</h5>
+                        </div>
+                        <nav class="link_list">
+                            <a title="Add Requirement" hx-get="{{ url_for('ui.add_quote_requirement', quote_id=quote.id, quote_requirement_type_id=t.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon add" role="button">Create</a>
+                        </nav>
+                    </div>
+                </header>
+                <table class="with_icons">
+                    <tbody>
+                        {% for r in quote.requirements_by_type(t) %}
+                            <tr>
+                                <td>
+                                    <a title="Edit Requirement" hx-get="{{ url_for('ui.edit_quote_requirement', quote_id=quote.id, quote_requirement_id=r.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+                                    <a title="Delete Requirement" hx-post="{{ url_for('ui.delete_quote_requirement', quote_id=quote.id, quote_requirement_id=r.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon delete" hx-confirm="Are you sure you wish to delete the requirement '{{ r.notes }}'?"></a>
+                                </td>
+                                <td>{{ r.notes | blank_if_none}}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td><em>No Requirements</em></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </li>
+        {% endfor %}
+    </ul>
 {% endmacro %}
 
 {% macro render_quote_work_details(quote) %}
+    <div class="button_bar">
+        <a title="Create Work Section" hx-get="{{ url_for('ui.quote_work_section_add', quote_id=quote.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon add" role="button">Create</a>
+    </div>
+    <ul class="panel_list">
+        {% for s in quote.work_sections %}
+            <li>
+                <header>
+                    <div class="flex_two_left_grow">
+                        <div>
+                            <h3>{{ s.name }}</h3>
+                        </div>
+                        <nav class="link_list">
+                            <a title="Edit Work Section {{ s.name }}" hx-get="{{ url_for('ui.quote_work_section_edit', quote_id=quote.id, quote_work_section_id=s.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit" role="button"></a>
+                            <a title="Add Line to Work Section {{ s.name }}" hx-get="{{ url_for('ui.quote_work_line_add', quote_id=quote.id, quote_work_section_id=s.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon add" role="button"></a>
+                            <a title="Delete Work Section {{ s.name }}" hx-post="{{ url_for('ui.quote_work_section_delete', quote_id=quote.id, quote_work_section_id=s.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon delete" role="button" hx-confirm="Are you sure you wish to delete the work section '{{ s.name }}'?"></a>
+                        </nav>
+                    </div>
+                </header>
+                <table class="with_icons">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Days</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in s.lines %}
+                            <tr>
+                                <td>
+                                    <a title="Edit Line" hx-get="{{ url_for('ui.quote_work_line_edit', quote_id=quote.id, quote_work_section_id=s.id, quote_work_line_id=l.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+                                    <a title="Delete Line" hx-post="{{ url_for('ui.quote_work_line_delete', quote_id=quote.id, quote_work_section_id=s.id, quote_work_line_id=l.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon delete" hx-confirm="Are you sure you wish to delete the work line '{{ l.name }}'?"></a>
+                                </td>
+                                <td>{{ l.name | blank_if_none}}</td>
+                                <td>{{ l.days | blank_if_none }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td><em>No Work Lines</em></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </li>
+        {% endfor %}
+    </ul>
 {% endmacro %}

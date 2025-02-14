@@ -3,17 +3,16 @@ from flask import url_for
 from lbrc_flask.forms import SearchForm, FlashingForm
 from flask_login import current_user
 from itertools import groupby
-from lbrc_flask.forms import ElementDisplayField, DataListField
 from lbrc_flask.forms.dynamic import Field, FormBuilder
 from lbrc_flask.security import current_user_id
 from lbrc_flask.security.ldap import get_or_create_ldap_user
 from lbrc_flask.database import db
 from sqlalchemy import select
 from wtforms import SelectField, TextAreaField, StringField, SelectMultipleField
-from wtforms.fields import DateField, DecimalField
+from wtforms.fields import DateField
 from wtforms.fields.simple import HiddenField
-from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
-from lbrc_services.model.quotes import QuotePricingType, QuoteRequirementType, QuoteStatusType, QuoteWorkLineNameSuggestion
+from wtforms.validators import DataRequired, Length, ValidationError
+from lbrc_services.model.quotes import QuotePricingType, QuoteStatusType
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 from sqlalchemy.orm import aliased
 
@@ -46,11 +45,6 @@ def _get_organisation_search_choices():
 def _get_task_status_type_choices():
     task_status_types = TaskStatusType.query.order_by(TaskStatusType.name.asc()).all()
     return [(rt.id, rt.name) for rt in task_status_types]
-
-
-def _get_quote_status_type_choices():
-    quote_status_types = QuoteStatusType.query.order_by(QuoteStatusType.name.asc()).all()
-    return [(rt.id, rt.name) for rt in quote_status_types]
 
 
 def _owners_of_my_services():
@@ -103,6 +97,11 @@ def _get_combined_task_status_type_choices():
         (-1, 'Open or recently closed'),
         (-2, 'Closed (done, declined or cancelled)'),
         (-3, 'All')] + _get_task_status_type_choices()
+
+
+def _get_quote_status_type_choices():
+    quote_status_types = QuoteStatusType.query.order_by(QuoteStatusType.name.asc()).all()
+    return [(rt.id, rt.name) for rt in quote_status_types]
 
 
 def _get_combined_quote_status_type_choices():
@@ -194,17 +193,6 @@ class TaskUpdateStatusForm(FlashingForm):
     notes = TextAreaField("Notes", validators=[Length(max=255)])
 
 
-class QuoteUpdateStatusForm(FlashingForm):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.status_type_id.choices = _get_quote_status_type_choices()
-
-    quote_id = HiddenField()
-    status_type_id = SelectField("New Status", validators=[DataRequired()])
-    notes = TextAreaField("Notes", validators=[Length(max=255)])
-
-
 class EditToDoForm(FlashingForm):
     description = TextAreaField("Description", validators=[Length(max=500)])
 
@@ -275,39 +263,6 @@ class QuoteUpdateForm(FlashingForm):
         self.requestor_id.render_kw['data-options-href'] = url_for('ui.user_search')
         self.organisation_id.choices = _get_organisation_choices()
         self.quote_pricing_type_id.choices = [(0, '')] + [(pt.id, pt.name) for pt in QuotePricingType.query.all()]
-
-
-class QuoteRequirementForm(FlashingForm):
-    id = HiddenField()
-    quote_id = HiddenField()
-    quote_requirement_type_id = HiddenField()
-    quote_requirement_type_name = ElementDisplayField(element_type='h1')
-    quote_requirement_type_description = ElementDisplayField(element_type='h2')
-    notes = TextAreaField('Notes')
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.quote_requirement_type_id.choices = [(0, '')] + [(t.id, t.name) for t in QuoteRequirementType.query.all()]
-
-
-class QuoteWorkSectionForm(FlashingForm):
-    id = HiddenField()
-    quote_id = HiddenField()
-    name = StringField('Name', validators=[DataRequired()])
-
-
-class QuoteWorkLineForm(FlashingForm):
-    id = HiddenField()
-    quote_work_section_id = HiddenField()
-    name = StringField('Name', validators=[DataRequired()], render_kw={'list': 'name_options', 'autocomplete': 'off' })
-    name_options = DataListField()
-    days = DecimalField('Days', places=2, render_kw={'min': '0', 'max': '50', 'step': '0.25'}, validators=[DataRequired(), NumberRange(min=0, max=50)])
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.name_options.choices = [s.name for s in QuoteWorkLineNameSuggestion.query.all()]
 
 
 def get_create_task_form(service, task=None):
