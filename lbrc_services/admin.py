@@ -8,7 +8,6 @@ from flask_admin.model.form import InlineFormAdmin
 from flask_admin.form.rules import BaseRule
 from markupsafe import Markup
 from flask import url_for
-from flask_admin import BaseView, expose
 
 
 class ServiceView(AdminCustomView):
@@ -147,12 +146,6 @@ class FieldView(AdminCustomView):
     column_filters = ['field_group']
 
 
-class AnalyticsView(BaseView):
-    @expose('/')
-    def index(self):
-        return self.render('analytics_index.html')
-
-
 def init_admin(app, title):
     flask_init_admin(
         app,
@@ -165,6 +158,5 @@ def init_admin(app, title):
             OrganisationView(Organisation, db.session),
             QuoteRequirementTypeView(QuoteRequirementType, db.session),
             QuoteWorkLineNameSuggestionView(QuoteWorkLineNameSuggestion, db.session),
-            AnalyticsView(name='Analytics', endpoint='analytics'),
         ],
     )

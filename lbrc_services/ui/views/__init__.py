@@ -5,12 +5,13 @@ __all__ = [
     "reports",
     "export",
     'quote',
-    'quote_requirements',
-    'quote_work',
+    'quote_requirement',
     'quote_status',
+    'quote_work',
 ]
 
 
+import re
 from datetime import timedelta, date
 from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
@@ -23,8 +24,13 @@ from lbrc_flask.formatters import format_datetime
 def _get_tasks_query(search_form, owner_id=None, requester_id=None):
     q = select(Task)
 
-    if search_form.search.data:
-        q = q.where(Task.name.like(f"%{search_form.search.data}%"))
+    if x := search_form.search.data:
+        x = x.strip()
+        if m := re.fullmatch(r"#(\d+)", x):
+            q = q.where(Task.id == int(m.group(1)))
+        else:
+            for word in x.split():
+                q = q.where(Task.name.like(f"%{word}%"))
 
     if search_form.data.get('service_id', 0) not in (0, "0", None):
         q = q.where(Task.service_id == search_form.data['service_id'])
