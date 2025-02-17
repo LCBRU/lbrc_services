@@ -15,6 +15,7 @@
                 </header>
                 <p>{{ s.description | blank_if_none | markdown }}</p>
                 <div class="button_bar">
+                    <a href="{{ url_for('ui.service_form_pdf', service_id=s.id ) }}" class="icon pdf" role="button"></a>
                     <a hx-get="{{ url_for('ui.create_task', service_id=s.id ) }}" hx-target="body" hx-swap="beforeend" role="button">Request {{s.name}} Services</a>
                 </div>
             </li>

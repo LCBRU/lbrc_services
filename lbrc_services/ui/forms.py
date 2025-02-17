@@ -265,7 +265,30 @@ class QuoteUpdateForm(FlashingForm):
         self.quote_pricing_type_id.choices = [(0, '')] + [(pt.id, pt.name) for pt in QuotePricingType.query.all()]
 
 
-def get_create_task_form(service, task=None):
+def get_create_task_form(service, task=None, is_pdf=False):
+    builder = get_create_task_form_builder(service, is_pdf)
+    result = populate_create_task_form(task, builder)
+
+    return result
+
+
+def get_create_task_form_builder(service, is_pdf):
+    builder = FormBuilder()
+
+    if is_pdf:
+        add_task_user_fields_pdf(builder)
+    else:
+        add_task_user_fields(builder, service)
+
+    builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
+    builder.add_form_field('organisations', SelectMultipleField('Organisations', choices=_get_organisation_choices(service), validators=[DataRequired()]))
+    builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
+    builder.add_field_group(service.field_group)
+
+    return builder
+
+
+def add_task_user_fields(builder, service):
     users = User.query.order_by(User.last_name.asc(), User.first_name.asc()).all()
     requestor_choices = [('', '')] + [(t.id, t.full_name) for t in users]
 
@@ -274,9 +297,8 @@ def get_create_task_form(service, task=None):
     if current_user in service.owners:
         default_assigned_user_id = current_user_id
 
-    builder = FormBuilder()
     builder.add_form_field('requestor_id', SelectField(
-        'Requesting User',
+        'Requestor',
         coerce=_user_coerce,
         default=current_user_id,
         choices=requestor_choices,
@@ -290,11 +312,13 @@ def get_create_task_form(service, task=None):
         choices=_get_service_assigned_user_choices(service.id),
         validate_choice=False,
     ))
-    builder.add_form_field('name', StringField('Request Title', validators=[Length(max=255), DataRequired()]))
-    builder.add_form_field('organisations', SelectMultipleField('Organisations', choices=_get_organisation_choices(service), validators=[DataRequired()]))
-    builder.add_form_field('organisation_description', StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation]))
-    builder.add_field_group(service.field_group)
 
+
+def add_task_user_fields_pdf(builder):
+    builder.add_form_field('requestor_id', StringField('Requestor'))
+
+
+def populate_create_task_form(task, builder):
     class DynamicTask:
         pass
 

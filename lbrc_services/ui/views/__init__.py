@@ -8,6 +8,7 @@ __all__ = [
     'quote_requirement',
     'quote_status',
     'quote_work',
+    'service',
 ]
 
 
