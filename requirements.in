@@ -2,3 +2,4 @@ git+https://github.com/LCBRU/lbrc_flask.git#egg=lbrc_flask
 pymysql
 Faker
 werkzeug<3
+WeasyPrint<53

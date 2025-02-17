@@ -23,12 +23,14 @@ blinker==1.9.0
     #   flask
     #   flask-mail
     #   flask-principal
-brotli==1.1.0
-    # via fonttools
 cairocffi==1.7.1
-    # via cairosvg
+    # via
+    #   cairosvg
+    #   weasyprint
 cairosvg==2.7.1
-    # via lbrc-flask
+    # via
+    #   lbrc-flask
+    #   weasyprint
 celery==5.4.0
     # via lbrc-flask
 cffi==1.17.1
@@ -97,18 +99,18 @@ flask-sqlalchemy==3.1.1
     # via
     #   flask-security-too
     #   lbrc-flask
-flask-weasyprint==1.1.0
+flask-weasyprint==1.0.0
     # via lbrc-flask
 flask-wtf==1.2.2
     # via
     #   flask-security-too
     #   lbrc-flask
-fonttools==4.55.6
-    # via weasyprint
 greenlet==3.1.1
     # via sqlalchemy
 hatchling==1.27.0
     # via lbrc-flask
+html5lib==1.1
+    # via weasyprint
 idna==3.10
     # via email-validator
 importlib-metadata==8.6.1
@@ -170,8 +172,6 @@ pyasn1-modules==0.4.1
     # via python-ldap
 pycparser==2.22
     # via cffi
-pydyf==0.11.0
-    # via weasyprint
 pygal==3.0.5
     # via lbrc-flask
 pygments==2.19.1
@@ -203,9 +203,13 @@ rpds-py==0.22.3
     #   jsonschema
     #   referencing
 setuptools==75.8.0
-    # via lbrc-flask
+    # via
+    #   lbrc-flask
+    #   weasyprint
 six==1.17.0
-    # via python-dateutil
+    # via
+    #   html5lib
+    #   python-dateutil
 sqlalchemy==2.0.37
     # via
     #   alembic
@@ -219,8 +223,6 @@ tinycss2==1.4.0
     #   cairosvg
     #   cssselect2
     #   weasyprint
-tinyhtml5==2.0.0
-    # via weasyprint
 trove-classifiers==2025.1.15.22
     # via hatchling
 types-python-dateutil==2.9.0.20241206
@@ -242,14 +244,16 @@ vine==5.1.0
     #   kombu
 wcwidth==0.2.13
     # via prompt-toolkit
-weasyprint==63.1
-    # via flask-weasyprint
+weasyprint==52.5
+    # via
+    #   -r requirements.in
+    #   flask-weasyprint
 webencodings==0.5.1
     # via
     #   bleach
     #   cssselect2
+    #   html5lib
     #   tinycss2
-    #   tinyhtml5
 werkzeug==2.3.8
     # via
     #   -r requirements.in
@@ -265,5 +269,3 @@ xlrd==2.0.1
     # via lbrc-flask
 zipp==3.21.0
     # via importlib-metadata
-zopfli==0.2.3.post1
-    # via fonttools

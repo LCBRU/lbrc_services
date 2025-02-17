@@ -24,58 +24,6 @@
             }
         }
 
-        :root{
-            --body-font-family: Lato;
-            --body-font-weight: 400;
-            --body-font-weight-bold: 700;
-            --body-line-height: 1.625;
-            --body-font-style: normal;
-            --body-font-size: 1rem;
-            --body-font-large-size: 1.5rem;
-            --body-small-spacing: 2px;
-            --body-spacing: 0.5rem;
-            --body-paragraph-spacing: 1rem;
-            --body-paragraph-double-spacing: 2rem;
-
-            --footer-font-size: 1rem;
-            --bold-font-weight: 700;
-
-            --header-font-size: 2rem;
-            --header-height: 120px;
-
-            --submenu-max-width: 30rem;
-            --column-min-width: 300px;
-            --panel-min-width: 500px;
-
-            --color-black:#111111;
-            --color-white:#ffffff;
-            --color-white-alt: #f8f9fC;
-            --color-blue:#193e72;
-            --color-light-blue: #E0EEEF;
-            --color-blue-green: #4DA5AE;
-            --color-red:#ea5c4e;
-            --color-light-red: #FBE3D9;
-            --color-orange: #E7973F;
-            --color-light-orange: #FFF8E8;
-            --color-light-grey: #F0F1F5;
-            --color-grey: #ced4da;
-            --color-dark-grey: #6c757d;
-            --color-green: #46a86c;
-            --color-light-green: #e8f6ed;
-            --color-shadow: rgba(0, 0, 0, 0.3);
-            --color-yellow: #fdcb14;
-
-            --_button_background_color: var(--color-green);
-            --_button_forground_color: var(--color-white);
-            --_pill_background_color: var(--color-dark-grey);
-            --_pill_forground_color: var(--color-white);
-
-            --border-radius: 5px;
-            --viewport-width: 80rem;
-
-            --animation-duration: 150ms;
-        }
-
         /* Reset Start*/
 
         * {
@@ -86,30 +34,11 @@
             -webkit-text-size-adjust: 100%;
             font-size: 100%;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale
-        }
-
-        ::selection {
-            color: var(--color-white);
-            background: var(--color-blue);
-        }
-
-        ::placeholder{
-            color: var(--color-blue);
-        }
-
-        html {
-            hanging-punctuation: first last;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            min-height: 100svh;
-            color: var(--color-black);
-            font-weight: var(--body-font-weight);
-            font-size: var(--body-font-size);
-            font-family: var(--body-font-family);
-            font-style: var(--body-font-style);
-            line-height: var(--body-line-height);    
+            color: #111111;
         }
 
         img,
@@ -117,14 +46,6 @@
         video {
             display: block;
             max-width: 100%;
-        }
-
-        h2, h3, h4, h5, h6 {
-            text-wrap: balance;
-        }
-
-        p, ul, ol, img {
-            margin-bottom: var(--body-paragraph-spacing);
         }
 
         /* Reset End */
@@ -179,53 +100,50 @@
         }
 
         /* Form Start */
-        fieldset
-        {
+        fieldset {
             border: none;
-            display: grid;
-            gap: var(--body-spacing);
-            align-items: first baseline;
-        }
-
-        fieldset > div {
-            display: grid;
         }
 
         .field {
-            border: solid 1px var(--color-black);
-            padding: var(--body-spacing);
+            border: solid 1px #111111;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            page-break-inside: avoid;
         }
 
         label {
-            font-size: var(--body-font-size);
-            margin-bottom: 5px;
+            display: block;
+            margin-bottom: 0.5rem;
         }
 
-        input, textarea {
+        input {
             border: none;
+            padding-bottom: 1rem;
         }
 
         textarea {
+            border: none;
             padding-top: 8rem;
         }
 
-        .choices {
-            display: grid;
-            gap: var(--body-paragraph-spacing);
-            grid-template-columns: repeat(2, 1fr);
-            position: relative;
+        .choices * {
+            display: inline-block;
         }
 
         .choice {
-            font-size: var(--body-font-size);
-            display: flex;
+            width: 49%;
+            position: relative;
+            margin-bottom: 0.5rem;
         }
 
         .checkbox {
-            border: var(--color-black) 2px solid;
-            margin-left: var(--body-spacing);
-            padding: var(--body-spacing);
-            margin-right: var(--body-paragraph-spacing);
+            border: #111111 1px solid;
+            padding: 6px;
+            position: absolute;
+        }
+
+        .choice .label {
+            margin-left: 1.5rem;
         }
 
         /* Form End */
