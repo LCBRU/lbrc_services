@@ -39,7 +39,7 @@
 {% macro render_task_requestor_buttons(task) %}
     <nav class="linked_list">
         <a id="task_view_{{task.id}}" title="View request {{ task.name }}" hx-get="{{ url_for('ui.show_task_details', task_id=task.id) }}" hx-target="#task_details_{{task.id}}" hx-swap="innerHTML" href="javascript:;" class="icon view"></a>
-        <a title="Edit request {{ task.name }}" hx-get="{{ url_for('ui.edit_task', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+        <a title="Edit request {{ task.name }}" hx-get="{{ url_for('ui.edit_task_modal', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
         <a title="Cancel request {{ task.name }}" hx-post="{{ url_for('ui.cancel_task', task_id=task.id) }}" hx-confirm="Are you sure you wish to cancel the request '{{ task.name }}'?" href="javascript:;" class="icon delete"></a>
     </nav>
 {% endmacro %}
@@ -49,7 +49,7 @@
     <div class="grid_stacked_right">
         <nav class="linked_list">
             <a id="task_view_{{task.id}}" title="View job {{ task.name }}" hx-get="{{ url_for('ui.show_task_details', task_id=task.id) }}" hx-target="#task_details_{{task.id}}" hx-swap="innerHTML" href="javascript:;" class="icon view"></a>
-            <a title="Edit job {{ task.name }}" hx-get="{{ url_for('ui.edit_task', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
+            <a title="Edit job {{ task.name }}" hx-get="{{ url_for('ui.edit_task_modal', task_id=task.id) }}" hx-target="body" hx-swap="beforeend" href="javascript:;" class="icon edit"></a>
             <a title="{{ task.name }} To Do List" hx-get="{{ url_for('ui.task_todos', task_id=task.id) }}" class="icon check_list" hx-target="body" hx-swap="beforeend" href="javascript:;">
                 {% if task.required_todos > 0 %}
                     <span>({{task.complete_todos}} / {{task.required_todos}})</span>
