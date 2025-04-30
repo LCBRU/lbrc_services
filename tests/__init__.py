@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+# Load environment variables from '.env' file.
+load_dotenv()
+
 import re
 from lbrc_flask.pytest.asserts import get_and_assert_standards
 from flask import url_for

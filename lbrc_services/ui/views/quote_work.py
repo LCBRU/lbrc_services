@@ -138,7 +138,7 @@ def quote_work_line_edit(quote_id, quote_work_section_id, quote_work_line_id):
         "lbrc/form_modal.html",
         title=f"Edit Work Line for Section {quote_work_section.name}",
         form=form,
-        url=url_for('ui.quote_work_section_edit', quote_id=quote.id, quote_work_section_id=quote_work_section.id, quote_work_line_id=quote_work_line.id),
+        url=url_for('ui.quote_work_line_edit', quote_id=quote.id, quote_work_section_id=quote_work_section.id, quote_work_line_id=quote_work_line.id),
         closing_events=[REFRESH_DETAILS_TRIGGER],
     )
 
