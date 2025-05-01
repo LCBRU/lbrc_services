@@ -73,6 +73,8 @@ email-validator==2.2.0
     #   lbrc-flask
 et-xmlfile==2.0.0
     # via openpyxl
+execnet==2.1.1
+    # via pytest-xdist
 faker==37.1.0
     # via lbrc-flask
 flask==3.1.0
@@ -135,7 +137,7 @@ jsonschema-specifications==2025.4.1
     # via jsonschema
 kombu==5.5.3
     # via celery
-lbrc-flask @ git+https://github.com/LCBRU/lbrc_flask.git@35311ddd28df90ebed777467c69fa4a407d7eda7#egg=lbrc_flask
+lbrc-flask @ git+https://github.com/LCBRU/lbrc_flask.git@e789b5695f6757fb1cf4755031f0222979b21b56#egg=lbrc_flask
     # via -r requirements.in
 ldap3==2.9.1
     # via lbrc-flask
@@ -194,7 +196,10 @@ pytest==8.3.5
     # via
     #   lbrc-flask
     #   pytest-cov
+    #   pytest-xdist
 pytest-cov==6.1.1
+    # via lbrc-flask
+pytest-xdist==3.6.1
     # via lbrc-flask
 python-dateutil==2.9.0.post0
     # via
@@ -215,7 +220,7 @@ rpds-py==0.24.0
     # via
     #   jsonschema
     #   referencing
-setuptools==80.0.1
+setuptools==80.1.0
     # via lbrc-flask
 six==1.17.0
     # via python-dateutil
