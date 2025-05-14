@@ -38,6 +38,8 @@ def user_search():
             }
 
         for u in l.search_user(q):
+            print(u)
+
             if u['username'] not in users:
                 users[u['username']] = {
                     'id': u['username'],
