@@ -2,7 +2,7 @@ import pytest
 import http
 from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
-from tests import lbrc_services_get
+from tests import lbrc_services_modal_get
 from lbrc_flask.pytest.asserts import assert__requires_login
 
 

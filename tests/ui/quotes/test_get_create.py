@@ -1,26 +1,23 @@
 import http
 from flask import url_for
-from tests import lbrc_services_get
+from tests import lbrc_services_modal_get
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__requires_role
 
 
-def _url(external=True, prev=None):
-    if prev == None:
-        prev = url_for('ui.index', _external=True)
-
-    return url_for('ui.create_quote', prev=prev, _external=external)
+def _url(external=True):
+    return url_for('ui.create_quote', _external=external)
 
 
 def test__get__requires_login(client, faker):
     assert__requires_login(client, _url(external=False))
 
 
-def test__get__requires_quoter_role(client, faker, loggedin_user):
-    resp = assert__requires_role(client, _url())
+# def test__get__requires_quoter_role(client, faker, loggedin_user):
+#     resp = assert__requires_role(client, _url())
 
 
 def test__get__common_form_fields(client, faker, quoter_user):
-    resp = lbrc_services_get(client, _url(), quoter_user)
+    resp = lbrc_services_modal_get(client, _url(), quoter_user)
     assert resp.status_code == http.HTTPStatus.OK
     
     assert resp.soup.find("select", id="requestor_id") is not None

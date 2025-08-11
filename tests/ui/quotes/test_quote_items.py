@@ -41,7 +41,7 @@ def _get(client, url, loggedin_user, has_form):
 def test__quotes(client, faker, quotes, quoter_user):
     my_quotes = faker.get_test_quotes(requestor=quoter_user, count=quotes)
 
-    resp = _get(client, _url(), quoter_user, has_form=True)
+    resp = _get(client, _url(), quoter_user, has_form=False)
 
     assert_results(resp, my_quotes)
 
@@ -51,7 +51,7 @@ def test__quotes__search__name(client, faker, quoter_user):
     matching = faker.get_test_quotes(requestor=quoter_user, name='Mary')
     non_matching = faker.get_test_quotes(requestor=quoter_user, name='Joseph')
 
-    resp = _get(client, _url(search='ar'), quoter_user, has_form=True)
+    resp = _get(client, _url(search='ar'), quoter_user, has_form=False)
 
     assert_results(resp, matching)
 
@@ -61,7 +61,7 @@ def test__quotes__search__task_status_type(client, faker, quoter_user):
     matching = faker.get_test_quotes(requestor=quoter_user, current_status_type=QuoteStatusType.get_awaiting_approval())
     non_matching = faker.get_test_quotes(requestor=quoter_user, current_status_type=QuoteStatusType.get_charged())
 
-    resp = _get(client, _url(quote_status_type_id=QuoteStatusType.get_awaiting_approval().id), quoter_user, has_form=True)
+    resp = _get(client, _url(quote_status_type_id=QuoteStatusType.get_awaiting_approval().id), quoter_user, has_form=False)
 
     assert_results(resp, matching)
 
@@ -71,7 +71,7 @@ def test__quotes__search__organisation(client, faker, quoter_user):
     matching = faker.get_test_quotes(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR))
     non_matching = faker.get_test_quotes(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.LIFESTYLE))
 
-    resp = _get(client, _url(organisation_id=Organisation.get_organisation(Organisation.CARDIOVASCULAR).id), quoter_user, has_form=True)
+    resp = _get(client, _url(organisation_id=Organisation.get_organisation(Organisation.CARDIOVASCULAR).id), quoter_user, has_form=False)
 
     assert_results(resp, matching)
 
@@ -81,7 +81,7 @@ def test__quotes__search__created_from(client, faker, quoter_user):
     matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2020, 1, 1))
     non_matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2019, 12, 31))
 
-    resp = _get(client, _url(created_date_from='2020-01-01'), quoter_user, has_form=True)
+    resp = _get(client, _url(created_date_from='2020-01-01'), quoter_user, has_form=False)
 
     assert_results(resp, matching)
 
@@ -91,7 +91,7 @@ def test__quotes__search__created_to(client, faker, quoter_user):
     non_matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2020, 1, 1))
     matching = faker.get_test_quotes(requestor=quoter_user, created_date=datetime(2019, 12, 31))
 
-    resp = _get(client, _url(created_date_to='2019-12-31'), quoter_user, has_form=True)
+    resp = _get(client, _url(created_date_to='2019-12-31'), quoter_user, has_form=False)
 
     assert_results(resp, matching)
 
@@ -163,9 +163,9 @@ def test__quotes__search__created_to__pages(client, faker, quoter_user, quote_co
 
 def assert_results(resp, matches):
     assert resp.status_code == http.HTTPStatus.OK
-    assert len(resp.soup.find_all("li", "list-group-item")) == len(matches)
+    assert len(resp.soup.select(".panel_list > li")) == len(matches)
 
-    for u, li in zip(reversed(matches), resp.soup.find_all("li", "list-group-item")):
+    for u, li in zip(reversed(matches), resp.soup.find_all(".panel_list > li")):
         quote_matches_li(u, li)
 
 

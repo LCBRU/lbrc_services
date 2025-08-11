@@ -1,7 +1,7 @@
 import http
 from flask import url_for
 from lbrc_services.model.services import Organisation
-from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
+from lbrc_flask.pytest.asserts import assert__error__required_field_modal, assert__refresh_response, assert__requires_login
 from tests.ui.quotes import assert__quote, post_quote
 
 
@@ -32,7 +32,7 @@ def test__update__with_all_values(client, faker, quoter_user):
 
     resp = _edit_post(client, quote)
 
-    assert__redirect(resp, endpoint='ui.quotes')
+    assert__refresh_response(resp)
     assert__quote(quote, quoter_user)
 
 
@@ -43,7 +43,7 @@ def test__update__empty_name(client, faker, quoter_user):
     resp = _edit_post(client, quote)
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field(resp.soup, "Quote Title")
+    assert__error__required_field_modal(resp.soup, "Quote Title")
 
 
 def test__create_task__empty_organisation(client, faker, quoter_user):
@@ -53,7 +53,7 @@ def test__create_task__empty_organisation(client, faker, quoter_user):
     resp = _edit_post(client, expected)
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field(resp.soup, "organisation")
+    assert__error__required_field_modal(resp.soup, "organisation")
 
 
 def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, quoter_user):
@@ -62,4 +62,4 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
     resp = _edit_post(client, expected)
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field(resp.soup, "organisation description")
+    assert__error__required_field_modal(resp.soup, "organisation description")

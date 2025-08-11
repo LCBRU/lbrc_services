@@ -1,7 +1,7 @@
 import pytest
 import http
 from flask import url_for
-from tests import lbrc_services_get
+from tests import lbrc_services_modal_get
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__requires_role
 
 
@@ -33,7 +33,7 @@ def test__get__missing(client, faker, quoter_user):
 def test__get__common_form_fields(client, faker, quoter_user):
     quote = faker.get_test_quote()
 
-    resp = lbrc_services_get(client, _url(quote.id), quoter_user)
+    resp = lbrc_services_modal_get(client, _url(quote.id), quoter_user)
     assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("select", id="requestor_id") is not None

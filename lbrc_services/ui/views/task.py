@@ -15,7 +15,6 @@ from ..forms import MyJobsSearchForm, TaskUpdateStatusForm, TaskSearchForm, get_
 from .. import blueprint
 from sqlalchemy import or_, select
 from lbrc_flask.security import current_user_id
-from flask import current_app
 from lbrc_flask.export import pdf_download
 from lbrc_flask.response import refresh_response
 

@@ -213,7 +213,7 @@ def required_when_other_organisation(form, field):
     if form.__contains__('organisations'):
         if any(int(oid) == Organisation.get_other().id for oid in form.organisations.data):
             raise ValidationError('This field is required.')
-    elif form.__contains__('organisation_id') and form.organisation_id.data.isnumeric():
+    elif form.__contains__('organisation_id') and (form.organisation_id.data or '').isnumeric():
         if int(form.organisation_id.data) == Organisation.get_other().id:
             raise ValidationError('This field is required.')
 

@@ -10,7 +10,7 @@ def _url(external=True, **kwargs):
 
 def _update_status_post(client, task, status, notes):
     return client.post(
-        _url(),
+        _url(task_id=task.id),
         data={
             'task_id': task.id,
             'status': status.id,
@@ -20,7 +20,7 @@ def _update_status_post(client, task, status, notes):
 
 
 def test__post__requires_login(client):
-    assert__requires_login(client, _url(external=False), post=True)
+    assert__requires_login(client, _url(external=False, task_id=1), post=True)
 
 
 def test__my_jobs__update_status(client, faker, loggedin_user):

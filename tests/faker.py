@@ -1,11 +1,10 @@
 from datetime import datetime
-from itertools import count
 from faker.providers import BaseProvider
 from lbrc_services.model.quotes import Quote, QuotePricingType, QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
+from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator
 from io import BytesIO
-from pathlib import Path
 
 
 class FakerFile():
@@ -21,6 +20,16 @@ class FakerFile():
             self.file(),
             self.filename
         )
+
+
+class UserCreator(BaseUserCreator):
+    def __init__(self):
+        super().__init__(User)
+
+
+class UserProvider(BaseProvider):
+    def user(self):
+        return UserCreator()
 
 
 class LbrcServicesFakerProvider(BaseProvider):
