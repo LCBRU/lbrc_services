@@ -1,10 +1,9 @@
-from lbrc_services.model.services import Task, TaskData
+import pytest
+import http
 from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
-import pytest
 from tests import lbrc_services_get
 from lbrc_flask.pytest.asserts import assert__requires_login
-from flask_api import status
 
 
 def _url(task_id, external=True, prev=None):
@@ -22,14 +21,14 @@ def test__get__requires_login(client, faker):
 
 def test__get__missing(client, faker, loggedin_user):
     resp = client.get(_url(task_id=999))
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 def test__get__not_service_owner_or_requestor(client, faker, loggedin_user):
     task = faker.get_test_task()
 
     resp = client.get(_url(task_id=task.id))
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == http.HTTPStatus.FORBIDDEN
 
 
 @pytest.mark.app_crsf(True)
@@ -37,7 +36,7 @@ def test__get__is_requestor(client, faker, loggedin_user):
     task = faker.get_test_task(requestor=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
 
 @pytest.mark.app_crsf(True)
@@ -45,7 +44,7 @@ def test__get__is_service_owner(client, faker, loggedin_user):
     task = faker.get_test_owned_task(owner=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
 
 def test__get__is_owner_of_other_service(client, faker, loggedin_user):
@@ -54,7 +53,7 @@ def test__get__is_owner_of_other_service(client, faker, loggedin_user):
     task = faker.get_test_owned_task(owner=user2)
 
     resp = client.get(_url(task_id=task.id))
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == http.HTTPStatus.FORBIDDEN
 
 
 @pytest.mark.app_crsf(True)
@@ -62,7 +61,7 @@ def test__get__common_form_fields(client, faker, loggedin_user):
     task = faker.get_test_task(requestor=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("select", id="organisation_id") is not None
     assert resp.soup.find("input", type='text', id="name") is not None
@@ -80,7 +79,7 @@ def test__update_task__input_fields(client, faker, field_type_name, loggedin_use
     task = faker.get_test_task(service=s, requestor=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
     assert actual is not None
@@ -94,7 +93,7 @@ def test__update_task__boolean_field__True(client, faker, loggedin_user):
     td = faker.get_test_task_data(task=task, field=f, value='1')
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
     assert actual is not None
@@ -108,7 +107,7 @@ def test__update_task__boolean_field__False(client, faker, loggedin_user):
     task = faker.get_test_task(service=s, requestor=loggedin_user)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
     assert actual is not None
@@ -123,7 +122,7 @@ def test__update_task__integer_field__Value(client, faker, loggedin_user):
     td = faker.get_test_task_data(task=task, field=f, value=1234)
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name, value='1234')
     assert actual is not None
@@ -137,7 +136,7 @@ def test__update_task__radio_field__Value(client, faker, loggedin_user):
     td = faker.get_test_task_data(task=task, field=f, value='a')
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
     assert actual is not None
@@ -156,7 +155,7 @@ def test__update_task__string_field__Value(client, faker, loggedin_user):
     td = faker.get_test_task_data(task=task, field=f, value='a')
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name, value='a')
     assert actual is not None
@@ -170,7 +169,7 @@ def test__update_task__textarea_field__Value(client, faker, loggedin_user):
     td = faker.get_test_task_data(task=task, field=f, value='a')
 
     resp = lbrc_services_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
     assert actual.contents[0].strip() == 'a'
@@ -188,7 +187,7 @@ def test__get__buttons(client, faker, endpoint, loggedin_user):
     task = faker.get_test_task(requestor=loggedin_user)
     url = url_for(endpoint)
     resp = lbrc_services_get(client, _url(task_id=task.id, prev=url), loggedin_user, has_form=True)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("a", href=url) is not None
     assert resp.soup.find("button", type="submit", string="Save") is not None

@@ -1,6 +1,5 @@
+import http
 from flask import url_for
-from flask_api import status
-import pytest
 from lbrc_services.model.services import ToDo
 from lbrc_flask.pytest.asserts import assert__redirect, assert__requires_login
 from lbrc_flask.database import db
@@ -42,12 +41,12 @@ def test__update_post__todo_missing(client, faker, loggedin_user):
     task = faker.get_test_owned_task(owner=loggedin_user)
 
     resp = _update_todo_post(client, task_id=task.id, todo_id=9999, description=faker.pystr(min_chars=5, max_chars=100))
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 def test__create_post__task_missing(client, faker, loggedin_user):
     resp = _create_todo_post(client, task_id=9999, description=faker.pystr(min_chars=5, max_chars=100))
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 def test__create_post__ok(client, faker, loggedin_user):
@@ -92,4 +91,4 @@ def test__update_post__not_owner(client, faker, loggedin_user):
     expected = faker.pystr(min_chars=5, max_chars=100)
 
     resp = _update_todo_post(client, task_id=todo.task.id, todo_id=todo.id, description=expected)
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == http.HTTPStatus.FORBIDDEN

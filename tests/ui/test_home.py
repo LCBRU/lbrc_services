@@ -1,8 +1,8 @@
 import re
-from tests import lbrc_services_get
-from flask_api import status
-from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
+import http
+from tests import lbrc_services_get
+from lbrc_flask.pytest.asserts import assert__requires_login
 from flask import url_for
 
 
@@ -23,7 +23,7 @@ def test__services(client, faker, n, loggedin_user):
 
     resp = lbrc_services_get(client, _url(), loggedin_user)
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
     content = resp.soup.find(id="content")
     assert len(content.find_all("a", "btn")) == n
 

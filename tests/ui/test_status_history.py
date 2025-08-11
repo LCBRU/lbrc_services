@@ -1,11 +1,11 @@
 import re
-from lbrc_flask.pytest.asserts import assert__requires_login
 import pytest
+import http
+from lbrc_flask.pytest.asserts import assert__requires_login
 from itertools import cycle
 from lbrc_services.model.services import TaskStatus, TaskStatusType
 from flask import url_for
 from lbrc_flask.database import db
-from flask_api import status
 
 
 def _url(external=True, **kwargs):
@@ -23,7 +23,7 @@ def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id))
 
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == http.HTTPStatus.FORBIDDEN
 
 
 def test__status_history__missing(client, faker, loggedin_user):
@@ -31,7 +31,7 @@ def test__status_history__missing(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id + 1))
 
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 def test__status_history__is_owner(client, faker, loggedin_user):
@@ -39,7 +39,7 @@ def test__status_history__is_owner(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id))
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
 
 def test__status_history__is_requestor(client, faker, loggedin_user):
@@ -47,7 +47,7 @@ def test__status_history__is_requestor(client, faker, loggedin_user):
 
     resp = client.get(_url(task_id=task.id))
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
 
 @pytest.mark.parametrize(
@@ -77,7 +77,7 @@ def test__my_jobs__update_status(client, faker, n, loggedin_user):
 
         resp = client.get(_url(task_id=task.id))
 
-        assert resp.status_code == status.HTTP_200_OK
+        assert resp.status_code == http.HTTPStatus.OK
         assert len(resp.soup.find_all("li", "list-group-item")) == len(history)
 
         for h, li in zip(reversed(history), resp.soup.find_all("li", "list-group-item")):

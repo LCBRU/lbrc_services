@@ -1,10 +1,10 @@
 import pytest
 import re
+import http
 from flask import url_for
 from lbrc_services.model.services import TaskStatusType
 from tests import lbrc_services_get
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__search_html
-from flask_api import status
 from lbrc_services.ui.forms import MyJobsSearchForm, _get_combined_task_status_type_choices, _get_service_choices, _get_requestor_choices
 from lbrc_flask.pytest.asserts import assert__select, assert__page_navigation
 

@@ -1,6 +1,5 @@
+import http
 from flask import url_for
-from flask_api import status
-import pytest
 from lbrc_services.model.services import Organisation
 from lbrc_flask.pytest.asserts import assert__error__required_field, assert__redirect, assert__requires_login
 from tests.ui.quotes import assert__quote, post_quote
@@ -25,7 +24,7 @@ def test__post__requires_login(client, faker):
 
 def test__post__missing(client, faker, quoter_user):
     resp = client.post(_url(quote_id=999))
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 def test__update__with_all_values(client, faker, quoter_user):
@@ -43,7 +42,7 @@ def test__update__empty_name(client, faker, quoter_user):
 
     resp = _edit_post(client, quote)
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field(resp.soup, "Quote Title")
 
 
@@ -53,7 +52,7 @@ def test__create_task__empty_organisation(client, faker, quoter_user):
 
     resp = _edit_post(client, expected)
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field(resp.soup, "organisation")
 
 
@@ -62,5 +61,5 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
 
     resp = _edit_post(client, expected)
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field(resp.soup, "organisation description")

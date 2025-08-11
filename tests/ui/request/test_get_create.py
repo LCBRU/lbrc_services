@@ -1,9 +1,9 @@
+import pytest
+import http
 from flask import url_for
 from lbrc_flask.forms.dynamic import FieldType
-import pytest
 from tests import lbrc_services_get
 from lbrc_flask.pytest.asserts import assert__requires_login
-from flask_api import status
 
 
 def _url(service_id, external=True, prev=None):
@@ -20,13 +20,13 @@ def test__get__requires_login(client, faker):
 
 def test__get__missing(client, faker, loggedin_user):
     resp = client.get(_url(service_id=999))
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 def test__get__common_form_fields(client, faker, loggedin_user):
     s = faker.get_test_service()
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("select", id="organisation_id") is not None
     assert resp.soup.find("input", type='text', id="name") is not None
@@ -36,7 +36,7 @@ def test__get__common_form_fields(client, faker, loggedin_user):
 def test__get__not_service_owner__cannot_select_requestor(client, faker, loggedin_user):
     s = faker.get_test_service()
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("select", id="requestor_id") is None
 
@@ -46,7 +46,7 @@ def test__get__service_owner__can_select_requestor(client, faker, loggedin_user)
     s = faker.get_test_service()
 
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("select", id="requestor_id") is not None
 
@@ -59,7 +59,7 @@ def test__create_task__input_fields(client, faker, field_type_name, loggedin_use
     s, f = faker.get_test_field_of_type(ft)
 
     resp = lbrc_services_get(client, _url(service_id=s.id), loggedin_user)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name) is not None
 
@@ -76,7 +76,7 @@ def test__get__buttons(client, faker, endpoint, loggedin_user):
     url = url_for(endpoint)
 
     resp = lbrc_services_get(client, _url(service_id=s.id, prev=url), loggedin_user)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("a", href=url) is not None
     assert resp.soup.find("button", type="submit", string="Save") is not None

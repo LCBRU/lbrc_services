@@ -1,12 +1,11 @@
 import pytest
 import re
+import http
 from flask import url_for
 from lbrc_services.model.services import TaskStatusType
 from tests import lbrc_services_get
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__search_html, assert__select, assert__page_navigation
-from flask_api import status
 from lbrc_services.ui.forms import TaskSearchForm, _get_combined_task_status_type_choices, _get_service_choices
-from pprint import pp
 
 
 def _url(external=True, **kwargs):
@@ -75,7 +74,7 @@ def test__my_requests__search__service(client, faker, loggedin_user):
 
 
 def assert_results(resp, matches):
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
     assert len(resp.soup.find_all("li", "list-group-item")) == len(matches)
 
     for u, li in zip(reversed(matches), resp.soup.find_all("li", "list-group-item")):

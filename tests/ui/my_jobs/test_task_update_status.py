@@ -1,4 +1,4 @@
-from flask_api import status
+import http
 from flask import url_for
 from lbrc_services.model.services import TaskStatus, TaskStatusType
 from lbrc_flask.pytest.asserts import assert__requires_login
@@ -47,4 +47,4 @@ def test__my_jobs__update_status__not_owner(client, faker, loggedin_user):
     notes = faker.pystr(min_chars=5, max_chars=10)
 
     resp = _update_status_post(client, task, st, notes)
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == http.HTTPStatus.FORBIDDEN

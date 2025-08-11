@@ -1,6 +1,6 @@
-from flask import url_for
-from flask_api import status
 import pytest
+import http
+from flask import url_for
 from lbrc_services.model.services import ToDo
 from lbrc_flask.database import db
 from lbrc_flask.pytest.asserts import assert__requires_login
@@ -26,7 +26,7 @@ def test__post__requires_login(client, faker):
 
 def test__post__missing(client, faker, loggedin_user):
     resp = _update_status_post(client, todo_id=9999, action='check')
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.parametrize(
@@ -44,7 +44,7 @@ def test__update_todo_status__correct_values(client, faker, starting_status, act
     todo = faker.get_test_owned_todo(loggedin_user, status_name=starting_status)
 
     resp = _update_status_post(client, todo_id=todo.id, action=action)
-    assert resp.status_code == status.HTTP_205_RESET_CONTENT
+    assert resp.status_code == http.HTTPStatus.RESET_CONTENT
 
     actual = db.session.get(ToDo, todo.id)
 
@@ -54,7 +54,7 @@ def test__update_todo_status__invalid_action(client, faker, loggedin_user):
     todo = faker.get_test_owned_todo(loggedin_user, status_name=ToDo.OUTSTANDING_NAME)
 
     resp = _update_status_post(client, todo_id=todo.id, action='This is not correct')
-    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert resp.status_code == http.HTTPStatus.BAD_REQUEST
 
     actual = db.session.get(ToDo, todo.id)
     assert actual.status == ToDo.get_status_code_from_name(ToDo.OUTSTANDING_NAME)
@@ -64,4 +64,4 @@ def test__update_todo_status__not_owner(client, faker, loggedin_user):
     todo = faker.get_test_todo()
 
     resp = _update_status_post(client, todo_id=todo.id, action='check')
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == http.HTTPStatus.FORBIDDEN

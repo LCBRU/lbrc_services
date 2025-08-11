@@ -1,7 +1,7 @@
-from flask import url_for
 import pytest
+import http
+from flask import url_for
 from tests import lbrc_services_get
-from flask_api import status
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__requires_role
 
 
@@ -26,7 +26,7 @@ def test__get__requires_quoter_role(client, faker, loggedin_user):
 
 def test__get__missing(client, faker, quoter_user):
     resp = client.get(_url(quote_id=999))
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert resp.status_code == http.HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.app_crsf(True)
@@ -34,7 +34,7 @@ def test__get__common_form_fields(client, faker, quoter_user):
     quote = faker.get_test_quote()
 
     resp = lbrc_services_get(client, _url(quote.id), quoter_user)
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("select", id="requestor_id") is not None
     assert resp.soup.find("input", type='text', id="name") is not None
