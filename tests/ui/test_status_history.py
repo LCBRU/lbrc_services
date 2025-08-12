@@ -77,9 +77,12 @@ def test__my_jobs__update_status(client, faker, n, loggedin_user):
 
         resp = client.get(_url(task_id=task.id))
 
-        assert resp.status_code == http.HTTPStatus.OK
-        assert len(resp.soup.find_all("li", "list-group-item")) == len(history)
+        print(resp.soup)
 
-        for h, li in zip(reversed(history), resp.soup.find_all("li", "list-group-item")):
-            assert li.find("h1").find(string=re.compile(h['status'].name)) is not None
-            assert li.find("p").find(string=re.compile(h['notes'])) is not None
+        assert resp.status_code == http.HTTPStatus.OK
+        assert len(resp.soup.select("table tbody tr")) == len(history)
+
+        for h, tr in zip(reversed(history), resp.soup.select("table tbody tr")):
+            print('######', h['status'].name)
+            assert tr.find(string=re.compile(h['status'].name)) is not None
+            assert tr.find(string=re.compile(h['notes'])) is not None

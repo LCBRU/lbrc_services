@@ -23,9 +23,11 @@ def test__services(client, faker, n, loggedin_user):
 
     resp = lbrc_services_get(client, _url(), loggedin_user)
 
+    print(resp.soup)
+
     assert resp.status_code == http.HTTPStatus.OK
-    content = resp.soup.find(id="content")
-    assert len(content.find_all("a", "btn")) == n
+    content = resp.soup.find('ul', "cards")
+    assert len(content.find_all("li")) == n
 
     for s in services:
         assert content.find("a", string=re.compile(s.name)) is not None

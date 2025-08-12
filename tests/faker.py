@@ -76,7 +76,7 @@ class LbrcServicesFakerProvider(BaseProvider):
         organisation=None,
         organisation_description=None,
     ):
-        result = Task()
+        result: Task = Task()
 
         if current_status_type is None:
             result.current_status_type_id = TaskStatusType.get_created().id
@@ -84,9 +84,9 @@ class LbrcServicesFakerProvider(BaseProvider):
             result.current_status_type_id = current_status_type.id
 
         if organisation is None:
-            result.organisation_id = Organisation.get_organisation(Organisation.CARDIOVASCULAR).id
+            result.organisations = [Organisation.get_organisation(Organisation.CARDIOVASCULAR)]
         else:
-            result.organisation_id = organisation.id
+            result.organisations = [organisation]
 
         if name is None:
             result.name = self.generator.pystr(min_chars=5, max_chars=10)

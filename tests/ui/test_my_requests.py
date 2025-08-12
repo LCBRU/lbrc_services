@@ -27,7 +27,6 @@ def _get(client, url, loggedin_user, has_form):
     return resp
 
 
-@pytest.mark.app_crsf(True)
 @pytest.mark.parametrize(
     ["mine", "others"],
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
@@ -38,53 +37,50 @@ def test__my_requests(client, faker, mine, others, loggedin_user):
     my_requests = [faker.get_test_task(requestor=loggedin_user) for _ in range(mine)]
     not_my_requests = [faker.get_test_task(requestor=user2) for _ in range(others)]
 
-    resp = _get(client, _url(), loggedin_user, has_form=True)
+    resp = _get(client, _url(), loggedin_user, has_form=False)
 
     assert_results(resp, my_requests)
 
 
-@pytest.mark.app_crsf(True)
 def test__my_requests__search__name(client, faker, loggedin_user):
     matching = faker.get_test_task(requestor=loggedin_user, name='Mary')
     non_matching = faker.get_test_task(requestor=loggedin_user, name='Joseph')
 
-    resp = _get(client, _url(search='ar'), loggedin_user, has_form=True)
+    resp = _get(client, _url(search='ar'), loggedin_user, has_form=False)
 
     assert_results(resp, [matching])
 
 
-@pytest.mark.app_crsf(True)
 def test__my_requests__search__task_status_type(client, faker, loggedin_user):
     matching = faker.get_test_task(requestor=loggedin_user, current_status_type=TaskStatusType.get_done())
     non_matching = faker.get_test_task(requestor=loggedin_user, current_status_type=TaskStatusType.get_awaiting_information())
 
-    resp = _get(client, _url(task_status_type_id=TaskStatusType.get_done().id), loggedin_user, has_form=True)
+    resp = _get(client, _url(task_status_type_id=TaskStatusType.get_done().id), loggedin_user, has_form=False)
 
     assert_results(resp, [matching])
 
 
-@pytest.mark.app_crsf(True)
 def test__my_requests__search__service(client, faker, loggedin_user):
     matching = faker.get_test_task(requestor=loggedin_user)
     non_matching = faker.get_test_task(requestor=loggedin_user)
 
-    resp = _get(client, _url(service_id=matching.service.id), loggedin_user, has_form=True)
+    resp = _get(client, _url(service_id=matching.service.id), loggedin_user, has_form=False)
 
     assert_results(resp, [matching])
 
 
 def assert_results(resp, matches):
     assert resp.status_code == http.HTTPStatus.OK
-    assert len(resp.soup.find_all("li", "list-group-item")) == len(matches)
+    assert len(resp.soup.select(".panel_list > li")) == len(matches)
 
-    for u, li in zip(reversed(matches), resp.soup.find_all("li", "list-group-item")):
+    for u, li in zip(reversed(matches), resp.soup.select(".panel_list > li")):
         task_matches_li(u, li)
 
 
 def task_matches_li(task, li):
-    assert li.find("h1").find(string=re.compile(task.service.name)) is not None
-    assert li.find("h1").find(string=re.compile(task.name)) is not None
-    assert li.find("h2").find(string=re.compile(task.requestor.full_name)) is not None
+    assert li.find("h3").find(string=re.compile(task.service.name)) is not None
+    assert li.find("h3").find(string=re.compile(task.name)) is not None
+    assert li.find("h4").find(string=re.compile(task.requestor.full_name)) is not None
 
 
 @pytest.mark.parametrize(
@@ -94,7 +90,7 @@ def task_matches_li(task, li):
 def test__my_jobs__pages(client, faker, jobs, loggedin_user):
     my_jobs = [faker.get_test_owned_task(loggedin_user, requestor=loggedin_user, count=jobs)]
 
-    assert__page_navigation(client, 'ui.my_requests', {'_external': False}, jobs, form=TaskSearchForm())
+    assert__page_navigation(client, 'ui.my_requests', {'_external': False}, jobs, form=TaskSearchForm(), page_size=10)
 
 
 @pytest.mark.parametrize(
@@ -105,7 +101,7 @@ def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
     matching = [faker.get_test_owned_task(name='Mary', owner=loggedin_user, requestor=loggedin_user, count=jobs)]
     unmatching = [faker.get_test_owned_task(name='Joseph', owner=loggedin_user, requestor=loggedin_user, count=100)]
 
-    assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'search': 'ar'}, jobs, form=TaskSearchForm())
+    assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'search': 'ar'}, jobs, form=TaskSearchForm(), page_size=10)
 
 
 @pytest.mark.parametrize(
@@ -116,7 +112,7 @@ def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user
     matching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user, count=jobs)]
     unmatching = [faker.get_test_owned_task(current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user, count=100)]
 
-    assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'task_status_type_id': TaskStatusType.get_done().id}, jobs, form=TaskSearchForm())
+    assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'task_status_type_id': TaskStatusType.get_done().id}, jobs, form=TaskSearchForm(), page_size=10)
 
 
 @pytest.mark.parametrize(
@@ -129,4 +125,4 @@ def test__my_jobs__search__service__pages(client, faker, jobs, loggedin_user):
     matching = [faker.get_test_task(service=service1, requestor=loggedin_user, count=jobs)]
     unmatching = [faker.get_test_task(service=service2, requestor=loggedin_user, count=100)]
 
-    assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'service_id': service1.id}, jobs, form=TaskSearchForm())
+    assert__page_navigation(client, 'ui.my_requests', {'_external': False, 'service_id': service1.id}, jobs, form=TaskSearchForm(), page_size=10)

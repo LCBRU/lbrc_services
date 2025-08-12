@@ -277,21 +277,10 @@ def edit_task_modal(task_id):
         "ui/task/create.html",
         title=f"Edit task {task.name}",
         form=form,
-        url=url_for('ui.edit_task', task_id=task_id),
+        url=url_for('ui.edit_task_modal', task_id=task_id),
         service=task.service,
         allow_assignee_selection=current_user.service_owner,
     )
-
-
-@blueprint.route("/task/<int:task_id>/edit", methods=["GET", "POST"])
-@must_be_task_owner_or_requestor("task_id")
-def edit_task(task_id):
-    task = db.get_or_404(Task, task_id)
-    if task.requestor_id == current_user.id:
-        return redirect(url_for('ui.my_requests', search=f"#{task.id}"))
-    else:
-        return redirect(url_for('ui.my_jobs', search=f"#{task.id}"))
-
 
 
 @blueprint.route("/task/<int:task_id>/cancel", methods=["POST"])

@@ -4,12 +4,12 @@ from lbrc_flask.pytest.asserts import assert__requires_login
 
 
 def _url(external=True, **kwargs):
-    return url_for('ui.quote_update_status', _external=external, **kwargs)
+    return url_for('ui.quote_status_update', _external=external, **kwargs)
 
 
 def _update_status_post(client, quote, status, notes):
     return client.post(
-        _url(),
+        _url(quote_id=quote.id),
         data={
             'quote_id': quote.id,
             'status_type_id': status.id,
@@ -19,10 +19,10 @@ def _update_status_post(client, quote, status, notes):
 
 
 def test__post__requires_login(client):
-    assert__requires_login(client, _url(external=False), post=True)
+    assert__requires_login(client, _url(external=False, quote_id=1), post=True)
 
 
-def test__quote__update_status(client, faker, loggedin_user):
+def test__quote__update_status(client, faker, quoter_user):
     quote = faker.get_test_quote()
 
     sq = QuoteStatusType.get_awaiting_approval()

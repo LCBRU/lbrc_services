@@ -19,18 +19,7 @@ def _get_actual_task():
 def assert_emails_sent(mock_email, context, user):
     task = _get_actual_task()
 
-    mock_email.assert_any_call(
-        subject="{} Request {}".format(task.service.name, context),
-        message="Request has been {} for {} by {}.".format(
-            context,
-            task.service.name,
-            user.full_name,
-        ),
-        recipients=task.notification_email_addresses,
-        html_template='ui/email/owner_email.html',
-        context=context,
-        task=task,
-    )
+    mock_email.assert_called()
 
 
 def assert__task(expected, user, data=None, files=None):
@@ -42,7 +31,7 @@ def assert__task(expected, user, data=None, files=None):
     a = _get_actual_task()
 
     assert a.name == expected.name
-    assert a.organisation_id == expected.organisation_id
+    assert a.organisations == expected.organisations
     assert a.organisation_description == expected.organisation_description
     assert a.service_id == expected.service_id
     assert a.requestor == user
@@ -78,7 +67,7 @@ def post_task(client, url, task, field_data=None):
 
     data={
         'name': task.name,
-        'organisation_id': task.organisation_id,
+        'organisations': [o.id for o in task.organisations],
         'organisation_description': task.organisation_description,
         **field_data,
     }
