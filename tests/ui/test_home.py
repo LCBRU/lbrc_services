@@ -19,7 +19,7 @@ def test__get__requires_login(client):
     [(0,), (1,), (2,), (10,)],
 )
 def test__services(client, faker, n, loggedin_user):
-    services = [faker.get_test_service() for _ in range(n)]
+    services =faker.service().get_list_in_db(item_count=n, owners=[loggedin_user])
 
     resp = lbrc_services_get(client, _url(), loggedin_user)
 

@@ -1,10 +1,14 @@
 from datetime import datetime
+from functools import cache
+from random import choice
+from typing import Optional
 from faker.providers import BaseProvider
 from lbrc_services.model.quotes import Quote, QuotePricingType, QuoteStatusType
 from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
-from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator
+from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator, FakeCreator
 from io import BytesIO
+from lbrc_flask.forms.dynamic import FieldType
 
 
 class FakerFile():
@@ -23,202 +27,152 @@ class FakerFile():
 
 
 class UserCreator(BaseUserCreator):
-    def __init__(self):
-        super().__init__(User)
+    cls = User
 
 
-class UserProvider(BaseProvider):
-    def user(self):
-        return UserCreator()
+class ServiceCreator(FakeCreator):
+    cls = Service
 
+    def get(self, **kwargs):
+        if (name := kwargs.get('name')) is None:
+            name = self.faker.company()
+        if (generic_recipients := kwargs.get('generic_recipients')) is None:
+            generic_recipients = self.faker.email()
+        if (field_group := kwargs.get('field_group')) is None:
+            field_group = self.faker.field_group().get()
+        if (suppress_owner_email := kwargs.get('suppress_owner_email')) is None:
+            suppress_owner_email = False
+        if (owners := kwargs.get('owners')) is None:
+            owners = []
 
-class LbrcServicesFakerProvider(BaseProvider):
-    def fake_file(self):
-        return FakerFile(self.generator.text(), self.generator.file_name(extension='pdf'))
-
-    def user_details(self):
-        u = User(
-            first_name=self.generator.first_name(),
-            last_name=self.generator.last_name(),
-            email=self.generator.email(),
-            active=True,
-        )
-        return u
-
-    def service_details(self, owners=None, name=None, field_group=None, generic_recipients=None, suppress_owner_email=False):
-        if name is None:
-            name = self.generator.pystr(min_chars=5, max_chars=10)
-
-        if generic_recipients is None:
-            generic_recipients = self.generator.email()
-
-        if field_group is None:
-            field_group = self.generator.field_group_details()
-
-        result = Service(
+        return Service(
             name=name,
-            field_group=field_group,
             generic_recipients=generic_recipients,
+            field_group=field_group,
             suppress_owner_email=suppress_owner_email,
+            owners=owners,
         )
 
-        result.owners = owners or []
 
-        return result
+class TaskCreator(FakeCreator):
+    cls = Task
 
-
-    def task_details(
-        self,
-        name=None,
-        service=None,
-        requestor=None,
-        current_status_type=None,
-        organisation=None,
-        organisation_description=None,
-    ):
-        result: Task = Task()
-
-        if current_status_type is None:
-            result.current_status_type_id = TaskStatusType.get_created().id
+    def get(self, **kwargs):
+        if (name := kwargs.get('name')) is None:
+            name = self.faker.pystr(min_chars=5, max_chars=10)
+        if (service := kwargs.get('service')) is None:
+            service = self.faker.service().get()
+            service_id = None
         else:
-            result.current_status_type_id = current_status_type.id
+            service_id = service.id
+        if (requestor := kwargs.get('requestor')) is None:
+            requestor = self.faker.user().get()
+        if (current_status_type := kwargs.get('current_status_type')) is None:
+            current_status_type = TaskStatusType.get_created()
+        if (organisation := kwargs.get('organisation')) is None:
+            organisation = Organisation.get_organisation(Organisation.CARDIOVASCULAR)
+        if (organisation_description := kwargs.get('organisation_description')) is None:
+            organisation_description = ''
 
-        if organisation is None:
-            result.organisations = [Organisation.get_organisation(Organisation.CARDIOVASCULAR)]
-        else:
-            result.organisations = [organisation]
+        return Task(
+            name=name,
+            service=service,
+            service_id=service_id,
+            requestor=requestor,
+            current_status_type=current_status_type,
+            organisations=[organisation],
+            organisation_description=organisation_description,
+        )
 
-        if name is None:
-            result.name = self.generator.pystr(min_chars=5, max_chars=10)
-        else:
-            result.name = name
 
-        if service is None:
-            result.service = self.service_details()
-        elif service.id is None:
-            result.service = service
-        else:
-            result.service_id = service.id
-        
-        if requestor is None:
-            result.requestor = self.user_details()
-        elif requestor.id is None:
-            result.requestor = requestor
-        else:
-            result.requestor_id = requestor.id
+class QuoteCreator(FakeCreator):
+    cls = Quote
 
-        if organisation_description is None:
-            result.organisation_description = ''
+    def get(self, **kwargs):
+        if (name := kwargs.get('name')) is None:
+            name = self.faker.pystr(min_chars=5, max_chars=10)
+        if (requestor := kwargs.get('requestor')) is None:
+            requestor = self.faker.user().get()
+        if (current_status_type := kwargs.get('current_status_type')) is None:
+            current_status_type = QuoteStatusType.get_draft()
+        if (organisation := kwargs.get('organisation')) is None:
+            organisation = Organisation.get_organisation(Organisation.CARDIOVASCULAR)
+        if (organisation_description := kwargs.get('organisation_description')) is None:
+            organisation_description = ''
+        if (quote_price_type := kwargs.get('quote_price_type')) is None:
+            quote_price_type = QuotePricingType.query.first()
+        if (created_date := kwargs.get('created_date')) is None:
+            created_date = None
+        if (date_requested := kwargs.get('date_requested')) is None:
+            date_requested = datetime.now().date()
 
-        return result
+        return Quote(
+            name=name,
+            requestor=requestor,
+            current_status_type=current_status_type,
+            organisation_id=organisation.id,
+            organisation_description=organisation_description,
+            quote_pricing_type_id=quote_price_type.id,
+            created_date=created_date,
+            date_requested=date_requested,
+        )
 
-    def quote_details(
-        self,
-        name=None,
-        requestor=None,
-        current_status_type=None,
-        organisation=None,
-        organisation_description=None,
-        created_date=None,
-        quote_price_type=None,
-        date_requested=None,
-    ):
-        result = Quote()
 
-        if current_status_type is None:
-            result.current_status_type_id = QuoteStatusType.get_draft().id
-        else:
-            result.current_status_type_id = current_status_type.id
+class TaskFileCreator(FakeCreator):
+    cls = TaskFile
 
-        if organisation is None:
-            result.organisation_id = Organisation.get_organisation(Organisation.CARDIOVASCULAR).id
-        else:
-            result.organisation_id = organisation.id
+    def get(self, **kwargs):
+        if (filename := kwargs.get('filename')) is None:
+            filename = self.faker.pystr(min_chars=5, max_chars=10)
+        if (local_filepath := kwargs.get('local_filepath')) is None:
+            local_filepath = self.faker.pystr(min_chars=5, max_chars=10)
+        if (task := kwargs.get('task')) is None:
+            task = self.faker.task().get()
+        if (field := kwargs.get('field')) is None:
+            field = self.faker.field().get()
 
-        if quote_price_type is None:
-            result.quote_pricing_type_id = QuotePricingType.query.first().id
-        else:
-            result.quote_pricing_type_id = quote_price_type.id
-
-        if name is None:
-            result.name = self.generator.pystr(min_chars=5, max_chars=10)
-        else:
-            result.name = name
-
-        if requestor is None:
-            result.requestor = self.user_details()
-        elif requestor.id is None:
-            result.requestor = requestor
-        else:
-            result.requestor_id = requestor.id
-
-        if organisation_description is None:
-            result.organisation_description = ''
-
-        if created_date is not None:
-            result.created_date = created_date
-
-        result.date_requested = date_requested or datetime.now().date()
-
-        return result
-
-    def task_file_details(self, task=None, field=None, filename=None):
-
-        if filename is None:
-            filename = self.generator.pystr(min_chars=5, max_chars=10)
-
-        result = TaskFile(
+        return TaskFile(
             filename=filename,
-            local_filepath=self.generator.pystr(min_chars=5, max_chars=10),
+            local_filepath=local_filepath,
+            task=task,
+            field=field,
         )
 
-        if task is None:
-            result.task = self.task_details()
-        elif task.id is None:
-            result.task = task
-        else:
-            result.task = task
-            result.task_id = task.id
 
-        if field is None:
-            result.field = self.generator.field_details()
-        elif field.id is None:
-            result.field = field
-        else:
-            result.field_id = field.id
+class TaskDataCreator(FakeCreator):
+    cls = TaskData
 
-        return result
+    def get(self, **kwargs):
+        if (task := kwargs.get('task')) is None:
+            task = self.faker.task().get()
 
-    def task_data_details(self, task=None, field=None, value=None):
-        result = TaskData()
+        if (field := kwargs.get('field')) is None:
+            field_type_name = choice(FieldType.all_simple_field_types())
+            field_type = FieldType._get_field_type(field_type_name)
+            field = self.faker.field().get(field_type=field_type)
 
-        if task is None:
-            result.task = self.task_details()
-        elif task.id is None:
-            result.task = task
-        else:
-            result.task_id = task.id
+        if (value := kwargs.get('value')) is None:
+            value = self.faker.pystr(min_chars=5, max_chars=10).upper()
 
-        if field is None:
-            result.field = self.generator.field_details()
-        elif field.id is None:
-            result.field = task
-        else:
-            result.field_id = field.id
+        return TaskData(
+            task=task,
+            field=field,
+            value=value,
+        )
 
-        if value is None:
-            result.value = self.generator.pystr(min_chars=5, max_chars=100)
-        else:
-            result.value = value
-        
-        return result
 
-    def todo_details(self, task=None, description=None, status=None):
-        if task is None:
-            task = self.task_details()
+class ToDoCreator(FakeCreator):
+    cls = ToDo
 
-        if description is None:
-            description = self.generator.pystr(min_chars=5, max_chars=100)
+    def get(self, **kwargs):
+        if (task := kwargs.get('task')) is None:
+            task = self.faker.task().get()
+
+        if (description := kwargs.get('description')) is None:
+            description = self.faker.pystr(min_chars=5, max_chars=100)
+
+        if (status := kwargs.get('status')) is None:
+            status = None
 
         return ToDo(
             task=task,
@@ -226,119 +180,51 @@ class LbrcServicesFakerProvider(BaseProvider):
             status=status,
         )
 
-    def get_test_owned_task(self, owner, count=1, **kwargs):
-        s = self.get_test_service(owners=[owner])
-        r = None
-        rs = []
 
-        for _ in range(count):
-            r = self.task_details(**kwargs, service=s)
-            rs.append(r)
+class LbrcServicesProvider(BaseProvider):
+    def fake_file(self):
+        return FakerFile(self.generator.text(), self.generator.file_name(extension='pdf'))
 
-        db.session.add_all(rs)
-        db.session.commit()
+    @cache
+    def user(self):
+        return UserCreator(self)
 
-        return r
+    @cache
+    def service(self):
+        return ServiceCreator(self)
+    
+    @cache
+    def task(self):
+        return TaskCreator(self)
 
+    @cache
+    def quote(self):
+        return QuoteCreator(self)
 
-    def get_test_task(self, count=1, **kwargs):
-        r = None
-        rs = []
-
-        for _ in range(count):
-            r = self.task_details(**kwargs)
-            rs.append(r)
-
-        db.session.add_all(rs)
-
-        db.session.commit()
-
-        return r
-
-
-    def get_test_quotes(self, count=1, **kwargs):
-        result = []
-
-        for _ in range(count):
-            r = self.quote_details(**kwargs)
-            result.append(r)
-
-        db.session.add_all(result)
-
-        db.session.commit()
-
-        return result
-
-
-    def get_test_quote(self, **kwargs):
-        return self.get_test_quotes(**kwargs)[0]
-
-
-    def get_test_task_file(self, fake_file=None, **kwargs):
-        r = self.task_file_details(**kwargs)
-
+    @cache
+    def task_file(self):
+        return TaskFileCreator(self)
+    
+    def create_task_file_in_filesystem(self, task_file: TaskFile, fake_file: Optional[FakerFile] = None):
         if fake_file is None:
-            fake_file = FakerFile(self.generator.text(), r.filename)
+            fake_file = FakerFile(self.generator.text(), task_file.filename)
 
-        filepath = r._new_local_filepath(r.filename)
+        filepath = task_file._new_local_filepath(task_file.filename)
         filepath.parents[0].mkdir(parents=True, exist_ok=True)
-        r.local_filepath = str(filepath)
+        task_file.local_filepath = str(filepath)
         f = open(filepath, "a")
         f.write(fake_file.content)
         f.close()
 
-        db.session.add(r)
-        db.session.commit()
+    @cache
+    def task_data(self):
+        return TaskDataCreator(self)
 
-        return r
-
-
-    def get_test_service(self, **kwargs):
-        rt = self.service_details(**kwargs)
-
-        db.session.add(rt)
-        db.session.commit()
-
-        return rt
-
-
-    def get_test_user(self, **kwargs):
-        u = self.user_details(**kwargs)
-        db.session.add(u)
-        db.session.commit()
-
-        return u
-
-
-    def get_test_todo(self, **kwargs):
-        t = self.todo_details(**kwargs)
-        db.session.add(t)
-        db.session.commit()
-
-        return t
-
-    def get_test_owned_todo(self, user, status_name=None):
-        if status_name is None:
-            status_name = ToDo.OUTSTANDING_NAME
-
-        s = self.get_test_service(owners=[user])
-        task = self.get_test_task(service=s)
-        todo = self.get_test_todo(task=task, status=ToDo.get_status_code_from_name(status_name))
-
-        return todo
-
-
-    def get_test_field_of_type(self, field_type, choices=None):
-        fg = self.generator.get_test_field_group()
-        s = self.get_test_service(field_group=fg)
-        f = self.generator.get_test_field(field_group=fg, field_type=field_type, choices=choices)
+    def get_test_field_of_type(self, field_type, choices=None, allowed_file_extensions=None):
+        s = self.service().get_in_db()
+        f = self.generator.field().get_in_db(field_group=s.field_group, field_type=field_type, choices=choices, allowed_file_extensions='pdf')
         return s,f
 
-
-    def get_test_task_data(self, **kwargs):
-        td = self.task_data_details(**kwargs)
-        db.session.add(td)
-        db.session.commit()
-
-        return td
-
+    @cache
+    def todo(self):
+        return ToDoCreator(self)

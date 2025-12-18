@@ -1,8 +1,8 @@
 def test__notification_email_addresses(client, faker):
-    uo = faker.get_test_user()
-    ur = faker.get_test_user()
+    uo = faker.user().get_in_db()
+    ur = faker.user().get_in_db()
 
-    s = faker.get_test_service(owners=[uo], generic_recipients='')
-    t = faker.get_test_task(service=s, requestor=ur)
+    s = faker.service().get_in_db(owners=[uo], generic_recipients='')
+    t = faker.task().get_in_db(service=s, requestor=ur)
 
     assert t.notification_email_addresses == [uo.email, ur.email]

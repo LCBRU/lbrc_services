@@ -17,35 +17,37 @@ def mock_send_file(app):
 
 
 def test_url_requires_login_get(client, faker):
-    tf = faker.get_test_task_file()
+    tf = faker.task_file().get_in_db()
     assert__requires_login(client, _url(tf.id, tf.task.id, external=False))
 
 
 def test__must_be_task_file_owner_or_requestor__is_owner(client, faker, mock_send_file, loggedin_user):
-    t = faker.get_test_owned_task(owner=loggedin_user)
-    tf = faker.get_test_task_file(task=t)
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    t = faker.task().get_in_db(service=s)
+    tf = faker.task_file().get_in_db(task=t)
 
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == http.HTTPStatus.OK
 
 
 def test__must_be_task_file_owner_or_requestor__is_requestor(client, faker, mock_send_file, loggedin_user):
-    t = faker.get_test_task(requestor=loggedin_user)
-    tf = faker.get_test_task_file(task=t)
+    t = faker.task().get_in_db(requestor=loggedin_user)
+    tf = faker.task_file().get_in_db(task=t)
 
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == http.HTTPStatus.OK
 
 
 def test__must_be_task_file_owner_or_requestor__is_neither(client, faker, loggedin_user):
-    tf = faker.get_test_task_file()
+    tf = faker.task_file().get_in_db()
     resp = client.get(_url(tf.id, tf.task.id))
     assert resp.status_code == http.HTTPStatus.FORBIDDEN
 
 
 def test__task_file__not_found(client, faker, mock_send_file, loggedin_user):
-    t = faker.get_test_owned_task(owner=loggedin_user)
-    tf = faker.get_test_task_file(task=t)
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    t = faker.task().get_in_db(service=s)
+    tf = faker.task_file().get_in_db(task=t)
 
     resp = client.get(_url(999, tf.task.id))
 
@@ -53,8 +55,9 @@ def test__task_file__not_found(client, faker, mock_send_file, loggedin_user):
 
 
 def test__task__not_found(client, faker, mock_send_file, loggedin_user):
-    t = faker.get_test_owned_task(owner=loggedin_user)
-    tf = faker.get_test_task_file(task=t)
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    t = faker.task().get_in_db(service=s)
+    tf = faker.task_file().get_in_db(task=t)
 
     resp = client.get(_url(tf.id, 999))
 

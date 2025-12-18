@@ -13,13 +13,14 @@ def _url(external=True, **kwargs):
 
 
 def test__get__requires_login(client, faker):
-    task = faker.get_test_task()
+    task = faker.task().get_in_db()
     assert__requires_login(client, _url(task_id=task.id, external=False))
 
 
 def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
-    user2 = faker.get_test_user()
-    task = faker.get_test_owned_task(owner=user2)
+    user2 = faker.user().get_in_db()
+    s = faker.service().get_in_db(owners=[user2])
+    task = faker.task().get_in_db(service=s)
 
     resp = client.get(_url(task_id=task.id))
 
@@ -27,7 +28,8 @@ def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
 
 
 def test__status_history__missing(client, faker, loggedin_user):
-    task = faker.get_test_owned_task(owner=loggedin_user)
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    task = faker.task().get_in_db(service=s)
 
     resp = client.get(_url(task_id=task.id + 1))
 
@@ -35,15 +37,16 @@ def test__status_history__missing(client, faker, loggedin_user):
 
 
 def test__status_history__is_owner(client, faker, loggedin_user):
-    task = faker.get_test_owned_task(owner=loggedin_user)
-
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    task = faker.task().get_in_db(service=s)
+    
     resp = client.get(_url(task_id=task.id))
 
     assert resp.status_code == http.HTTPStatus.OK
 
 
 def test__status_history__is_requestor(client, faker, loggedin_user):
-    task = faker.get_test_task(requestor=loggedin_user)
+    task = faker.task().get_in_db(requestor=loggedin_user)
 
     resp = client.get(_url(task_id=task.id))
 
@@ -56,7 +59,8 @@ def test__status_history__is_requestor(client, faker, loggedin_user):
 )
 def test__my_jobs__update_status(client, faker, n, loggedin_user):
     actual_status = TaskStatusType.get_created()
-    task = faker.get_test_owned_task(owner=loggedin_user, current_status_type=actual_status)
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    task = faker.task().get_in_db(service=s, current_status_type=actual_status)
 
     statuses = cycle(TaskStatusType.query.all())
     history = []
@@ -83,6 +87,5 @@ def test__my_jobs__update_status(client, faker, n, loggedin_user):
         assert len(resp.soup.select("table tbody tr")) == len(history)
 
         for h, tr in zip(reversed(history), resp.soup.select("table tbody tr")):
-            print('######', h['status'].name)
             assert tr.find(string=re.compile(h['status'].name)) is not None
             assert tr.find(string=re.compile(h['notes'])) is not None

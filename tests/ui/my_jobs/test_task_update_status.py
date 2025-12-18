@@ -24,7 +24,8 @@ def test__post__requires_login(client):
 
 
 def test__my_jobs__update_status(client, faker, loggedin_user):
-    task = faker.get_test_owned_task(owner=loggedin_user)
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    task = faker.task().get_in_db(service=s)
 
     st = TaskStatusType.get_in_progress()
     notes = faker.pystr(min_chars=5, max_chars=10)
@@ -39,9 +40,10 @@ def test__my_jobs__update_status(client, faker, loggedin_user):
 
 
 def test__my_jobs__update_status__not_owner(client, faker, loggedin_user):
-    user2 = faker.get_test_user()
+    user2 = faker.user().get_in_db()
 
-    task = faker.get_test_owned_task(owner=user2)
+    s = faker.service().get_in_db(owners=[user2])
+    task = faker.task().get_in_db(service=s)
 
     st = TaskStatusType.get_in_progress()
     notes = faker.pystr(min_chars=5, max_chars=10)

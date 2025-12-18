@@ -23,7 +23,7 @@ def test__post__requires_login(client):
 
 
 def test__quote__update_status(client, faker, quoter_user):
-    quote = faker.get_test_quote()
+    quote = faker.quote().get_in_db()
 
     sq = QuoteStatusType.get_awaiting_approval()
     notes = faker.pystr(min_chars=5, max_chars=10)

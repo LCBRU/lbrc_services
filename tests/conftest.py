@@ -1,6 +1,6 @@
 from lbrc_services.security import init_authorization
 import pytest
-from lbrc_flask.pytest.faker import LbrcDynaicFormFakerProvider
+from lbrc_flask.pytest.faker import FieldsProvider
 from lbrc_flask.pytest.helpers import login
 from faker import Faker
 from lbrc_flask.pytest.fixtures import *
@@ -9,7 +9,7 @@ from lbrc_services import create_app
 from lbrc_services.model import task_status_type_setup
 from lbrc_services.model.security import ROLE_QUOTER
 from lbrc_flask.security import add_user_to_role
-from .faker import LbrcServicesFakerProvider, UserProvider
+from .faker import LbrcServicesProvider
 from lbrc_flask.database import db
 from lbrc_flask.forms.dynamic import create_field_types
 
@@ -51,8 +51,7 @@ def app():
 @pytest.fixture(scope="function")
 def faker():
     result = Faker("en_GB")
-    result.add_provider(UserProvider)
-    result.add_provider(LbrcDynaicFormFakerProvider)
-    result.add_provider(LbrcServicesFakerProvider)
+    result.add_provider(FieldsProvider)
+    result.add_provider(LbrcServicesProvider)
 
     yield result

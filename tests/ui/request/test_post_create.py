@@ -16,7 +16,7 @@ def _create_task_post(client, task, field_data=None):
 
 
 def test__post__requires_login(client, faker):
-    s = faker.get_test_service()
+    s = faker.service().get_in_db()
     assert__requires_login(client, _url(service_id=s.id, external=False), post=True)
 
 
@@ -26,8 +26,8 @@ def test__post__missing(client, faker, loggedin_user):
 
 
 def test__create_task__with_all_values(client, faker, loggedin_user, mock_email):
-    service = faker.get_test_service()
-    expected = faker.task_details(service=service)
+    service = faker.service().get_in_db()
+    expected = faker.task().get(service=service)
 
     resp = _create_task_post(client, expected)
 
@@ -37,7 +37,8 @@ def test__create_task__with_all_values(client, faker, loggedin_user, mock_email)
 
 
 def test__create_task__empty_name(client, faker, loggedin_user):
-    expected = faker.task_details(service=faker.get_test_service(), name='')
+    service = faker.service().get_in_db()
+    expected = faker.task().get(service=service, name='')
 
     resp = _create_task_post(client, expected)
 
@@ -46,8 +47,8 @@ def test__create_task__empty_name(client, faker, loggedin_user):
 
 
 def test__create_task__empty_organisation(client, faker, loggedin_user):
-    service = faker.get_test_service()
-    expected = faker.task_details(service=service)
+    service = faker.service().get_in_db()
+    expected = faker.task().get(service=service)
     expected.organisations = []
 
     resp = _create_task_post(client, expected)
@@ -57,8 +58,9 @@ def test__create_task__empty_organisation(client, faker, loggedin_user):
 
 
 def test__create_task__empty_requestor__uses_current_user(client, faker, loggedin_user, mock_email):
-    expected = faker.task_details(service=faker.get_test_service())
-    expected.requestor_id = None
+    service = faker.service().get_in_db()
+    expected = faker.task().get(service=service)
+    expected.requestor = None
 
     resp = _create_task_post(client, expected)
 
@@ -69,7 +71,8 @@ def test__create_task__empty_requestor__uses_current_user(client, faker, loggedi
 
 
 def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, loggedin_user):
-    expected = faker.task_details(service=faker.get_test_service(), organisation=Organisation.get_other())
+    service = faker.service().get_in_db()
+    expected = faker.task().get(service=service, organisation=Organisation.get_other())
 
     resp = _create_task_post(client, expected)
 
@@ -100,7 +103,7 @@ def test__create_task__fields(client, faker, field_type, value, expected_value, 
     if value is not None:
         field_data[f.field_name] = value
 
-    expected = faker.task_details(service=s)
+    expected = faker.task().get(service=s)
 
     resp = _create_task_post(client, expected, field_data)
 
@@ -128,7 +131,7 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
     if value is not None:
         field_data[f.field_name] = value
 
-    expected = faker.task_details(service=s)
+    expected = faker.task().get(service=s)
 
     resp = _create_task_post(client, expected, field_data)
 
@@ -145,7 +148,7 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
 def test__upload__upload_FileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
-    expected = faker.task_details(service=s)
+    expected = faker.task().get(service=s)
     resp = _create_task_post(client, expected)
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
@@ -169,7 +172,7 @@ def test__upload__upload_FileField(client, faker, loggedin_user, mock_email):
         }
     ]
 
-    expected = faker.task_details(service=s)
+    expected = faker.task().get(service=s)
     resp = _create_task_post(client, expected, field_data)
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
@@ -180,7 +183,7 @@ def test__upload__upload_FileField(client, faker, loggedin_user, mock_email):
 def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
-    expected = faker.task_details(service=s)
+    expected = faker.task().get(service=s)
     resp = _create_task_post(client, expected)
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
@@ -213,8 +216,10 @@ def test__upload__upload_MultiFileField(client, faker, n, loggedin_user, mock_em
             'file': fake_file,
         })
 
-    expected = faker.task_details(service=s)
+    expected = faker.task().get(service=s)
     resp = _create_task_post(client, expected, field_data)
+
+    print(resp.soup)
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)

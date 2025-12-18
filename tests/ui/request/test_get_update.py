@@ -11,7 +11,7 @@ def _url(task_id, external=True, prev=None):
 
 
 def test__get__requires_login(client, faker):
-    task = faker.get_test_task()
+    task = faker.task().get_in_db()
 
     assert__requires_login(client, _url(task.id, external=False))
 
@@ -22,7 +22,7 @@ def test__get__missing(client, faker, loggedin_user):
 
 
 def test__get__not_service_owner_or_requestor(client, faker, loggedin_user):
-    task = faker.get_test_task()
+    task = faker.task().get_in_db()
 
     resp = client.get(_url(task_id=task.id))
     assert resp.status_code == http.HTTPStatus.FORBIDDEN
@@ -30,24 +30,26 @@ def test__get__not_service_owner_or_requestor(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__get__is_requestor(client, faker, loggedin_user):
-    task = faker.get_test_task(requestor=loggedin_user)
+    task = faker.task().get_in_db(requestor=loggedin_user)
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
 
 @pytest.mark.app_crsf(True)
 def test__get__is_service_owner(client, faker, loggedin_user):
-    task = faker.get_test_owned_task(owner=loggedin_user)
+    s = faker.service().get_in_db(owners=[loggedin_user])
+    task = faker.task().get_in_db(service=s)
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
 
 def test__get__is_owner_of_other_service(client, faker, loggedin_user):
-    user2 = faker.get_test_user()
-    s_owned = faker.service_details(owners=[loggedin_user])
-    task = faker.get_test_owned_task(owner=user2)
+    user2 = faker.user().get_in_db()
+    s_owned = faker.service().get(owners=[loggedin_user])
+    s_other = faker.service().get_in_db(owners=[user2])
+    task = faker.task().get_in_db(service=s_other)
 
     resp = client.get(_url(task_id=task.id))
     assert resp.status_code == http.HTTPStatus.FORBIDDEN
@@ -55,9 +57,9 @@ def test__get__is_owner_of_other_service(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__get__common_form_fields(client, faker, loggedin_user):
-    task = faker.get_test_task(requestor=loggedin_user)
+    task = faker.task().get_in_db(requestor=loggedin_user)
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("select", id="organisations") is not None
@@ -73,9 +75,9 @@ def test__get__common_form_fields(client, faker, loggedin_user):
 def test__update_task__input_fields(client, faker, field_type_name, loggedin_user):
     ft = FieldType._get_field_type(field_type_name)
     s, f = faker.get_test_field_of_type(ft)
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
+    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
@@ -86,10 +88,10 @@ def test__update_task__input_fields(client, faker, field_type_name, loggedin_use
 def test__update_task__boolean_field__True(client, faker, loggedin_user):
     ft = FieldType.get_boolean()
     s, f = faker.get_test_field_of_type(ft)
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
-    td = faker.get_test_task_data(task=task, field=f, value='1')
+    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    td = faker.task_data().get_in_db(task=task, field=f, value='1')
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
@@ -101,9 +103,9 @@ def test__update_task__boolean_field__True(client, faker, loggedin_user):
 def test__update_task__boolean_field__False(client, faker, loggedin_user):
     ft = FieldType.get_boolean()
     s, f = faker.get_test_field_of_type(ft)
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
+    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
@@ -115,10 +117,10 @@ def test__update_task__boolean_field__False(client, faker, loggedin_user):
 def test__update_task__integer_field__Value(client, faker, loggedin_user):
     ft = FieldType.get_integer()
     s, f = faker.get_test_field_of_type(ft)
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
-    td = faker.get_test_task_data(task=task, field=f, value=1234)
+    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    td = faker.task_data().get_in_db(task=task, field=f, value=1234)
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name, value='1234')
@@ -129,10 +131,10 @@ def test__update_task__integer_field__Value(client, faker, loggedin_user):
 def test__update_task__radio_field__Value(client, faker, loggedin_user):
     ft = FieldType.get_radio()
     s, f = faker.get_test_field_of_type(ft, choices='a|b|c')
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
-    td = faker.get_test_task_data(task=task, field=f, value='a')
+    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    td = faker.task_data().get_in_db(task=task, field=f, value='a')
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
@@ -148,10 +150,10 @@ def test__update_task__radio_field__Value(client, faker, loggedin_user):
 def test__update_task__string_field__Value(client, faker, loggedin_user):
     ft = FieldType.get_string()
     s, f = faker.get_test_field_of_type(ft)
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
-    td = faker.get_test_task_data(task=task, field=f, value='a')
+    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    td = faker.task_data().get_in_db(task=task, field=f, value='a')
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name, value='a')
@@ -162,10 +164,10 @@ def test__update_task__string_field__Value(client, faker, loggedin_user):
 def test__update_task__textarea_field__Value(client, faker, loggedin_user):
     ft = FieldType.get_textarea()
     s, f = faker.get_test_field_of_type(ft)
-    task = faker.get_test_task(service=s, requestor=loggedin_user)
-    td = faker.get_test_task_data(task=task, field=f, value='a')
+    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    td = faker.task_data().get_in_db(task=task, field=f, value='a')
 
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     actual = resp.soup.find(ft.html_tag, type=ft.html_input_type, id=f.field_name)
@@ -181,9 +183,9 @@ def test__update_task__textarea_field__Value(client, faker, loggedin_user):
     ],
 )
 def test__get__buttons(client, faker, endpoint, loggedin_user):
-    task = faker.get_test_task(requestor=loggedin_user)
+    task = faker.task().get_in_db(requestor=loggedin_user)
     url = url_for(endpoint)
-    resp = lbrc_services_modal_get(client, _url(task_id=task.id, prev=url), loggedin_user, has_form=True)
+    resp = lbrc_services_modal_get(client, _url(task_id=task.id, prev=url), has_form=True)
     assert resp.status_code == http.HTTPStatus.OK
 
     assert resp.soup.find("a", string="Cancel") is not None

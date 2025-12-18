@@ -17,7 +17,7 @@ def test__get__requires_login(client, faker):
 
 
 def test__get__common_form_fields(client, faker, quoter_user):
-    resp = lbrc_services_modal_get(client, _url(), quoter_user)
+    resp = lbrc_services_modal_get(client, _url())
     assert resp.status_code == http.HTTPStatus.OK
     
     assert resp.soup.find("select", id="requestor_id") is not None

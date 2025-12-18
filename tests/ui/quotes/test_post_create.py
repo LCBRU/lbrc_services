@@ -22,7 +22,7 @@ def test__post__requires_quoter_role(client, faker, loggedin_user):
 
 
 def test__create_task__with_all_values(client, faker, quoter_user):
-    expected = faker.quote_details()
+    expected = faker.quote().get()
 
     resp = _create_post(client, expected)
 
@@ -31,8 +31,7 @@ def test__create_task__with_all_values(client, faker, quoter_user):
 
 
 def test__create_task__empty_name(client, faker, quoter_user):
-    expected = faker.quote_details(name='')
-
+    expected = faker.quote().get(name='')
     resp = _create_post(client, expected)
 
     assert resp.status_code == http.HTTPStatus.OK
@@ -40,7 +39,7 @@ def test__create_task__empty_name(client, faker, quoter_user):
 
 
 def test__create_task__empty_organisation(client, faker, quoter_user):
-    expected = faker.quote_details()
+    expected = faker.quote().get()
     expected.organisation_id = None
 
     resp = _create_post(client, expected)
@@ -50,7 +49,7 @@ def test__create_task__empty_organisation(client, faker, quoter_user):
 
 
 def test__create_task__empty_requestor__uses_current_user(client, faker, quoter_user):
-    expected = faker.quote_details()
+    expected = faker.quote().get()
     expected.requestor_id = None
 
     resp = _create_post(client, expected)
@@ -61,7 +60,7 @@ def test__create_task__empty_requestor__uses_current_user(client, faker, quoter_
 
 
 def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, quoter_user):
-    expected = faker.quote_details(organisation=Organisation.get_other())
+    expected = faker.quote().get(organisation=Organisation.get_other())
 
     resp = _create_post(client, expected)
 
