@@ -54,6 +54,15 @@ class ServiceCreator(FakeCreator):
         )
 
 
+class OrganisationCreator(FakeCreator):
+    cls = Organisation
+
+    def get(self, **kwargs):
+        if (name := kwargs.get('name')) is None:
+            name = self.faker.pystr(min_chars=5, max_chars=10)
+
+        return Organisation(name=name)
+
 class TaskCreator(FakeCreator):
     cls = Task
 
@@ -70,7 +79,7 @@ class TaskCreator(FakeCreator):
         if (current_status_type := kwargs.get('current_status_type')) is None:
             current_status_type = TaskStatusType.get_created()
         if (organisation := kwargs.get('organisation')) is None:
-            organisation = Organisation.get_organisation(Organisation.CARDIOVASCULAR)
+            organisation = self.faker.organisation().get()
         if (organisation_description := kwargs.get('organisation_description')) is None:
             organisation_description = ''
 
@@ -79,7 +88,7 @@ class TaskCreator(FakeCreator):
             service=service,
             service_id=service_id,
             requestor=requestor,
-            current_status_type=current_status_type,
+            current_status_type_id=current_status_type.id,
             organisations=[organisation],
             organisation_description=organisation_description,
         )
@@ -228,3 +237,7 @@ class LbrcServicesProvider(BaseProvider):
     @cache
     def todo(self):
         return ToDoCreator(self)
+
+    @cache
+    def organisation(self):
+        return OrganisationCreator(self)

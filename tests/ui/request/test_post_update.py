@@ -11,8 +11,9 @@ def _url(task_id, external=True):
     return url_for('ui.edit_task_modal', task_id=task_id, _external=external)
 
 
-def _edit_task_post(client, task, field_data=None):
-    return post_task(client, _url(task_id=task.id), task, field_data)
+def _edit_task_post(client, task, field_data=None, organisations=None):
+    url = _url(task_id=task.id)
+    return post_task(client, url, task, field_data=field_data, organisations=organisations)
 
 
 def test__post__requires_login(client, faker):
@@ -27,19 +28,21 @@ def test__post__missing(client, faker, loggedin_user):
 
 
 def test__update_task__with_all_values(client, faker, loggedin_user):
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(requestor=loggedin_user)
 
-    resp = _edit_task_post(client, task)
+    resp = _edit_task_post(client, task, organisations=[organisation])
 
     assert__refresh_response(resp)
-    assert__task(task, loggedin_user)
+    assert__task(task, loggedin_user, service=task.service, expected_organisations=[organisation])
 
 
 def test__update_task__empty_name(client, faker, loggedin_user):
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(requestor=loggedin_user)
     task.name = ''
 
-    resp = _edit_task_post(client, task)
+    resp = _edit_task_post(client, task, organisations=[organisation])
 
     assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field_modal(resp.soup, "request title")
@@ -47,9 +50,8 @@ def test__update_task__empty_name(client, faker, loggedin_user):
 
 def test__update_task__empty_organisation(client, faker, loggedin_user):
     task = faker.task().get_in_db(requestor=loggedin_user)
-    task.organisations = []
 
-    resp = _edit_task_post(client, task)
+    resp = _edit_task_post(client, task, organisations=[])
 
     assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field_modal(resp.soup, "organisations")
@@ -84,13 +86,14 @@ def test__update_task__fields(client, faker, field_type, original_value, value, 
         'value': expected_value,
     })
 
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(service=s, requestor=loggedin_user)
     orig = faker.task_data().get_in_db(task=task, field=f, value=original_value)
 
-    resp = _edit_task_post(client, task, field_data)
+    resp = _edit_task_post(client, task, field_data, organisations=[organisation])
 
     assert__refresh_response(resp)
-    assert__task(task, loggedin_user, data=data)
+    assert__task(task, loggedin_user, data=data, service=s, expected_organisations=[organisation])
 
 
 @pytest.mark.parametrize(
@@ -114,13 +117,14 @@ def test__update_task__radio_fields(client, faker, choices, original_value, valu
         'value': expected_value,
     })
 
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(service=s, requestor=loggedin_user)
     orig = faker.task_data().get_in_db(task=task, field=f, value=original_value)
 
-    resp = _edit_task_post(client, task, field_data)
+    resp = _edit_task_post(client, task, field_data, organisations=[organisation])
 
     assert__refresh_response(resp)
-    assert__task(task, loggedin_user, data=data)
+    assert__task(task, loggedin_user, data=data, service=s, expected_organisations=[organisation])
 
 
 def test__update_task__upload_FileField__no_file(client, faker, loggedin_user):
@@ -128,6 +132,7 @@ def test__update_task__upload_FileField__no_file(client, faker, loggedin_user):
 
     files=[]
 
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
@@ -137,10 +142,10 @@ def test__update_task__upload_FileField__no_file(client, faker, loggedin_user):
     )
     files.append({'field': f, 'file': orig1})
 
-    resp = _edit_task_post(client, task)
+    resp = _edit_task_post(client, task, organisations=[organisation])
 
     assert__refresh_response(resp)
-    assert__task(task, loggedin_user, files=files)
+    assert__task(task, loggedin_user, files=files, service=s, expected_organisations=[organisation])
 
 
 def test__update_task__upload_FileField(client, faker, loggedin_user):
@@ -153,6 +158,7 @@ def test__update_task__upload_FileField(client, faker, loggedin_user):
 
     field_data[f.field_name] = fake_file.file_tuple()
 
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
@@ -167,10 +173,10 @@ def test__update_task__upload_FileField(client, faker, loggedin_user):
         'file': fake_file,
     })
 
-    resp = _edit_task_post(client, task, field_data)
+    resp = _edit_task_post(client, task, field_data, organisations=[organisation])
 
     assert__refresh_response(resp)
-    assert__task(task, loggedin_user, files=files)
+    assert__task(task, loggedin_user, files=files, service=s, expected_organisations=[organisation])
 
 
 def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_user):
@@ -178,6 +184,7 @@ def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_us
 
     files = []
 
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
@@ -194,10 +201,10 @@ def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_us
     )
     files.append({'field': f, 'file': orig2})
 
-    resp = _edit_task_post(client, task)
+    resp = _edit_task_post(client, task, organisations=[organisation])
 
     assert__refresh_response(resp)
-    assert__task(task, loggedin_user, files=files)
+    assert__task(task, loggedin_user, files=files, service=s, expected_organisations=[organisation])
 
 
 @pytest.mark.parametrize(
@@ -215,6 +222,7 @@ def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user):
     }
     files = []
 
+    organisation = faker.organisation().get_in_db()
     task = faker.task().get_in_db(service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
@@ -241,7 +249,7 @@ def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user):
             'file': fake_file,
         })
 
-    resp = _edit_task_post(client, task, field_data)
+    resp = _edit_task_post(client, task, field_data, organisations=[organisation])
 
     assert__refresh_response(resp)
-    assert__task(task, loggedin_user, files=files)
+    assert__task(task, loggedin_user, files=files, service=s, expected_organisations=[organisation])

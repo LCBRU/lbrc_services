@@ -47,7 +47,7 @@ def test__get__is_service_owner(client, faker, loggedin_user):
 
 def test__get__is_owner_of_other_service(client, faker, loggedin_user):
     user2 = faker.user().get_in_db()
-    s_owned = faker.service().get(owners=[loggedin_user])
+    s_owned = faker.service().get_in_db(owners=[loggedin_user])
     s_other = faker.service().get_in_db(owners=[user2])
     task = faker.task().get_in_db(service=s_other)
 

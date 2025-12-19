@@ -136,11 +136,11 @@ class FieldlineView(InlineFormAdmin):
     )
 
 class FieldGroupView(AdminCustomView):
+    form_excluded_columns = ['fields']
     form_edit_rules = (
         'name',
         MultiLink(endpoint='field.edit_view', relation='fields', id_attribute='id', name_attribute="field_name", order_attribute="order"),
     )
-
 
 class FieldView(AdminCustomView):
     column_filters = ['field_group']

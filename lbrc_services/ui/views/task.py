@@ -234,11 +234,10 @@ def create_task(service_id):
 
     if form.validate_on_submit():
         task = Task(
-            service=service,
             current_status_type=TaskStatusType.get_created(),
         )
 
-        save_task(task, form, 'created')
+        save_task(task, form, 'created', service=service)
 
         if current_user not in service.owners:
             email(
@@ -290,12 +289,14 @@ def cancel_task(task_id):
     return refresh_response()
 
 
-def save_task(task, form, context):
+def save_task(task, form, context, service=None):
 
     task.requestor_id = form.requestor_id.data
     task.organisations = list(db.session.execute(select(Organisation).where(Organisation.id.in_(form.organisations.data))).scalars())
     task.organisation_description = form.organisation_description.data
     task.name = form.name.data
+    if service:
+        task.service = service
 
     assigned_user = form.assigned_user_id.data
 
@@ -327,6 +328,7 @@ def save_task(task, form, context):
             if field.field_type.is_file:
                 if v is not None:
                     tf = TaskFile(task=task, field=field)
+                    db.session.add(tf)
                     tf.set_filename_and_save(v)
                     task.files.append(tf)
             else:

@@ -11,8 +11,9 @@ def _url(service_id, external=True):
     return url_for('ui.create_task', service_id=service_id, _external=external)
 
 
-def _create_task_post(client, task, field_data=None):
-    return post_task(client, _url(service_id=task.service_id), task, field_data)
+def _create_task_post(client, task, service, organisations=None, field_data=None):
+    url = _url(service_id=service.id)
+    return post_task(client, url, task, field_data=field_data, organisations=organisations)
 
 
 def test__post__requires_login(client, faker):
@@ -27,20 +28,22 @@ def test__post__missing(client, faker, loggedin_user):
 
 def test__create_task__with_all_values(client, faker, loggedin_user, mock_email):
     service = faker.service().get_in_db()
-    expected = faker.task().get(service=service)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
 
-    resp = _create_task_post(client, expected)
+    resp = _create_task_post(client, expected, service=service, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
-    assert__task(expected, loggedin_user)
+    assert__task(expected, loggedin_user, service=service, expected_organisations=[organisation])
 
 
 def test__create_task__empty_name(client, faker, loggedin_user):
     service = faker.service().get_in_db()
-    expected = faker.task().get(service=service, name='')
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get(name='')
 
-    resp = _create_task_post(client, expected)
+    resp = _create_task_post(client, expected, service=service, organisations=[organisation])
 
     assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field_modal(resp.soup, "request title")
@@ -48,10 +51,10 @@ def test__create_task__empty_name(client, faker, loggedin_user):
 
 def test__create_task__empty_organisation(client, faker, loggedin_user):
     service = faker.service().get_in_db()
-    expected = faker.task().get(service=service)
+    expected = faker.task().get()
     expected.organisations = []
 
-    resp = _create_task_post(client, expected)
+    resp = _create_task_post(client, expected, service=service, organisations=[])
 
     assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field_modal(resp.soup, "organisations")
@@ -59,22 +62,24 @@ def test__create_task__empty_organisation(client, faker, loggedin_user):
 
 def test__create_task__empty_requestor__uses_current_user(client, faker, loggedin_user, mock_email):
     service = faker.service().get_in_db()
-    expected = faker.task().get(service=service)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
     expected.requestor = None
 
-    resp = _create_task_post(client, expected)
+    resp = _create_task_post(client, expected, service=service, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
     expected.requestor_id = loggedin_user.id
-    assert__task(expected, loggedin_user)
+    assert__task(expected, loggedin_user, service=service, expected_organisations=[organisation])
 
 
 def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, loggedin_user):
     service = faker.service().get_in_db()
-    expected = faker.task().get(service=service, organisation=Organisation.get_other())
+    organisation = Organisation.get_other()
+    expected = faker.task().get()
 
-    resp = _create_task_post(client, expected)
+    resp = _create_task_post(client, expected, service=service, organisations=[organisation])
 
     assert resp.status_code == http.HTTPStatus.OK
     assert__error__required_field_modal(resp.soup, "organisation description")
@@ -103,18 +108,21 @@ def test__create_task__fields(client, faker, field_type, value, expected_value, 
     if value is not None:
         field_data[f.field_name] = value
 
-    expected = faker.task().get(service=s)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
 
-    resp = _create_task_post(client, expected, field_data)
+    resp = _create_task_post(client, expected, field_data=field_data, service=s, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
-    assert__task(expected, loggedin_user, data=[
+    assert__task(expected, loggedin_user, service=s, data=[
         {
             'field': f,
             'value': expected_value,
         },
-    ])
+        ],
+        expected_organisations=[organisation]
+    )
 
 
 @pytest.mark.parametrize(
@@ -131,29 +139,33 @@ def test__create_task__radio_fields(client, faker, choices, value, expected_valu
     if value is not None:
         field_data[f.field_name] = value
 
-    expected = faker.task().get(service=s)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
 
-    resp = _create_task_post(client, expected, field_data)
+    resp = _create_task_post(client, expected, field_data=field_data, service=s, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
-    assert__task(expected, loggedin_user, data=[
+    assert__task(expected, loggedin_user, service=s, data=[
         {
             'field': f,
             'value': expected_value,
         },
-    ])
+    ],
+    expected_organisations=[organisation],
+    )
 
 
 def test__upload__upload_FileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_file())
 
-    expected = faker.task().get(service=s)
-    resp = _create_task_post(client, expected)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
+    resp = _create_task_post(client, expected, service=s, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
-    assert__task(expected, loggedin_user)
+    assert__task(expected, loggedin_user, service=s, expected_organisations=[organisation])
 
 
 def test__upload__upload_FileField(client, faker, loggedin_user, mock_email):
@@ -172,23 +184,25 @@ def test__upload__upload_FileField(client, faker, loggedin_user, mock_email):
         }
     ]
 
-    expected = faker.task().get(service=s)
-    resp = _create_task_post(client, expected, field_data)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
+    resp = _create_task_post(client, expected, field_data=field_data, service=s, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
-    assert__task(expected, loggedin_user, files=files)
+    assert__task(expected, loggedin_user, files=files, service=s, expected_organisations=[organisation])
 
 
 def test__upload__upload_MultiFileField__no_file(client, faker, loggedin_user, mock_email):
     s, f = faker.get_test_field_of_type(FieldType.get_multifile())
 
-    expected = faker.task().get(service=s)
-    resp = _create_task_post(client, expected)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
+    resp = _create_task_post(client, expected, service=s, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
-    assert__task(expected, loggedin_user)
+    assert__task(expected, loggedin_user, service=s, expected_organisations=[organisation])
 
 
 @pytest.mark.parametrize(
@@ -216,11 +230,10 @@ def test__upload__upload_MultiFileField(client, faker, n, loggedin_user, mock_em
             'file': fake_file,
         })
 
-    expected = faker.task().get(service=s)
-    resp = _create_task_post(client, expected, field_data)
-
-    print(resp.soup)
+    organisation = faker.organisation().get_in_db()
+    expected = faker.task().get()
+    resp = _create_task_post(client, expected, field_data=field_data, service=s, organisations=[organisation])
 
     assert_emails_sent(mock_email, context='created', user=loggedin_user)
     assert__refresh_response(resp)
-    assert__task(expected, loggedin_user, files=files)
+    assert__task(expected, loggedin_user, files=files, service=s, expected_organisations=[organisation])

@@ -22,18 +22,17 @@ def assert_emails_sent(mock_email, context, user):
     mock_email.assert_called()
 
 
-def assert__task(expected, user, data=None, files=None):
-    if data is None:
-        data = []
-    if files is None:
-        files = []
+def assert__task(expected, user, service, data=None, files=None, expected_organisations=None):
+    data = data or []
+    files = files or []
+    expected_organisations = expected_organisations or []
 
     a = _get_actual_task()
 
     assert a.name == expected.name
-    assert a.organisations == expected.organisations
+    assert a.organisations == expected_organisations
     assert a.organisation_description == expected.organisation_description
-    assert a.service_id == expected.service_id
+    assert a.service_id == service.id
     assert a.requestor == user
     assert a.current_status_type == TaskStatusType.get_created()
     assert len(a.status_history) == 1
@@ -61,13 +60,13 @@ def assert__task(expected, user, data=None, files=None):
         assert da.value == de['value']
 
 
-def post_task(client, url, task, field_data=None):
-    if field_data is None:
-        field_data = {}
+def post_task(client, url, task, organisations=None, field_data=None):
+    field_data = field_data or {}
+    organisations = organisations or []
 
     data={
         'name': task.name,
-        'organisations': [o.id for o in task.organisations],
+        'organisations': [o.id for o in organisations],
         'organisation_description': task.organisation_description,
         **field_data,
     }
