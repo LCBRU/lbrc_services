@@ -44,8 +44,11 @@ def quoter_user(client, faker):
 
 
 @pytest.fixture(scope="function")
-def app():
-    return create_app(TestConfig)
+def app(tmp_path):
+    class LocalTestConfig(TestConfig):
+        FILE_UPLOAD_DIRECTORY = tmp_path
+
+    yield create_app(LocalTestConfig)
 
 
 @pytest.fixture(scope="function")

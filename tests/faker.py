@@ -1,14 +1,15 @@
 from datetime import datetime
 from functools import cache
-from random import choice
+from random import choice, randint
 from typing import Optional
 from faker.providers import BaseProvider
-from lbrc_services.model.quotes import Quote, QuotePricingType, QuoteStatusType
+from lbrc_services.model.quotes import Quote, QuotePricingType, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType, QuoteWorkLine, QuoteWorkSection
 from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
 from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator, FakeCreator
 from io import BytesIO
 from lbrc_flask.forms.dynamic import FieldType
+from sqlalchemy import select
 
 
 class FakerFile():
@@ -127,6 +128,83 @@ class QuoteCreator(FakeCreator):
         )
 
 
+class QuoteStatusCreator(FakeCreator):
+    cls = QuoteStatus
+
+    def get(self, **kwargs):
+        if (quote := kwargs.get('quote')) is None:
+            quote = self.faker.quote().get()
+        if (quote_status_type := kwargs.get('quote_status_type')) is None:
+            quote_status_type = choice(self._get_quote_status_types())
+        if (notes := kwargs.get('notes')) is None:
+            notes = self.faker.paragraph(nb_sentences=randint(1, 3))
+
+        return QuoteStatus(
+            quote=quote,
+            quote_status_type=quote_status_type,
+            notes=notes,
+        )
+    
+    @cache
+    def _get_quote_status_types(self):
+        return list(db.session.execute(select(QuoteStatusType)).scalars())
+
+
+class QuoteRequirementCreator(FakeCreator):
+    cls = QuoteRequirement
+
+    def get(self, **kwargs):
+        if (quote := kwargs.get('quote')) is None:
+            quote = self.faker.quote().get()
+        if (notes := kwargs.get('notes')) is None:
+            notes = self.faker.paragraph(nb_sentences=randint(1, 3))
+        if (quote_requirement_type := kwargs.get('quote_requirement_type')) is None:
+            quote_requirement_type = choice(self._get_quote_requirement_types())
+
+        return QuoteRequirement(
+            quote=quote,
+            notes=notes,
+            quote_requirement_type=quote_requirement_type,
+        )
+    
+    @cache
+    def _get_quote_requirement_types(self):
+        return list(db.session.execute(select(QuoteRequirementType)).scalars())
+
+
+class QuoteWorkSectionCreator(FakeCreator):
+    cls = QuoteWorkSection
+
+    def get(self, **kwargs):
+        if (quote := kwargs.get('quote')) is None:
+            quote = self.faker.quote().get()
+        if (name := kwargs.get('name')) is None:
+            name = self.faker.sentence(nb_words=randint(1,10))
+
+        return QuoteWorkSection(
+            quote=quote,
+            name=name,
+        )
+    
+
+class QuoteWorkLineCreator(FakeCreator):
+    cls = QuoteWorkLine
+
+    def get(self, **kwargs):
+        if (quote_work_section := kwargs.get('quote_work_section')) is None:
+            quote_work_section = self.faker.quote_work_section().get()
+        if (name := kwargs.get('name')) is None:
+            name = self.faker.sentence(nb_words=randint(1,10))
+        if (days := kwargs.get('days')) is None:
+            days = randint(1, 20) * 0.5
+
+        return QuoteWorkLine(
+            quote_work_section=quote_work_section,
+            name=name,
+            days=days,
+        )
+    
+
 class TaskFileCreator(FakeCreator):
     cls = TaskFile
 
@@ -209,6 +287,22 @@ class LbrcServicesProvider(BaseProvider):
     @cache
     def quote(self):
         return QuoteCreator(self)
+    
+    @cache
+    def quote_status(self):
+        return QuoteStatusCreator(self)
+    
+    @cache
+    def quote_requirement(self):
+        return QuoteRequirementCreator(self)
+    
+    @cache
+    def quote_work_section(self):
+        return QuoteWorkSectionCreator(self)
+    
+    @cache
+    def quote_work_line(self):
+        return QuoteWorkLineCreator(self)
 
     @cache
     def task_file(self):
