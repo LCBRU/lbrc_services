@@ -27,6 +27,9 @@ def _get(client, url, loggedin_user, has_form):
     return resp
 
 
+def requests_sorted_by_created_date_desc(requests):
+    return sorted(requests, key=lambda r: r.created_date)
+
 @pytest.mark.parametrize(
     ["mine", "others"],
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
@@ -34,7 +37,9 @@ def _get(client, url, loggedin_user, has_form):
 def test__my_requests(client, faker, mine, others, loggedin_user):
     user2 = faker.user().get_in_db()
 
-    my_requests = faker.task().get_list_in_db(item_count=mine, requestor=loggedin_user)
+    my_requests = requests_sorted_by_created_date_desc(
+        faker.task().get_list_in_db(item_count=mine, requestor=loggedin_user)
+    )
     not_my_requests = faker.task().get_list_in_db(item_count=others, requestor=user2)
 
     resp = _get(client, _url(), loggedin_user, has_form=False)
