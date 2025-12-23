@@ -40,18 +40,24 @@ class ServiceCreator(FakeCreator):
         if (generic_recipients := kwargs.get('generic_recipients')) is None:
             generic_recipients = self.faker.email()
         if (field_group := kwargs.get('field_group')) is None:
-            field_group = self.faker.field_group().get()
+            field_group = self.faker.field_group().get(name=name)
         if (suppress_owner_email := kwargs.get('suppress_owner_email')) is None:
             suppress_owner_email = False
         if (owners := kwargs.get('owners')) is None:
             owners = []
+        if (introduction := kwargs.get('introduction')) is None:
+            introduction = self.faker.paragraph(nb_sentences=randint(1,3))
+        if (description := kwargs.get('description')) is None:
+            description = '\n'.join(self.faker.paragraphs(nb=randint(1,3)))
 
         return Service(
             name=name,
             generic_recipients=generic_recipients,
             field_group=field_group,
             suppress_owner_email=suppress_owner_email,
-            owners=owners,
+            introduction=introduction,
+            description=description,
+            owners=owners
         )
 
 
@@ -79,10 +85,12 @@ class TaskCreator(FakeCreator):
             requestor = self.faker.user().get()
         if (current_status_type := kwargs.get('current_status_type')) is None:
             current_status_type = TaskStatusType.get_created()
-        if (organisation := kwargs.get('organisation')) is None:
-            organisation = self.faker.organisation().get()
+        if (organisations := kwargs.get('organisations')) is None:
+            organisations = [self.faker.organisation().get()]
         if (organisation_description := kwargs.get('organisation_description')) is None:
             organisation_description = ''
+        if (created_date := kwargs.get('created_date')) is None:
+            created_date = self.faker.date_time_between(start_date='-1y')
 
         return Task(
             name=name,
@@ -90,8 +98,9 @@ class TaskCreator(FakeCreator):
             service_id=service_id,
             requestor=requestor,
             current_status_type_id=current_status_type.id,
-            organisations=[organisation],
+            organisations=organisations,
             organisation_description=organisation_description,
+            created_date=created_date,
         )
 
 

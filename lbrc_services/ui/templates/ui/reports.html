@@ -10,16 +10,23 @@
         <form action="{{ url_for('ui.reports') }}" method="GET" enctype="multipart/form-data">
             <fieldset class="columns">
                 {{ render_form_fields(search_form) }}
-
-                <div class="button_bar">
-                    <button type="submit" formaction="{{ url_for('ui.report_png') }}" formmethod="get">Download</button>
-                </div>
             </fieldset>
         </form>
     </header>
 
-    <div id="chart">
-        <embed type="image/svg+xml" src= {{ chart|safe }} />
+    <div class="chart" hx-target="#content">
+        <nav class="link_list">
+            <a class="icon download" href="{{ url_for('ui.report_image', type='attachment', **search_form.values_as_dict()) }}" title="Download Chart"></a>
+            <a class="icon chart" href="javascript:;" hx-get="{{ url_for('ui.image_panel', **search_form.values_as_dict()) }}" title="Show Chart"></a>
+            <a class="icon table" href="javascript:;" hx-get="{{ url_for('ui.table_panel', **search_form.values_as_dict()) }}" title="Show Table"></a>
+        </nav>
+
+        <div id="content"
+            hx-get="{{ url_for('ui.image_panel', **search_form.values_as_dict()) }}"
+            hx-trigger="load"
+            hx-swap="innerHTML">
+        </div>
+        <hr>
     </div>
 
 </section>

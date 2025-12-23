@@ -14,7 +14,7 @@ from random import randint, choice, sample
 from lbrc_services.model.security import get_roles
 from lbrc_services.model import task_status_type_setup
 from lbrc_services.model.services import Organisation, TaskStatusType, User
-from lbrc_flask.forms.dynamic import create_field_types, FieldType
+from lbrc_flask.forms.dynamic import create_field_types
 from faker import Faker
 from lbrc_flask.pytest.faker import FieldsProvider
 from tests.faker import LbrcServicesProvider
@@ -27,7 +27,9 @@ fake.add_provider(LbrcServicesProvider)
 from lbrc_services import create_app
 
 
-def create_quotes(fake, organisations):
+def create_quotes(fake):
+    organisations = Organisation.get_all_organisations()
+
     quotes = []
     for o in organisations:
         quotes.extend(fake.quote().get_list_in_db(organisation=o, item_count=randint(5,10)))
@@ -47,11 +49,15 @@ def create_quotes(fake, organisations):
         fake.quote_work_line().get_list_in_db(quote_work_section=qws, item_count=randint(2,10))
 
 
-def create_services_and_tasks(fake, quoters, other_users, organisations):
-    services = fake.service().get_list_in_db(item_count=randint(20, 40))
+def create_services_and_tasks(fake, admin_user, quoters, other_users):
+    organisations = Organisation.get_all_organisations()
+
+    services = []
+    for _ in range(randint(5, 10)):
+        services.append(fake.service().get_in_db(owners=sample(quoters, randint(1, 2)) + [admin_user]))
 
     for fg in [s.field_group for s in services]:
-        fake.field().get_list_in_db(field_group=fg, item_count=randint(10, 20))
+        fake.field().get_list_in_db(field_group=fg, item_count=randint(5, 10))
 
     task_statuses = TaskStatusType.get_all_task_statuses()
 
@@ -79,17 +85,15 @@ init_users()
 task_status_type_setup()
 create_field_types()
 
-organisations = Organisation.get_all_organisations()
+admin_user = db.session.execute(select(User).filter(User.id == 2)).scalar()
 
-me = db.session.execute(select(User).filter(User.id == 2)).scalar()
-
-quoters = [me] + fake.user().get_list_in_db(item_count=randint(5, 10))
+quoters = [admin_user] + fake.user().get_list_in_db(item_count=randint(5, 10))
 other_users = fake.user().get_list_in_db(item_count=randint(10, 20))
 
 for r, u in product(get_roles(), quoters):
     add_user_to_role(user=u, role_name=r)
 
-create_services_and_tasks(fake, quoters, other_users, organisations)
-create_quotes(fake, organisations)
+create_services_and_tasks(fake, admin_user, quoters, other_users)
+create_quotes(fake)
 
 db.session.close()

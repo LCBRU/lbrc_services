@@ -1,12 +1,9 @@
-from lbrc_flask.forms.dynamic import Field
-from lbrc_services.ui.views import _get_tasks_query
 from flask import render_template, request
-from flask_security import current_user
+
+from lbrc_services.ui.view_models.reports import CurrentStatusReport, FieldReport, MonthRequestedReport, OrganisationReport
 from ..decorators import must_be_service_owner, must_own_a_service
 from .. import blueprint
 from ..forms import ReportSearchForm
-from lbrc_flask.database import db
-from lbrc_flask.charting import BarChart, BarChartItem
 
 
 @blueprint.route("/reports")
@@ -15,75 +12,57 @@ from lbrc_flask.charting import BarChart, BarChartItem
 def reports():
     search_form = ReportSearchForm(formdata=request.args)
 
-    return render_template("ui/reports.html", search_form=search_form, chart=get_chart(search_form).get_chart().render_data_uri())
+    return render_template(
+        "ui/reports.html",
+        search_form=search_form,
+    )
 
 
-@blueprint.route("/report_png")
-@must_own_a_service()
-@must_be_service_owner('service_id')
-def report_png():
+@blueprint.route("/reports/image")
+@blueprint.route("/reports/image/<string:type>")
+def report_image(type='png'):
     search_form = ReportSearchForm(search_placeholder='Search Requests', formdata=request.args)
-    
-    chart = get_chart(search_form)
-    return chart.send_as_attachment()
 
+    chart = get_report(search_form)
 
-def get_chart(search_form):
-    tasks = list(db.session.execute(_get_tasks_query(search_form=search_form)).unique().scalars())
+    bc = chart.get_chart()
 
+    if type == 'svg':
+        return bc.send_svg()
+    elif type == 'attachment':
+        return bc.send_as_attachment()
+    elif type == 'table':
+        return bc.send_table()
+    else:
+        return bc.send()
+
+@blueprint.route("/report/image_panel", methods=['GET', 'POST'])
+def image_panel():
+    search_form = ReportSearchForm(formdata=request.args)
+
+    return render_template(
+        "ui/reports/image.html",
+        search_form=search_form,
+    )
+
+@blueprint.route("/report/table_panel", methods=['GET', 'POST'])
+def table_panel():
+    search_form = ReportSearchForm(formdata=request.args)
+
+    return render_template(
+        "ui/reports/table.html",
+        title=get_report(search_form).get_report_name(),
+        search_form=search_form,
+    )
+
+def get_report(search_form):
     report_grouper_id = search_form.data.get('report_grouper_id', -3)
 
     if report_grouper_id == -3:
-        group_category = [BarChartItem(
-            series=t.service.name,
-            bucket=t.created_date.strftime('%b %Y'),
-        ) for t in tasks]
-
+        return MonthRequestedReport(search_form)
     elif report_grouper_id == -2:
-        group_category = [BarChartItem(
-            series=t.service.name,
-            bucket=t.current_status_type.name,
-        ) for t in tasks]
-
+        return CurrentStatusReport(search_form)
     elif report_grouper_id == -1:
-        group_category = []
-        for t in tasks:
-            for o in t.organisations:
-                group_category.append(BarChartItem(
-                    series=t.service.name,
-                    bucket=o.name,
-                ))
+        return OrganisationReport(search_form)
     else:
-        group_category = []
-
-        for t in tasks:
-            group_category.extend([
-                BarChartItem(
-                    series=t.service.name,
-                    bucket=d.formated_value,
-                ) for d in t.data if d.field_id == report_grouper_id
-            ])
-
-    bc: BarChart = BarChart(
-        title=get_report_name(report_grouper_id),
-        items=group_category,
-        y_title='Jobs',
-    )
-
-    return bc
-
-
-def get_report_name(report_id):
-    static_groupers = {
-        -3: 'Month Requested',
-        -2: 'Current Status',
-        -1: 'Organisation',
-    }
-
-    if report_id in static_groupers.keys():
-        grouper = static_groupers[report_id]
-    else:
-        grouper = db.get_or_404(Field, report_id).get_label()
-
-    return 'Jobs by {}'.format(grouper)
-
+        return FieldReport(search_form, report_grouper_id)

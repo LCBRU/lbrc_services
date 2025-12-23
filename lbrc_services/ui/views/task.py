@@ -1,4 +1,5 @@
-from lbrc_services.ui.views import _get_tasks_query, send_task_export
+from lbrc_services.services.tasks import task_search_query
+from lbrc_services.ui.views import send_task_export
 from lbrc_services.model.services import Task, TaskAssignedUser, TaskData, TaskFile, TaskStatus, TaskStatusType, Service, Organisation
 from lbrc_flask.database import db
 from lbrc_flask.emailing import email
@@ -23,7 +24,7 @@ from lbrc_flask.response import refresh_response
 def my_requests():
     search_form = TaskSearchForm(search_placeholder='Search Requests', formdata=request.args)
 
-    q = _get_tasks_query(search_form=search_form, requester_id=current_user.id)
+    q = task_search_query(search_data=search_form.data, requester_id=current_user.id)
     q = q.order_by(Task.created_date.desc(), Task.id.desc())
 
     tasks = db.paginate(
@@ -51,7 +52,7 @@ def hide_task_details(task_id):
 @blueprint.route("/my_jobs", methods=["GET", "POST"])
 def my_jobs():
     search_form = MyJobsSearchForm(search_placeholder='Search My Jobs', formdata=request.args)
-    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
+    q = task_search_query(search_data=search_form.data, owner_id=current_user.id)
 
     assigned_user_id = search_form.data.get('assigned_user_id', 0)
 
@@ -350,7 +351,7 @@ def save_task(task, form, context, service=None):
 @blueprint.route("/my_jobs/export")
 def my_jobs_export():
     search_form = MyJobsSearchForm(formdata=request.args)
-    q = _get_tasks_query(search_form=search_form, owner_id=current_user.id)
+    q = task_search_query(search_data=search_form.data, owner_id=current_user.id)
     q = q.order_by(Task.created_date.asc())
 
     return send_task_export('My Jobs', db.session.execute(q).unique().scalars())

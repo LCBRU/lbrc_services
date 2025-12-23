@@ -12,69 +12,13 @@ __all__ = [
 ]
 
 
-import re
-from datetime import timedelta, date
+from datetime import timedelta
 from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
 from lbrc_services.model.quotes import Quote, QuoteStatusType
-from lbrc_services.model.services import Organisation, Service, Task, TaskStatus, TaskStatusType, ToDo, User
+from lbrc_services.model.services import ToDo
 from lbrc_flask.export import excel_download
 from lbrc_flask.formatters import format_datetime
-
-
-def _get_tasks_query(search_form, owner_id=None, requester_id=None):
-    q = select(Task)
-
-    if x := search_form.search.data:
-        x = x.strip()
-        if m := re.fullmatch(r"#(\d+)", x):
-            q = q.where(Task.id == int(m.group(1)))
-        else:
-            for word in x.split():
-                q = q.where(Task.name.like(f"%{word}%"))
-
-    if search_form.data.get('service_id', 0) not in (0, "0", None):
-        q = q.where(Task.service_id == search_form.data['service_id'])
-
-    if search_form.data.get('organisation_id', 0) not in (0, "0", None):
-        q = q.where(Task.organisations.any(Organisation.id == search_form.data['organisation_id']))
-
-    if search_form.data.get('requestor_id', 0) not in (0, "0", None):
-        q = q.where(Task.requestor_id == search_form.data['requestor_id'])
-
-    if search_form.data.get('created_date_from', None):
-        q = q.where(Task.created_date >= search_form.data['created_date_from'])
-
-    if search_form.data.get('created_date_to', None):
-        q = q.where(Task.created_date < search_form.data['created_date_to'] + timedelta(days=1))
-
-    if 'task_status_type_id' in search_form.data:
-        option = search_form.data.get('task_status_type_id', 0) or 0
-
-        q = q.join(Task.current_status_type)
-
-        if option == 0:
-            q = q.where(TaskStatusType.is_complete == False)
-        elif option == -1:
-            q = q.join(Task.status_history)
-            q = q.where(or_(
-                TaskStatusType.is_complete == False,
-                TaskStatus.created_date > (date.today() - timedelta(days=7)),
-            ))
-        elif option == -2:
-            q = q.where(TaskStatusType.is_complete == True)
-        elif option != -3:
-            q = q.where(TaskStatusType.id == option)
-
-    if owner_id is not None:
-        q = q.join(Task.service)
-        q = q.join(Service.owners)
-        q = q.where(User.id == owner_id)
-
-    if requester_id is not None:
-        q = q.where(Task.requestor_id == requester_id)
-
-    return q
 
 
 def _get_quote_query(search_form, owner_id=None, sort_asc=False):
