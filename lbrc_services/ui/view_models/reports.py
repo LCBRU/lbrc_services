@@ -63,7 +63,7 @@ class MonthRequestedReport(Report):
             ) for dt in rrule.rrule(rrule.MONTHLY, dtstart=min_date, until=min_max_date['max'])
         }
 
-        year_month = func.to_char(q_tasks.c.created_date, 'YYYY-MM')
+        year_month = func.date_format(q_tasks.c.created_date, '%Y-%m')
 
         q_year_month_counts = (
             select(
