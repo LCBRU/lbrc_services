@@ -112,7 +112,7 @@ flask-wtf==1.2.2
     #   lbrc-flask
 fonttools==4.61.1
     # via weasyprint
-greenlet==3.3.0
+greenlet==3.2.0
     # via sqlalchemy
 hatchling==1.28.0
     # via lbrc-flask
