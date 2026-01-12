@@ -6,7 +6,7 @@ from faker.providers import BaseProvider
 from lbrc_services.model.quotes import Quote, QuotePricingType, QuoteRequirement, QuoteRequirementType, QuoteStatus, QuoteStatusType, QuoteWorkLine, QuoteWorkSection
 from lbrc_services.model.services import Organisation, TaskData, TaskStatusType, ToDo, User, Service, Task, TaskFile
 from lbrc_flask.database import db
-from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator, FakeCreator
+from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator, FakeCreator, FakeCreatorArgs
 from io import BytesIO
 from lbrc_flask.forms.dynamic import FieldType
 from sqlalchemy import select
@@ -34,63 +34,46 @@ class UserCreator(BaseUserCreator):
 class ServiceCreator(FakeCreator):
     cls = Service
 
-    def get(self, **kwargs):
-        if (name := kwargs.get('name')) is None:
-            name = self.faker.company()
-        if (generic_recipients := kwargs.get('generic_recipients')) is None:
-            generic_recipients = self.faker.email()
-        if (field_group := kwargs.get('field_group')) is None:
-            field_group = self.faker.field_group().get(name=name)
-        if (suppress_owner_email := kwargs.get('suppress_owner_email')) is None:
-            suppress_owner_email = False
-        if (owners := kwargs.get('owners')) is None:
-            owners = []
-        if (introduction := kwargs.get('introduction')) is None:
-            introduction = self.faker.paragraph(nb_sentences=randint(1,3))
-        if (description := kwargs.get('description')) is None:
-            description = '\n'.join(self.faker.paragraphs(nb=randint(1,3)))
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        name = args.get('name', self.faker.company())
 
         return Service(
             name=name,
-            generic_recipients=generic_recipients,
-            field_group=field_group,
-            suppress_owner_email=suppress_owner_email,
-            introduction=introduction,
-            description=description,
-            owners=owners
+            generic_recipients=args.get('generic_recipients', self.faker.email()),
+            field_group=args.get('field_group', self.faker.field_group().get(name=name)),
+            suppress_owner_email=args.get('suppress_owner_email', False),
+            introduction=args.get('introduction', self.faker.paragraph(nb_sentences=randint(1,3))),
+            description=args.get('description', '\n'.join(self.faker.paragraphs(nb=randint(1,3)))),
+            owners=args.get('owners', [])
         )
 
 
 class OrganisationCreator(FakeCreator):
     cls = Organisation
 
-    def get(self, **kwargs):
-        if (name := kwargs.get('name')) is None:
-            name = self.faker.pystr(min_chars=5, max_chars=10)
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        return Organisation(
+            name=args.get('name', self.faker.company()),
+        )
 
-        return Organisation(name=name)
 
 class TaskCreator(FakeCreator):
     cls = Task
 
-    def get(self, **kwargs):
-        if (name := kwargs.get('name')) is None:
-            name = self.faker.pystr(min_chars=5, max_chars=10)
-        if (service := kwargs.get('service')) is None:
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        name = args.get('name', self.faker.sentence(nb_words=randint(3,10)))
+
+        if (service := args.get('service')) is None:
             service = self.faker.service().get()
             service_id = None
         else:
             service_id = service.id
-        if (requestor := kwargs.get('requestor')) is None:
-            requestor = self.faker.user().get()
-        if (current_status_type := kwargs.get('current_status_type')) is None:
-            current_status_type = TaskStatusType.get_created()
-        if (organisations := kwargs.get('organisations')) is None:
-            organisations = [self.faker.organisation().get()]
-        if (organisation_description := kwargs.get('organisation_description')) is None:
-            organisation_description = ''
-        if (created_date := kwargs.get('created_date')) is None:
-            created_date = self.faker.date_time_between(start_date='-1y')
+
+        requestor = args.get('requestor', self.faker.user().get())
+        current_status_type = args.get('current_status_type', TaskStatusType.get_created())
+        organisations = args.get('organisations', [self.faker.organisation().get()])
+        organisation_description = args.get('organisation_description', '')
+        created_date = args.get('created_date', self.faker.date_time_between(start_date='-1y'))
 
         return Task(
             name=name,
@@ -107,23 +90,15 @@ class TaskCreator(FakeCreator):
 class QuoteCreator(FakeCreator):
     cls = Quote
 
-    def get(self, **kwargs):
-        if (name := kwargs.get('name')) is None:
-            name = self.faker.pystr(min_chars=5, max_chars=10)
-        if (requestor := kwargs.get('requestor')) is None:
-            requestor = self.faker.user().get()
-        if (current_status_type := kwargs.get('current_status_type')) is None:
-            current_status_type = QuoteStatusType.get_draft()
-        if (organisation := kwargs.get('organisation')) is None:
-            organisation = Organisation.get_organisation(Organisation.CARDIOVASCULAR)
-        if (organisation_description := kwargs.get('organisation_description')) is None:
-            organisation_description = ''
-        if (quote_price_type := kwargs.get('quote_price_type')) is None:
-            quote_price_type = QuotePricingType.query.first()
-        if (created_date := kwargs.get('created_date')) is None:
-            created_date = None
-        if (date_requested := kwargs.get('date_requested')) is None:
-            date_requested = datetime.now().date()
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        name = args.get('name', self.faker.sentence(nb_words=randint(3,10)))
+        requestor = args.get('requestor', self.faker.user().get())
+        current_status_type = args.get('current_status_type', QuoteStatusType.get_draft())
+        organisation = args.get('organisation', Organisation.get_organisation(Organisation.CARDIOVASCULAR))
+        organisation_description = args.get('organisation_description', '')
+        quote_price_type = args.get('quote_price_type', QuotePricingType.query.first())
+        created_date = args.get('created_date')
+        date_requested = args.get('date_requested', datetime.now().date())
 
         return Quote(
             name=name,
@@ -140,13 +115,10 @@ class QuoteCreator(FakeCreator):
 class QuoteStatusCreator(FakeCreator):
     cls = QuoteStatus
 
-    def get(self, **kwargs):
-        if (quote := kwargs.get('quote')) is None:
-            quote = self.faker.quote().get()
-        if (quote_status_type := kwargs.get('quote_status_type')) is None:
-            quote_status_type = choice(self._get_quote_status_types())
-        if (notes := kwargs.get('notes')) is None:
-            notes = self.faker.paragraph(nb_sentences=randint(1, 3))
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        quote = args.get('quote', self.faker.quote().get())
+        quote_status_type = args.get('quote_status_type', choice(self._get_quote_status_types()))
+        notes = args.get('notes', self.faker.paragraph(nb_sentences=randint(1, 3)))
 
         return QuoteStatus(
             quote=quote,
@@ -162,13 +134,10 @@ class QuoteStatusCreator(FakeCreator):
 class QuoteRequirementCreator(FakeCreator):
     cls = QuoteRequirement
 
-    def get(self, **kwargs):
-        if (quote := kwargs.get('quote')) is None:
-            quote = self.faker.quote().get()
-        if (notes := kwargs.get('notes')) is None:
-            notes = self.faker.paragraph(nb_sentences=randint(1, 3))
-        if (quote_requirement_type := kwargs.get('quote_requirement_type')) is None:
-            quote_requirement_type = choice(self._get_quote_requirement_types())
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        quote = args.get('quote', self.faker.quote().get())
+        notes = args.get('notes', self.faker.paragraph(nb_sentences=randint(1, 3)))
+        quote_requirement_type = args.get('quote_requirement_type', choice(self._get_quote_requirement_types()))
 
         return QuoteRequirement(
             quote=quote,
@@ -184,11 +153,9 @@ class QuoteRequirementCreator(FakeCreator):
 class QuoteWorkSectionCreator(FakeCreator):
     cls = QuoteWorkSection
 
-    def get(self, **kwargs):
-        if (quote := kwargs.get('quote')) is None:
-            quote = self.faker.quote().get()
-        if (name := kwargs.get('name')) is None:
-            name = self.faker.sentence(nb_words=randint(1,10))
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        quote = args.get('quote', self.faker.quote().get())
+        name = args.get('name', self.faker.sentence(nb_words=randint(1,10)))
 
         return QuoteWorkSection(
             quote=quote,
@@ -199,13 +166,10 @@ class QuoteWorkSectionCreator(FakeCreator):
 class QuoteWorkLineCreator(FakeCreator):
     cls = QuoteWorkLine
 
-    def get(self, **kwargs):
-        if (quote_work_section := kwargs.get('quote_work_section')) is None:
-            quote_work_section = self.faker.quote_work_section().get()
-        if (name := kwargs.get('name')) is None:
-            name = self.faker.sentence(nb_words=randint(1,10))
-        if (days := kwargs.get('days')) is None:
-            days = randint(1, 20) * 0.5
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        quote_work_section = args.get('quote_work_section', self.faker.quote_work_section().get())
+        name = args.get('name', self.faker.sentence(nb_words=randint(1,10)))
+        days = args.get('days', randint(1, 20) * 0.5)
 
         return QuoteWorkLine(
             quote_work_section=quote_work_section,
@@ -217,15 +181,11 @@ class QuoteWorkLineCreator(FakeCreator):
 class TaskFileCreator(FakeCreator):
     cls = TaskFile
 
-    def get(self, **kwargs):
-        if (filename := kwargs.get('filename')) is None:
-            filename = self.faker.pystr(min_chars=5, max_chars=10)
-        if (local_filepath := kwargs.get('local_filepath')) is None:
-            local_filepath = self.faker.pystr(min_chars=5, max_chars=10)
-        if (task := kwargs.get('task')) is None:
-            task = self.faker.task().get()
-        if (field := kwargs.get('field')) is None:
-            field = self.faker.field().get()
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        filename = args.get('filename', self.faker.pystr(min_chars=5, max_chars=10))
+        local_filepath = args.get('local_filepath', self.faker.pystr(min_chars=5, max_chars=10))
+        task = args.get('task', self.faker.task().get())
+        field = args.get('field', self.faker.field().get())
 
         return TaskFile(
             filename=filename,
@@ -238,17 +198,14 @@ class TaskFileCreator(FakeCreator):
 class TaskDataCreator(FakeCreator):
     cls = TaskData
 
-    def get(self, **kwargs):
-        if (task := kwargs.get('task')) is None:
-            task = self.faker.task().get()
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        task = args.get('task', self.faker.task().get())
+        value = args.get('value', self.faker.pystr(min_chars=5, max_chars=10).upper())
 
-        if (field := kwargs.get('field')) is None:
+        if (field := args.get('field')) is None:
             field_type_name = choice(FieldType.all_simple_field_types())
             field_type = FieldType._get_field_type(field_type_name)
             field = self.faker.field().get(field_type=field_type)
-
-        if (value := kwargs.get('value')) is None:
-            value = self.faker.pystr(min_chars=5, max_chars=10).upper()
 
         return TaskData(
             task=task,
@@ -260,15 +217,10 @@ class TaskDataCreator(FakeCreator):
 class ToDoCreator(FakeCreator):
     cls = ToDo
 
-    def get(self, **kwargs):
-        if (task := kwargs.get('task')) is None:
-            task = self.faker.task().get()
-
-        if (description := kwargs.get('description')) is None:
-            description = self.faker.pystr(min_chars=5, max_chars=100)
-
-        if (status := kwargs.get('status')) is None:
-            status = None
+    def _create_item(self, save: bool, args: FakeCreatorArgs):
+        task = args.get('task', self.faker.task().get())
+        description = args.get('description', self.faker.paragraph(nb_sentences=randint(1, 3)))
+        status = args.get('status')
 
         return ToDo(
             task=task,
