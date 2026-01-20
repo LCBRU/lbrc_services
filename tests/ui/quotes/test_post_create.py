@@ -22,7 +22,7 @@ def test__post__requires_quoter_role(client, faker, loggedin_user):
 
 
 def test__create_task__with_all_values(client, faker, quoter_user):
-    expected = faker.quote().get()
+    expected = faker.quote().get(save=False)
 
     resp = _create_post(client, expected)
 
@@ -39,7 +39,7 @@ def test__create_task__empty_name(client, faker, quoter_user):
 
 
 def test__create_task__empty_organisation(client, faker, quoter_user):
-    expected = faker.quote().get()
+    expected = faker.quote().get(save=False)
     expected.organisation_id = None
 
     resp = _create_post(client, expected)
@@ -49,7 +49,7 @@ def test__create_task__empty_organisation(client, faker, quoter_user):
 
 
 def test__create_task__empty_requestor__uses_current_user(client, faker, quoter_user):
-    expected = faker.quote().get()
+    expected = faker.quote().get(save=False)
     expected.requestor_id = None
 
     resp = _create_post(client, expected)

@@ -64,14 +64,14 @@ class TaskCreator(FakeCreator):
         name = args.get('name', self.faker.sentence(nb_words=randint(3,10)))
 
         if (service := args.get('service')) is None:
-            service = self.faker.service().get()
+            service = self.faker.service().get(save=save)
             service_id = None
         else:
             service_id = service.id
 
-        requestor = args.get('requestor', self.faker.user().get())
+        requestor = args.get_or_create('requestor', self.faker.user())
         current_status_type = args.get('current_status_type', TaskStatusType.get_created())
-        organisations = args.get('organisations', [self.faker.organisation().get()])
+        organisations = args.get('organisations', [self.faker.organisation().get(save=save)])
         organisation_description = args.get('organisation_description', '')
         created_date = args.get('created_date', self.faker.date_time_between(start_date='-1y'))
 
@@ -92,7 +92,7 @@ class QuoteCreator(FakeCreator):
 
     def _create_item(self, save: bool, args: FakeCreatorArgs):
         name = args.get('name', self.faker.sentence(nb_words=randint(3,10)))
-        requestor = args.get('requestor', self.faker.user().get())
+        requestor = args.get_or_create('requestor', self.faker.user())
         current_status_type = args.get('current_status_type', QuoteStatusType.get_draft())
         organisation = args.get('organisation', Organisation.get_organisation(Organisation.CARDIOVASCULAR))
         organisation_description = args.get('organisation_description', '')
@@ -116,7 +116,7 @@ class QuoteStatusCreator(FakeCreator):
     cls = QuoteStatus
 
     def _create_item(self, save: bool, args: FakeCreatorArgs):
-        quote = args.get('quote', self.faker.quote().get())
+        quote = args.get_or_create('quote', self.faker.quote())
         quote_status_type = args.get('quote_status_type', choice(self._get_quote_status_types()))
         notes = args.get('notes', self.faker.paragraph(nb_sentences=randint(1, 3)))
 
@@ -135,7 +135,7 @@ class QuoteRequirementCreator(FakeCreator):
     cls = QuoteRequirement
 
     def _create_item(self, save: bool, args: FakeCreatorArgs):
-        quote = args.get('quote', self.faker.quote().get())
+        quote = args.get_or_create('quote', self.faker.quote())
         notes = args.get('notes', self.faker.paragraph(nb_sentences=randint(1, 3)))
         quote_requirement_type = args.get('quote_requirement_type', choice(self._get_quote_requirement_types()))
 
@@ -154,7 +154,7 @@ class QuoteWorkSectionCreator(FakeCreator):
     cls = QuoteWorkSection
 
     def _create_item(self, save: bool, args: FakeCreatorArgs):
-        quote = args.get('quote', self.faker.quote().get())
+        quote = args.get_or_create('quote', self.faker.quote())
         name = args.get('name', self.faker.sentence(nb_words=randint(1,10)))
 
         return QuoteWorkSection(
@@ -167,7 +167,7 @@ class QuoteWorkLineCreator(FakeCreator):
     cls = QuoteWorkLine
 
     def _create_item(self, save: bool, args: FakeCreatorArgs):
-        quote_work_section = args.get('quote_work_section', self.faker.quote_work_section().get())
+        quote_work_section = args.get_or_create('quote_work_section', self.faker.quote_work_section())
         name = args.get('name', self.faker.sentence(nb_words=randint(1,10)))
         days = args.get('days', randint(1, 20) * 0.5)
 
@@ -184,8 +184,8 @@ class TaskFileCreator(FakeCreator):
     def _create_item(self, save: bool, args: FakeCreatorArgs):
         filename = args.get('filename', self.faker.pystr(min_chars=5, max_chars=10))
         local_filepath = args.get('local_filepath', self.faker.pystr(min_chars=5, max_chars=10))
-        task = args.get('task', self.faker.task().get())
-        field = args.get('field', self.faker.field().get())
+        task = args.get_or_create('task', self.faker.task())
+        field = args.get_or_create('field', self.faker.field())
 
         return TaskFile(
             filename=filename,
@@ -199,7 +199,7 @@ class TaskDataCreator(FakeCreator):
     cls = TaskData
 
     def _create_item(self, save: bool, args: FakeCreatorArgs):
-        task = args.get('task', self.faker.task().get())
+        task = args.get_or_create('task', self.faker.task())
         value = args.get('value', self.faker.pystr(min_chars=5, max_chars=10).upper())
 
         if (field := args.get('field')) is None:
@@ -218,7 +218,7 @@ class ToDoCreator(FakeCreator):
     cls = ToDo
 
     def _create_item(self, save: bool, args: FakeCreatorArgs):
-        task = args.get('task', self.faker.task().get())
+        task = args.get_or_create('task', self.faker.task())
         description = args.get('description', self.faker.paragraph(nb_sentences=randint(1, 3)))
         status = args.get('status')
 
