@@ -137,3 +137,6 @@ database.sqlite3
 log/
 uploads/
 src/
+
+# Local development environment
+requirements.dev
