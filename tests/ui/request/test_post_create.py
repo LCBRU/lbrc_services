@@ -41,7 +41,7 @@ def test__create_task__with_all_values(client, faker, loggedin_user, mock_email)
 def test__create_task__empty_name(client, faker, loggedin_user):
     service = faker.service().get_in_db()
     organisation = faker.organisation().get_in_db()
-    expected = faker.task().get(name='')
+    expected = faker.task().get(save=False, name='')
 
     resp = _create_task_post(client, expected, service=service, organisations=[organisation])
 

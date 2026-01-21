@@ -31,7 +31,7 @@ def test__create_task__with_all_values(client, faker, quoter_user):
 
 
 def test__create_task__empty_name(client, faker, quoter_user):
-    expected = faker.quote().get(name='')
+    expected = faker.quote().get(save=False, name='')
     resp = _create_post(client, expected)
 
     assert resp.status_code == http.HTTPStatus.OK
@@ -60,7 +60,7 @@ def test__create_task__empty_requestor__uses_current_user(client, faker, quoter_
 
 
 def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, quoter_user):
-    expected = faker.quote().get(organisation=Organisation.get_other())
+    expected = faker.quote().get(save=False, organisation=Organisation.get_other())
 
     resp = _create_post(client, expected)
 

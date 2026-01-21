@@ -40,7 +40,7 @@ class ServiceCreator(FakeCreator):
         return Service(
             name=name,
             generic_recipients=args.get('generic_recipients', self.faker.email()),
-            field_group=args.get('field_group', self.faker.field_group().get(name=name)),
+            field_group=args.get('field_group', self.faker.field_group().get(save=save, name=name)),
             suppress_owner_email=args.get('suppress_owner_email', False),
             introduction=args.get('introduction', self.faker.paragraph(nb_sentences=randint(1,3))),
             description=args.get('description', '\n'.join(self.faker.paragraphs(nb=randint(1,3)))),
