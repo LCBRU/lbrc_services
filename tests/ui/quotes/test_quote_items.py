@@ -39,7 +39,7 @@ def _get(client, url, loggedin_user, has_form):
     [0, 1, 5],
 )
 def test__quotes(client, faker, quotes, quoter_user):
-    my_quotes = faker.quote().get_list_in_db(requestor=quoter_user, item_count=quotes)
+    my_quotes = faker.quote().get_list(save=True, requestor=quoter_user, item_count=quotes)
 
     resp = _get(client, _url(), quoter_user, has_form=False)
 
@@ -101,7 +101,7 @@ def test__quotes__search__created_to(client, faker, quoter_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__pages(client, faker, quote_count, quoter_user):
-    quotes = faker.quote().get_list_in_db(item_count=quote_count)
+    quotes = faker.quote().get_list(save=True, item_count=quote_count)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False}, quote_count, form=QuoteSearchForm())
 
@@ -111,8 +111,8 @@ def test__quotes__pages(client, faker, quote_count, quoter_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__name__pages(client, faker, quote_count, quoter_user):
-    matching = faker.quote().get_list_in_db(name='Mary', requestor=quoter_user, item_count=quote_count)
-    unmatching = faker.quote().get_list_in_db(name='Joseph', requestor=quoter_user, item_count=100)
+    matching = faker.quote().get_list(save=True, name='Mary', requestor=quoter_user, item_count=quote_count)
+    unmatching = faker.quote().get_list(save=True, name='Joseph', requestor=quoter_user, item_count=100)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'search': 'ar'}, quote_count, form=QuoteSearchForm())
 
@@ -122,8 +122,8 @@ def test__quotes__search__name__pages(client, faker, quote_count, quoter_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__quote_status__pages(client, faker, quote_count, quoter_user):
-    matching = faker.quote().get_list_in_db(current_status_type=QuoteStatusType.get_paid(), requestor=quoter_user, item_count=quote_count)
-    unmatching = faker.quote().get_list_in_db(current_status_type=QuoteStatusType.get_awaiting_approval(), requestor=quoter_user, item_count=100)
+    matching = faker.quote().get_list(save=True, current_status_type=QuoteStatusType.get_paid(), requestor=quoter_user, item_count=quote_count)
+    unmatching = faker.quote().get_list(save=True, current_status_type=QuoteStatusType.get_awaiting_approval(), requestor=quoter_user, item_count=100)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'quote_status_type_id': QuoteStatusType.get_paid().id}, quote_count, form=QuoteSearchForm())
 
@@ -133,8 +133,8 @@ def test__quotes__search__quote_status__pages(client, faker, quote_count, quoter
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__organisation__pages(client, faker, quote_count, quoter_user):
-    matching = faker.quote().get_list_in_db(organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR), requestor=quoter_user, item_count=quote_count)
-    unmatching = faker.quote().get_list_in_db(organisation=Organisation.get_organisation(Organisation.LIFESTYLE), requestor=quoter_user, item_count=100)
+    matching = faker.quote().get_list(save=True, organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR), requestor=quoter_user, item_count=quote_count)
+    unmatching = faker.quote().get_list(save=True, organisation=Organisation.get_organisation(Organisation.LIFESTYLE), requestor=quoter_user, item_count=100)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'organisation_id': Organisation.get_organisation(Organisation.CARDIOVASCULAR).id}, quote_count, form=QuoteSearchForm())
 
@@ -144,8 +144,8 @@ def test__quotes__search__organisation__pages(client, faker, quote_count, quoter
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__created_from__pages(client, faker, quoter_user, quote_count):
-    matching = faker.quote().get_list_in_db(requestor=quoter_user, created_date=datetime(2020, 1, 1), item_count=quote_count)
-    non_matching = faker.quote().get_list_in_db(requestor=quoter_user, created_date=datetime(2019, 12, 31), item_count=100)
+    matching = faker.quote().get_list(save=True, requestor=quoter_user, created_date=datetime(2020, 1, 1), item_count=quote_count)
+    non_matching = faker.quote().get_list(save=True, requestor=quoter_user, created_date=datetime(2019, 12, 31), item_count=100)
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'created_date_from': '2020-01-01'}, quote_count, form=QuoteSearchForm())
 
 
@@ -154,8 +154,8 @@ def test__quotes__search__created_from__pages(client, faker, quoter_user, quote_
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__quotes__search__created_to__pages(client, faker, quoter_user, quote_count):
-    non_matching = faker.quote().get_list_in_db(requestor=quoter_user, created_date=datetime(2020, 1, 1), item_count=100)
-    matching = faker.quote().get_list_in_db(requestor=quoter_user, created_date=datetime(2019, 12, 31), item_count=quote_count)
+    non_matching = faker.quote().get_list(save=True, requestor=quoter_user, created_date=datetime(2020, 1, 1), item_count=100)
+    matching = faker.quote().get_list(save=True, requestor=quoter_user, created_date=datetime(2019, 12, 31), item_count=quote_count)
 
     assert__page_navigation(client, 'ui.quotes', {'_external': False, 'created_date_to': '2019-12-31'}, quote_count, form=QuoteSearchForm())
 

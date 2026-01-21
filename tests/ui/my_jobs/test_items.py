@@ -39,8 +39,8 @@ def test__my_jobs(client, faker, mine, others, loggedin_user):
 
     my_service = faker.service().get(save=True, owners=[loggedin_user])
     other_service = faker.service().get(save=True, owners=[user2])
-    my_jobs = faker.task().get_list_in_db(service=my_service, owner=loggedin_user, item_count=mine)
-    others_jobs = faker.task().get_list_in_db(service=other_service, owner=user2, item_count=others)
+    my_jobs = faker.task().get_list(save=True, service=my_service, owner=loggedin_user, item_count=mine)
+    others_jobs = faker.task().get_list(save=True, service=other_service, owner=user2, item_count=others)
 
     resp = _get(client, _url(), loggedin_user, has_form=False)
 
@@ -120,7 +120,7 @@ def task_matches_li(task, li):
 )
 def test__my_jobs__pages(client, faker, jobs, loggedin_user):
     s = faker.service().get(save=True, owners=[loggedin_user])
-    my_jobs = faker.task().get_list_in_db(service=s, owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
+    my_jobs = faker.task().get_list(save=True, service=s, owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
 
     assert__page_navigation(client, 'ui.my_jobs', {'_external': False}, jobs, form=MyJobsSearchForm(), page_size=10)
 
@@ -131,8 +131,8 @@ def test__my_jobs__pages(client, faker, jobs, loggedin_user):
 )
 def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
     s = faker.service().get(save=True, owners=[loggedin_user])
-    matching = faker.task().get_list_in_db(service=s, name='Mary', owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
-    unmatching = faker.task().get_list_in_db(service=s, name='Joseph', owner=loggedin_user, requestor=loggedin_user, item_count=100)
+    matching = faker.task().get_list(save=True, service=s, name='Mary', owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
+    unmatching = faker.task().get_list(save=True, service=s, name='Joseph', owner=loggedin_user, requestor=loggedin_user, item_count=100)
 
     assert__page_navigation(client, 'ui.my_jobs', {'_external': False, 'search': 'ar'}, jobs, form=MyJobsSearchForm(), page_size=10)
 
@@ -143,8 +143,8 @@ def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
 )
 def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user):
     s = faker.service().get(save=True, owners=[loggedin_user])
-    matching = faker.task().get_list_in_db(service=s, current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
-    unmatching = faker.task().get_list_in_db(service=s, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user, item_count=100)
+    matching = faker.task().get_list(save=True, service=s, current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
+    unmatching = faker.task().get_list(save=True, service=s, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user, item_count=100)
 
     assert__page_navigation(client, 'ui.my_jobs', {'_external': False, 'task_status_type_id': TaskStatusType.get_done().id}, jobs, form=MyJobsSearchForm(), page_size=10)
 
@@ -156,7 +156,7 @@ def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user
 def test__my_jobs__search__service__pages(client, faker, jobs, loggedin_user):
     service1 = faker.service().get(save=True, owners=[loggedin_user])
     service2 = faker.service().get(save=True, owners=[loggedin_user])
-    matching = faker.task().get_list_in_db(service=service1, requestor=loggedin_user, item_count=jobs)
-    unmatching = faker.task().get_list_in_db(service=service2, requestor=loggedin_user, item_count=100)
+    matching = faker.task().get_list(save=True, service=service1, requestor=loggedin_user, item_count=jobs)
+    unmatching = faker.task().get_list(save=True, service=service2, requestor=loggedin_user, item_count=100)
 
     assert__page_navigation(client, 'ui.my_jobs', {'_external': False, 'service_id': service1.id}, jobs, form=MyJobsSearchForm(), page_size=10)

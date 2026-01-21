@@ -32,21 +32,21 @@ def create_quotes(fake):
 
     quotes = []
     for o in organisations:
-        quotes.extend(fake.quote().get_list_in_db(organisation=o, item_count=randint(5,10)))
+        quotes.extend(fake.quote().get_list(save=True, organisation=o, item_count=randint(5,10)))
 
     for qws in quotes:
-        fake.quote_status().get_list_in_db(quote=qws, item_count=randint(2,10))
+        fake.quote_status().get_list(save=True, quote=qws, item_count=randint(2,10))
         fake.quote_status().get(save=True, quote=qws, quote_status_type=qws.current_status_type)
 
     for qws in quotes:
-        fake.quote_requirement().get_list_in_db(quote=qws, item_count=randint(2,10))
+        fake.quote_requirement().get_list(save=True, quote=qws, item_count=randint(2,10))
 
     quote_work_sections = []
     for qws in quotes:
-        quote_work_sections.extend(fake.quote_work_section().get_list_in_db(quote=qws, item_count=randint(2,10)))
+        quote_work_sections.extend(fake.quote_work_section().get_list(save=True, quote=qws, item_count=randint(2,10)))
 
     for qws in quote_work_sections:
-        fake.quote_work_line().get_list_in_db(quote_work_section=qws, item_count=randint(2,10))
+        fake.quote_work_line().get_list(save=True, quote_work_section=qws, item_count=randint(2,10))
 
 
 def create_services_and_tasks(fake, admin_user, quoters, other_users):
@@ -57,7 +57,7 @@ def create_services_and_tasks(fake, admin_user, quoters, other_users):
         services.append(fake.service().get(save=True, owners=sample(quoters, randint(1, 2)) + [admin_user]))
 
     for fg in [s.field_group for s in services]:
-        fake.field().get_list_in_db(field_group=fg, item_count=randint(5, 10))
+        fake.field().get_list(save=True, field_group=fg, item_count=randint(5, 10))
 
     task_statuses = TaskStatusType.get_all_task_statuses()
 
@@ -87,8 +87,8 @@ create_field_types()
 
 admin_user = db.session.execute(select(User).filter(User.id == 2)).scalar()
 
-quoters = [admin_user] + fake.user().get_list_in_db(item_count=randint(5, 10))
-other_users = fake.user().get_list_in_db(item_count=randint(10, 20))
+quoters = [admin_user] + fake.user().get_list(save=True, item_count=randint(5, 10))
+other_users = fake.user().get_list(save=True, item_count=randint(10, 20))
 
 for r, u in product(get_roles(), quoters):
     add_user_to_role(user=u, role_name=r)
