@@ -285,8 +285,8 @@ class LbrcServicesProvider(BaseProvider):
         return TaskDataCreator(self)
 
     def get_test_field_of_type(self, field_type, choices=None, allowed_file_extensions=None):
-        s = self.service().get_in_db()
-        f = self.generator.field().get_in_db(field_group=s.field_group, field_type=field_type, choices=choices, allowed_file_extensions='pdf')
+        s = self.service().get(save=True)
+        f = self.generator.field().get(save=True, field_group=s.field_group, field_type=field_type, choices=choices, allowed_file_extensions='pdf')
         return s,f
 
     @cache

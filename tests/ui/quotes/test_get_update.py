@@ -13,13 +13,13 @@ def _url(quote_id, external=True, prev=None):
 
 
 def test__get__requires_login(client, faker):
-    quote = faker.quote().get_in_db()
+    quote = faker.quote().get(save=True)
 
     assert__requires_login(client, _url(quote.id, external=False))
 
 
 def test__get__requires_quoter_role(client, faker, loggedin_user):
-    quote = faker.quote().get_in_db()
+    quote = faker.quote().get(save=True)
     resp = assert__requires_role(client, _url(quote.id))
 
 
@@ -30,7 +30,7 @@ def test__get__missing(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__get__common_form_fields(client, faker, quoter_user):
-    quote = faker.quote().get_in_db()
+    quote = faker.quote().get(save=True)
 
     resp = lbrc_services_modal_get(client, _url(quote.id))
     assert resp.status_code == http.HTTPStatus.OK

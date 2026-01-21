@@ -35,10 +35,10 @@ def test__get__requires_login(client):
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
 )
 def test__my_jobs(client, faker, mine, others, loggedin_user):
-    user2 = faker.user().get_in_db()
+    user2 = faker.user().get(save=True)
 
-    my_service = faker.service().get_in_db(owners=[loggedin_user])
-    other_service = faker.service().get_in_db(owners=[user2])
+    my_service = faker.service().get(save=True, owners=[loggedin_user])
+    other_service = faker.service().get(save=True, owners=[user2])
     my_jobs = faker.task().get_list_in_db(service=my_service, owner=loggedin_user, item_count=mine)
     others_jobs = faker.task().get_list_in_db(service=other_service, owner=user2, item_count=others)
 
@@ -49,9 +49,9 @@ def test__my_jobs(client, faker, mine, others, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__name(client, faker, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
-    matching = faker.task().get_in_db(service=s, name='Mary', owner=loggedin_user)
-    non_matching = faker.task().get_in_db(service=s, name='Joseph', owner=loggedin_user)
+    s = faker.service().get(save=True, owners=[loggedin_user])
+    matching = faker.task().get(save=True, service=s, name='Mary', owner=loggedin_user)
+    non_matching = faker.task().get(save=True, service=s, name='Joseph', owner=loggedin_user)
 
     resp = _get(client, _url(search='ar'), loggedin_user, has_form=False)
 
@@ -60,9 +60,9 @@ def test__my_jobs__search__name(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__task_status_type(client, faker, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
-    matching = faker.task().get_in_db(service=s, current_status_type=TaskStatusType.get_done(), owner=loggedin_user)
-    non_matching = faker.task().get_in_db(service=s, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user)
+    s = faker.service().get(save=True, owners=[loggedin_user])
+    matching = faker.task().get(save=True, service=s, current_status_type=TaskStatusType.get_done(), owner=loggedin_user)
+    non_matching = faker.task().get(save=True, service=s, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user)
 
     resp = _get(client, _url(task_status_type_id=TaskStatusType.get_done().id), loggedin_user, has_form=False)
 
@@ -71,10 +71,10 @@ def test__my_jobs__search__task_status_type(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__service(client, faker, loggedin_user):
-    matching_service = faker.service().get_in_db(owners=[loggedin_user])
-    non_matching_service = faker.service().get_in_db(owners=[loggedin_user])
-    matching = faker.task().get_in_db(service=matching_service, owner=loggedin_user)
-    non_matching = faker.task().get_in_db(service=non_matching_service, owner=loggedin_user)
+    matching_service = faker.service().get(save=True, owners=[loggedin_user])
+    non_matching_service = faker.service().get(save=True, owners=[loggedin_user])
+    matching = faker.task().get(save=True, service=matching_service, owner=loggedin_user)
+    non_matching = faker.task().get(save=True, service=non_matching_service, owner=loggedin_user)
 
     resp = _get(client, _url(service_id=matching.service.id), loggedin_user, has_form=False)
 
@@ -83,9 +83,9 @@ def test__my_jobs__search__service(client, faker, loggedin_user):
 
 @pytest.mark.app_crsf(True)
 def test__my_jobs__search__requestor(client, faker, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
-    matching = faker.task().get_in_db(service=s, owner=loggedin_user)
-    non_matching = faker.task().get_in_db(service=s, owner=loggedin_user)
+    s = faker.service().get(save=True, owners=[loggedin_user])
+    matching = faker.task().get(save=True, service=s, owner=loggedin_user)
+    non_matching = faker.task().get(save=True, service=s, owner=loggedin_user)
 
     resp = _get(client, _url(requestor_id=matching.requestor.id), loggedin_user, has_form=False)
 
@@ -119,7 +119,7 @@ def task_matches_li(task, li):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__pages(client, faker, jobs, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
+    s = faker.service().get(save=True, owners=[loggedin_user])
     my_jobs = faker.task().get_list_in_db(service=s, owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
 
     assert__page_navigation(client, 'ui.my_jobs', {'_external': False}, jobs, form=MyJobsSearchForm(), page_size=10)
@@ -130,7 +130,7 @@ def test__my_jobs__pages(client, faker, jobs, loggedin_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
+    s = faker.service().get(save=True, owners=[loggedin_user])
     matching = faker.task().get_list_in_db(service=s, name='Mary', owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
     unmatching = faker.task().get_list_in_db(service=s, name='Joseph', owner=loggedin_user, requestor=loggedin_user, item_count=100)
 
@@ -142,7 +142,7 @@ def test__my_jobs__search__name__pages(client, faker, jobs, loggedin_user):
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
+    s = faker.service().get(save=True, owners=[loggedin_user])
     matching = faker.task().get_list_in_db(service=s, current_status_type=TaskStatusType.get_done(), owner=loggedin_user, requestor=loggedin_user, item_count=jobs)
     unmatching = faker.task().get_list_in_db(service=s, current_status_type=TaskStatusType.get_awaiting_information(), owner=loggedin_user, requestor=loggedin_user, item_count=100)
 
@@ -154,8 +154,8 @@ def test__my_jobs__search__task_status__pages(client, faker, jobs, loggedin_user
     [0, 1, 5, 6, 11, 16, 21, 26, 31, 101],
 )
 def test__my_jobs__search__service__pages(client, faker, jobs, loggedin_user):
-    service1 = faker.service().get_in_db(owners=[loggedin_user])
-    service2 = faker.service().get_in_db(owners=[loggedin_user])
+    service1 = faker.service().get(save=True, owners=[loggedin_user])
+    service2 = faker.service().get(save=True, owners=[loggedin_user])
     matching = faker.task().get_list_in_db(service=service1, requestor=loggedin_user, item_count=jobs)
     unmatching = faker.task().get_list_in_db(service=service2, requestor=loggedin_user, item_count=100)
 

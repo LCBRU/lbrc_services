@@ -11,7 +11,7 @@ def _url(external=True, **kwargs):
 
 # @pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__get__requires_login(client, faker):
-    t = faker.task().get_in_db()
+    t = faker.task().get(save=True)
     assert__requires_login(client, _url(task_id=t.id, external=False))
 
 
@@ -20,11 +20,11 @@ def test__get__requires_login(client, faker):
     [(0, 0), (0, 1), (0, 0), (2, 2), (3, 0)],
 )
 def test__todos(client, faker, for_this_task, for_other_tasks, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
-    this_task = faker.task().get_in_db(service=s)
-    other_task = faker.task().get_in_db()
+    s = faker.service().get(save=True, owners=[loggedin_user])
+    this_task = faker.task().get(save=True, service=s)
+    other_task = faker.task().get(save=True)
 
-    this_task_todos = [faker.todo().get_in_db(task=this_task) for _ in range(for_this_task)]
-    other_task_todos = [faker.todo().get_in_db(task=other_task) for _ in range(for_other_tasks)]
+    this_task_todos = [faker.todo().get(save=True, task=this_task) for _ in range(for_this_task)]
+    other_task_todos = [faker.todo().get(save=True, task=other_task) for _ in range(for_other_tasks)]
 
     resp = lbrc_services_modal_get(client, _url(task_id=this_task.id), has_form=False)

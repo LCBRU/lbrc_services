@@ -13,14 +13,14 @@ def _url(external=True, **kwargs):
 
 
 def test__get__requires_login(client, faker):
-    task = faker.task().get_in_db()
+    task = faker.task().get(save=True)
     assert__requires_login(client, _url(task_id=task.id, external=False))
 
 
 def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
-    user2 = faker.user().get_in_db()
-    s = faker.service().get_in_db(owners=[user2])
-    task = faker.task().get_in_db(service=s)
+    user2 = faker.user().get(save=True)
+    s = faker.service().get(save=True, owners=[user2])
+    task = faker.task().get(save=True, service=s)
 
     resp = client.get(_url(task_id=task.id))
 
@@ -28,8 +28,8 @@ def test__status_history__not_owner_or_requestor(client, faker, loggedin_user):
 
 
 def test__status_history__missing(client, faker, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
-    task = faker.task().get_in_db(service=s)
+    s = faker.service().get(save=True, owners=[loggedin_user])
+    task = faker.task().get(save=True, service=s)
 
     resp = client.get(_url(task_id=task.id + 1))
 
@@ -37,8 +37,8 @@ def test__status_history__missing(client, faker, loggedin_user):
 
 
 def test__status_history__is_owner(client, faker, loggedin_user):
-    s = faker.service().get_in_db(owners=[loggedin_user])
-    task = faker.task().get_in_db(service=s)
+    s = faker.service().get(save=True, owners=[loggedin_user])
+    task = faker.task().get(save=True, service=s)
     
     resp = client.get(_url(task_id=task.id))
 
@@ -46,7 +46,7 @@ def test__status_history__is_owner(client, faker, loggedin_user):
 
 
 def test__status_history__is_requestor(client, faker, loggedin_user):
-    task = faker.task().get_in_db(requestor=loggedin_user)
+    task = faker.task().get(save=True, requestor=loggedin_user)
 
     resp = client.get(_url(task_id=task.id))
 
@@ -59,8 +59,8 @@ def test__status_history__is_requestor(client, faker, loggedin_user):
 )
 def test__my_jobs__update_status(client, faker, n, loggedin_user):
     actual_status = TaskStatusType.get_created()
-    s = faker.service().get_in_db(owners=[loggedin_user])
-    task = faker.task().get_in_db(service=s, current_status_type=actual_status)
+    s = faker.service().get(save=True, owners=[loggedin_user])
+    task = faker.task().get(save=True, service=s, current_status_type=actual_status)
 
     statuses = cycle(TaskStatusType.query.all())
     history = []

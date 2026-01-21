@@ -17,7 +17,7 @@ def _edit_task_post(client, task, field_data=None, organisations=None):
 
 
 def test__post__requires_login(client, faker):
-    task = faker.task().get_in_db()
+    task = faker.task().get(save=True)
 
     assert__requires_login(client, _url(task_id=task.id, external=False), post=True)
 
@@ -28,8 +28,8 @@ def test__post__missing(client, faker, loggedin_user):
 
 
 def test__update_task__with_all_values(client, faker, loggedin_user):
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(requestor=loggedin_user)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, requestor=loggedin_user)
 
     resp = _edit_task_post(client, task, organisations=[organisation])
 
@@ -38,8 +38,8 @@ def test__update_task__with_all_values(client, faker, loggedin_user):
 
 
 def test__update_task__empty_name(client, faker, loggedin_user):
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(requestor=loggedin_user)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, requestor=loggedin_user)
     task.name = ''
 
     resp = _edit_task_post(client, task, organisations=[organisation])
@@ -49,7 +49,7 @@ def test__update_task__empty_name(client, faker, loggedin_user):
 
 
 def test__update_task__empty_organisation(client, faker, loggedin_user):
-    task = faker.task().get_in_db(requestor=loggedin_user)
+    task = faker.task().get(save=True, requestor=loggedin_user)
 
     resp = _edit_task_post(client, task, organisations=[])
 
@@ -86,9 +86,9 @@ def test__update_task__fields(client, faker, field_type, original_value, value, 
         'value': expected_value,
     })
 
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
-    orig = faker.task_data().get_in_db(task=task, field=f, value=original_value)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, service=s, requestor=loggedin_user)
+    orig = faker.task_data().get(save=True, task=task, field=f, value=original_value)
 
     resp = _edit_task_post(client, task, field_data, organisations=[organisation])
 
@@ -117,9 +117,9 @@ def test__update_task__radio_fields(client, faker, choices, original_value, valu
         'value': expected_value,
     })
 
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
-    orig = faker.task_data().get_in_db(task=task, field=f, value=original_value)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, service=s, requestor=loggedin_user)
+    orig = faker.task_data().get(save=True, task=task, field=f, value=original_value)
 
     resp = _edit_task_post(client, task, field_data, organisations=[organisation])
 
@@ -132,12 +132,12 @@ def test__update_task__upload_FileField__no_file(client, faker, loggedin_user):
 
     files=[]
 
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
     faker.create_task_file_in_filesystem(
-        task_file=faker.task_file().get_in_db(task=task, field=f, filename=orig1.filename),
+        task_file=faker.task_file().get(save=True, task=task, field=f, filename=orig1.filename),
         fake_file=orig1,
     )
     files.append({'field': f, 'file': orig1})
@@ -158,12 +158,12 @@ def test__update_task__upload_FileField(client, faker, loggedin_user):
 
     field_data[f.field_name] = fake_file.file_tuple()
 
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
     faker.create_task_file_in_filesystem(
-        task_file=faker.task_file().get_in_db(task=task, field=f, filename=orig1.filename),
+        task_file=faker.task_file().get(save=True, task=task, field=f, filename=orig1.filename),
         fake_file=orig1,
     )
     files.append({'field': f, 'file': orig1})
@@ -184,19 +184,19 @@ def test__update_task__upload_MultiFileField__no_file(client, faker, loggedin_us
 
     files = []
 
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
     faker.create_task_file_in_filesystem(
-        task_file=faker.task_file().get_in_db(task=task, field=f, filename=orig1.filename),
+        task_file=faker.task_file().get(save=True, task=task, field=f, filename=orig1.filename),
         fake_file=orig1,
     )
     files.append({'field': f, 'file': orig1})
 
     orig2 = faker.fake_file()
     faker.create_task_file_in_filesystem(
-        task_file=faker.task_file().get_in_db(task=task, field=f, filename=orig2.filename),
+        task_file=faker.task_file().get(save=True, task=task, field=f, filename=orig2.filename),
         fake_file=orig2,
     )
     files.append({'field': f, 'file': orig2})
@@ -222,19 +222,19 @@ def test__update_task__upload_MultiFileField(client, faker, n, loggedin_user):
     }
     files = []
 
-    organisation = faker.organisation().get_in_db()
-    task = faker.task().get_in_db(service=s, requestor=loggedin_user)
+    organisation = faker.organisation().get(save=True)
+    task = faker.task().get(save=True, service=s, requestor=loggedin_user)
 
     orig1 = faker.fake_file()
     faker.create_task_file_in_filesystem(
-        task_file=faker.task_file().get_in_db(task=task, field=f, filename=orig1.filename),
+        task_file=faker.task_file().get(save=True, task=task, field=f, filename=orig1.filename),
         fake_file=orig1,
     )
     files.append({'field': f, 'file': orig1})
 
     orig2 = faker.fake_file()
     faker.create_task_file_in_filesystem(
-        task_file=faker.task_file().get_in_db(task=task, field=f, filename=orig2.filename),
+        task_file=faker.task_file().get(save=True, task=task, field=f, filename=orig2.filename),
         fake_file=orig2,
     )
     files.append({'field': f, 'file': orig2})

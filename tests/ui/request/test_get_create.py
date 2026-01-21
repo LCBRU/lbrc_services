@@ -14,7 +14,7 @@ def _url(service_id, external=True, prev=None):
 
 
 def test__get__requires_login(client, faker):
-    s = faker.service().get_in_db()
+    s = faker.service().get(save=True)
     assert__requires_login(client, _url(s.id, external=False))
 
 
@@ -24,7 +24,7 @@ def test__get__missing(client, faker, loggedin_user):
 
 
 def test__get__common_form_fields(client, faker, loggedin_user):
-    s = faker.service().get_in_db()
+    s = faker.service().get(save=True)
     resp = lbrc_services_modal_get(client, _url(service_id=s.id))
     assert resp.status_code == http.HTTPStatus.OK
 
@@ -34,7 +34,7 @@ def test__get__common_form_fields(client, faker, loggedin_user):
 
 
 def test__get__not_service_owner__cannot_select_requestor(client, faker, loggedin_user):
-    s = faker.service().get_in_db()
+    s = faker.service().get(save=True)
     resp = lbrc_services_modal_get(client, _url(service_id=s.id))
     assert resp.status_code == http.HTTPStatus.OK
 
@@ -42,8 +42,8 @@ def test__get__not_service_owner__cannot_select_requestor(client, faker, loggedi
 
 
 def test__get__service_owner__can_select_requestor(client, faker, loggedin_user):
-    s_owned = faker.service().get_in_db(owners=[loggedin_user])
-    s = faker.service().get_in_db()
+    s_owned = faker.service().get(save=True, owners=[loggedin_user])
+    s = faker.service().get(save=True)
 
     resp = lbrc_services_modal_get(client, _url(service_id=s.id))
     assert resp.status_code == http.HTTPStatus.OK
@@ -72,7 +72,7 @@ def test__create_task__input_fields(client, faker, field_type_name, loggedin_use
     ],
 )
 def test__get__buttons(client, faker, endpoint, loggedin_user):
-    s = faker.service().get_in_db()
+    s = faker.service().get(save=True)
     url = url_for(endpoint)
 
     resp = lbrc_services_modal_get(client, _url(service_id=s.id, prev=url))

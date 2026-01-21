@@ -48,8 +48,8 @@ def test__quotes(client, faker, quotes, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__name(client, faker, quoter_user):
-    matching = [faker.quote().get_in_db(requestor=quoter_user, name='Mary')]
-    non_matching = [faker.quote().get_in_db(requestor=quoter_user, name='Joseph')]
+    matching = [faker.quote().get(save=True, requestor=quoter_user, name='Mary')]
+    non_matching = [faker.quote().get(save=True, requestor=quoter_user, name='Joseph')]
 
     resp = _get(client, _url(search='ar'), quoter_user, has_form=False)
 
@@ -58,8 +58,8 @@ def test__quotes__search__name(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__task_status_type(client, faker, quoter_user):
-    matching = [faker.quote().get_in_db(requestor=quoter_user, current_status_type=QuoteStatusType.get_awaiting_approval())]
-    non_matching = [faker.quote().get_in_db(requestor=quoter_user, current_status_type=QuoteStatusType.get_charged())]
+    matching = [faker.quote().get(save=True, requestor=quoter_user, current_status_type=QuoteStatusType.get_awaiting_approval())]
+    non_matching = [faker.quote().get(save=True, requestor=quoter_user, current_status_type=QuoteStatusType.get_charged())]
 
     resp = _get(client, _url(quote_status_type_id=QuoteStatusType.get_awaiting_approval().id), quoter_user, has_form=False)
 
@@ -68,8 +68,8 @@ def test__quotes__search__task_status_type(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__organisation(client, faker, quoter_user):
-    matching = [faker.quote().get_in_db(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR))]
-    non_matching = [faker.quote().get_in_db(requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.LIFESTYLE))]
+    matching = [faker.quote().get(save=True, requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.CARDIOVASCULAR))]
+    non_matching = [faker.quote().get(save=True, requestor=quoter_user, organisation=Organisation.get_organisation(Organisation.LIFESTYLE))]
 
     resp = _get(client, _url(organisation_id=Organisation.get_organisation(Organisation.CARDIOVASCULAR).id), quoter_user, has_form=False)
 
@@ -78,8 +78,8 @@ def test__quotes__search__organisation(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__created_from(client, faker, quoter_user):
-    matching = [faker.quote().get_in_db(requestor=quoter_user, created_date=datetime(2020, 1, 1))]
-    non_matching = [faker.quote().get_in_db(requestor=quoter_user, created_date=datetime(2019, 12, 31))]
+    matching = [faker.quote().get(save=True, requestor=quoter_user, created_date=datetime(2020, 1, 1))]
+    non_matching = [faker.quote().get(save=True, requestor=quoter_user, created_date=datetime(2019, 12, 31))]
 
     resp = _get(client, _url(created_date_from='2020-01-01'), quoter_user, has_form=False)
 
@@ -88,8 +88,8 @@ def test__quotes__search__created_from(client, faker, quoter_user):
 
 @pytest.mark.app_crsf(True)
 def test__quotes__search__created_to(client, faker, quoter_user):
-    non_matching = [faker.quote().get_in_db(requestor=quoter_user, created_date=datetime(2020, 1, 1))]
-    matching = [faker.quote().get_in_db(requestor=quoter_user, created_date=datetime(2019, 12, 31))]
+    non_matching = [faker.quote().get(save=True, requestor=quoter_user, created_date=datetime(2020, 1, 1))]
+    matching = [faker.quote().get(save=True, requestor=quoter_user, created_date=datetime(2019, 12, 31))]
 
     resp = _get(client, _url(created_date_to='2019-12-31'), quoter_user, has_form=False)
 

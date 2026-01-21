@@ -17,7 +17,7 @@ def _edit_post(client, quote):
 
 
 def test__post__requires_login(client, faker):
-    quote = faker.quote().get_in_db()
+    quote = faker.quote().get(save=True)
 
     assert__requires_login(client, _url(quote_id=quote.id, external=False), post=True)
 
@@ -28,7 +28,7 @@ def test__post__missing(client, faker, quoter_user):
 
 
 def test__update__with_all_values(client, faker, quoter_user):
-    quote = faker.quote().get_in_db(requestor=quoter_user)
+    quote = faker.quote().get(save=True, requestor=quoter_user)
 
     resp = _edit_post(client, quote)
 
@@ -37,7 +37,7 @@ def test__update__with_all_values(client, faker, quoter_user):
 
 
 def test__update__empty_name(client, faker, quoter_user):
-    quote = faker.quote().get_in_db(requestor=quoter_user)
+    quote = faker.quote().get(save=True, requestor=quoter_user)
     quote.name = ''
 
     resp = _edit_post(client, quote)
@@ -47,7 +47,7 @@ def test__update__empty_name(client, faker, quoter_user):
 
 
 def test__create_task__empty_organisation(client, faker, quoter_user):
-    expected = faker.quote().get_in_db(requestor=quoter_user)
+    expected = faker.quote().get(save=True, requestor=quoter_user)
     expected.organisation_id = None
 
     resp = _edit_post(client, expected)
@@ -57,7 +57,7 @@ def test__create_task__empty_organisation(client, faker, quoter_user):
 
 
 def test__create_task__empty_organisation_description__when_organisation_is_other(client, faker, quoter_user):
-    expected = faker.quote().get_in_db(requestor=quoter_user, organisation=Organisation.get_other())
+    expected = faker.quote().get(save=True, requestor=quoter_user, organisation=Organisation.get_other())
 
     resp = _edit_post(client, expected)
 

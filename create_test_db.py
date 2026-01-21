@@ -36,7 +36,7 @@ def create_quotes(fake):
 
     for qws in quotes:
         fake.quote_status().get_list_in_db(quote=qws, item_count=randint(2,10))
-        fake.quote_status().get_in_db(quote=qws, quote_status_type=qws.current_status_type)
+        fake.quote_status().get(save=True, quote=qws, quote_status_type=qws.current_status_type)
 
     for qws in quotes:
         fake.quote_requirement().get_list_in_db(quote=qws, item_count=randint(2,10))
@@ -54,7 +54,7 @@ def create_services_and_tasks(fake, admin_user, quoters, other_users):
 
     services = []
     for _ in range(randint(5, 10)):
-        services.append(fake.service().get_in_db(owners=sample(quoters, randint(1, 2)) + [admin_user]))
+        services.append(fake.service().get(save=True, owners=sample(quoters, randint(1, 2)) + [admin_user]))
 
     for fg in [s.field_group for s in services]:
         fake.field().get_list_in_db(field_group=fg, item_count=randint(5, 10))
@@ -63,7 +63,7 @@ def create_services_and_tasks(fake, admin_user, quoters, other_users):
 
     for s in services:
         for _ in range(randint(5,10)):
-            fake.task().get_in_db(
+            fake.task().get(save=True, 
                 service=s,
                 requestor=choice(other_users),
                 current_status_type=choice(task_statuses),
