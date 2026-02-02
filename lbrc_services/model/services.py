@@ -65,7 +65,7 @@ class Service(AuditMixin, CommonMixin, db.Model):
         return self.id == 4
 
 
-class TaskStatusType(db.Model, CommonMixin):
+class TaskStatusType(CommonMixin, db.Model):
 
     CREATED = 'Created'
     IN_PROGRESS = 'In Progress'
@@ -172,7 +172,7 @@ organisations_excluded_services = db.Table(
 )
 
 
-class Organisation(db.Model, CommonMixin):
+class Organisation(CommonMixin, db.Model):
 
     CARDIOVASCULAR = 'BRC Cardiovascular Theme'
     LIFESTYLE = 'BRC Lifestyle Theme'

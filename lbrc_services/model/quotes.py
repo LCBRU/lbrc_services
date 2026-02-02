@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from lbrc_services.model.services import Organisation, User
 
 
-class QuoteStatusType(db.Model, CommonMixin):
+class QuoteStatusType(CommonMixin, db.Model):
 
     DRAFT = 'Draft'
     AWAITING_APPROVAL = 'Awaiting Approval'
@@ -92,7 +92,7 @@ class QuoteStatusType(db.Model, CommonMixin):
     is_complete = db.Column(db.Boolean)
 
 
-class QuoteRequirementType(db.Model, CommonMixin):
+class QuoteRequirementType(CommonMixin, db.Model):
     initial_types = [
         'Number of Sites',
         'Length of Study',
@@ -117,7 +117,7 @@ class QuoteRequirementType(db.Model, CommonMixin):
     importance = db.Column(db.Integer())
 
 
-class QuotePricingType(db.Model, CommonMixin):
+class QuotePricingType(CommonMixin, db.Model):
     initial_types = [
         ('BRC', 350),
         ('External', 500),
