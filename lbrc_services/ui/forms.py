@@ -188,7 +188,6 @@ class TaskUpdateStatusForm(FlashingForm):
 
         self.status.choices = _get_task_status_type_choices()
 
-    task_id = HiddenField()
     status = SelectField("New Status", validators=[DataRequired()])
     notes = TextAreaField("Notes", validators=[Length(max=255)])
 
