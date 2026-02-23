@@ -78,7 +78,8 @@ def must_be_task_owner_or_requestor(var_name):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            r = db.get_or_404(Task, get_value_from_all_arguments(var_name))
+            task_id = get_value_from_all_arguments(var_name)
+            r = db.get_or_404(Task, task_id)
 
             if r.requestor_id != current_user.id and current_user not in r.service.owners:
                 abort(403)
