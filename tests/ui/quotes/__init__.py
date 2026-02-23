@@ -1,8 +1,10 @@
 from lbrc_services.model.quotes import Quote, QuoteStatusType
+from sqlalchemy import select
+from lbrc_flask.database import db
 
 
 def _get_actual_quote():
-    actuals = Quote.query.all()
+    actuals = db.session.execute(select(Quote)).unique().scalars().all()
     assert len(actuals) == 1
     return actuals[0]   
 

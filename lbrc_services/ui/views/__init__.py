@@ -23,26 +23,26 @@ from lbrc_flask.formatters import format_datetime
 
 def _get_quote_query(search_form, owner_id=None, sort_asc=False):
 
-    q = Quote.query.options(
+    q = select(Quote).options(
         joinedload(Quote.current_status_type),
     )
     if search_form.search.data:
-        q = q.filter(or_(
+        q = q.where(or_(
             Quote.name.like("%{}%".format(search_form.search.data)),
             Quote.reference == search_form.search.data,
         ))
 
     if search_form.data.get('organisation_id', 0) not in (0, "0", None):
-        q = q.filter(Quote.organisation_id == search_form.data['organisation_id'])
+        q = q.where(Quote.organisation_id == search_form.data['organisation_id'])
 
     if search_form.data.get('requestor_id', 0) not in (0, "0", None):
-        q = q.filter(Quote.requestor_id == search_form.data['requestor_id'])
+        q = q.where(Quote.requestor_id == search_form.data['requestor_id'])
 
     if search_form.data.get('created_date_from', None):
-        q = q.filter(Quote.created_date >= search_form.data['created_date_from'])
+        q = q.where(Quote.created_date >= search_form.data['created_date_from'])
 
     if search_form.data.get('created_date_to', None):
-        q = q.filter(Quote.created_date < search_form.data['created_date_to'] + timedelta(days=1))
+        q = q.where(Quote.created_date < search_form.data['created_date_to'] + timedelta(days=1))
 
     if 'quote_status_type_id' in search_form.data:
         option = search_form.data.get('quote_status_type_id', 0) or 0
@@ -50,11 +50,11 @@ def _get_quote_query(search_form, owner_id=None, sort_asc=False):
         q = q.join(Quote.current_status_type)
 
         if option == 0:
-            q = q.filter(QuoteStatusType.is_complete == False)
+            q = q.where(QuoteStatusType.is_complete == False)
         elif option == -1:
-            q = q.filter(QuoteStatusType.is_complete == True)
+            q = q.where(QuoteStatusType.is_complete == True)
         elif option != -2:
-            q = q.filter(QuoteStatusType.id == option)
+            q = q.where(QuoteStatusType.id == option)
 
     if sort_asc:
         q = q.order_by(Quote.created_date.asc(), Quote.id.asc())

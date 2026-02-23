@@ -2,6 +2,8 @@ import pytest
 from lbrc_services.model.services import Task, TaskStatusType
 from pathlib import Path
 from unittest.mock import patch
+from lbrc_flask.database import db
+from sqlalchemy import select
 
 
 @pytest.fixture(scope="function")
@@ -11,7 +13,7 @@ def mock_email():
 
 
 def _get_actual_task():
-    actuals = Task.query.all()
+    actuals = db.session.execute(select(Task)).unique().scalars().all()
     assert len(actuals) == 1
     return actuals[0]   
 

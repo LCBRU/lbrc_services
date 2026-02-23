@@ -6,6 +6,7 @@ from itertools import cycle
 from lbrc_services.model.services import TaskStatus, TaskStatusType
 from flask import url_for
 from lbrc_flask.database import db
+from sqlalchemy import select
 
 
 def _url(external=True, **kwargs):
@@ -62,7 +63,7 @@ def test__my_jobs__update_status(client, faker, n, loggedin_user):
     s = faker.service().get(save=True, owners=[loggedin_user])
     task = faker.task().get(save=True, service=s, current_status_type=actual_status)
 
-    statuses = cycle(TaskStatusType.query.all())
+    statuses = cycle(db.session.execute(select(TaskStatusType)).scalars().all())
     history = []
 
     for x in range(n):

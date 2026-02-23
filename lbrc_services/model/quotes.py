@@ -1,6 +1,7 @@
 from lbrc_flask.database import db
 from lbrc_flask.security import AuditMixin
 from lbrc_flask.model import CommonMixin
+from sqlalchemy import select
 from sqlalchemy.sql import func
 from lbrc_services.model.services import Organisation, User
 
@@ -49,7 +50,7 @@ class QuoteStatusType(CommonMixin, db.Model):
 
     @classmethod
     def get_quote_status(cls, name):
-        return QuoteStatusType.query.filter_by(name=name).one()
+        return db.session.execute(select(QuoteStatusType).where(QuoteStatusType.name == name)).scalar_one()
 
     @classmethod
     def get_draft(cls):
@@ -196,7 +197,10 @@ class QuoteWorkSection(AuditMixin, CommonMixin, db.Model):
 
     @property
     def total_days(self):
-        return QuoteWorkLine.query.with_entities(func.sum(QuoteWorkLine.days)).filter(QuoteWorkLine.quote_work_section_id == self.id).scalar() or 0
+        return db.session.execute(
+            select(func.sum(QuoteWorkLine.days))
+            .where(QuoteWorkLine.quote_work_section_id == self.id)
+        ).scalar() or 0
 
 
 class QuoteWorkLine(AuditMixin, CommonMixin, db.Model):

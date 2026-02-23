@@ -96,7 +96,7 @@ class QuoteCreator(FakeCreator):
         current_status_type = args.get('current_status_type', QuoteStatusType.get_draft())
         organisation = args.get('organisation', Organisation.get_organisation(Organisation.CARDIOVASCULAR))
         organisation_description = args.get('organisation_description', '')
-        quote_price_type = args.get('quote_price_type', QuotePricingType.query.first())
+        quote_price_type = args.get('quote_price_type', db.session.execute(select(QuotePricingType).limit(1)).scalars().first())
         created_date = args.get('created_date')
         date_requested = args.get('date_requested', datetime.now().date())
 

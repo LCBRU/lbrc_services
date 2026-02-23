@@ -4,6 +4,8 @@ from flask import (
     render_template,
 )
 from flask_security import login_required
+from sqlalchemy import select
+from lbrc_flask.database import db
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")
@@ -18,6 +20,6 @@ def before_request():
 
 @blueprint.route("/")
 def index():
-    return render_template("ui/index.html", services=Service.query.all())
+    return render_template("ui/index.html", services=db.session.execute(select(Service)).scalars().all())
 
 from .views import *

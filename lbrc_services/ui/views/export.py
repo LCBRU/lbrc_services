@@ -13,7 +13,8 @@ from .. import blueprint
 @blueprint.route("/export")
 @roles_accepted('exporter')
 def export():
-    return send_task_export('All Tasks', Task.query.all())
+    tasks = db.session.execute(select(Task)).unique().scalars()
+    return send_task_export('All Tasks', tasks)
 
 
 @blueprint.route("/exports")

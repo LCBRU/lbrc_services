@@ -8,15 +8,16 @@ from flask_admin.model.form import InlineFormAdmin
 from flask_admin.form.rules import BaseRule
 from markupsafe import Markup
 from flask import url_for
+from sqlalchemy import select
 
 
 class ServiceView(AdminCustomView):
 
     form_args = dict(
         name=dict(validators=[validators.DataRequired()]),
-        field_group=dict(query_factory=lambda: FieldGroup.query.order_by(FieldGroup.name)),
-        owners=dict(query_factory=lambda: User.query.order_by(User.last_name, User.first_name, User.email)),
-        excluded_organisations=dict(query_factory=lambda: Organisation.query.order_by(Organisation.name)),
+        field_group=dict(query_factory=lambda: select(FieldGroup).order_by(FieldGroup.name)),
+        owners=dict(query_factory=lambda: select(User).order_by(User.last_name, User.first_name, User.email)),
+        excluded_organisations=dict(query_factory=lambda: select(Organisation).order_by(Organisation.name)),
     )
     column_list = [
         Service.name,

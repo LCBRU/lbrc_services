@@ -2,6 +2,8 @@ import http
 from flask import url_for
 from lbrc_services.model.services import TaskStatus, TaskStatusType
 from lbrc_flask.pytest.asserts import assert__requires_login
+from sqlalchemy import select
+from lbrc_flask.database import db
 
 
 def _url(external=True, **kwargs):
@@ -32,8 +34,8 @@ def test__my_jobs__update_status(client, faker, loggedin_user):
 
     resp = _update_status_post(client, task, st, notes)
 
-    assert TaskStatus.query.filter(TaskStatus.task_id == task.id).count() == 1
-    ts = TaskStatus.query.filter(TaskStatus.task_id == task.id).one()
+    assert  len(db.session.execute(select(TaskStatus).where(TaskStatus.task_id == task.id)).scalars().all()) == 1
+    ts = db.session.execute(select(TaskStatus).where(TaskStatus.task_id == task.id)).scalars().one()
     assert ts.task_status_type_id == st.id
     assert ts.task_id == task.id
     assert ts.notes == notes

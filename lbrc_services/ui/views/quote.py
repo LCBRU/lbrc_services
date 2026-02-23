@@ -24,11 +24,7 @@ def quotes():
 
     q = _get_quote_query(search_form=search_form)
 
-    quotes = q.paginate(
-            page=search_form.page.data,
-            per_page=5,
-            error_out=False,
-        )
+    quotes = db.paginate(select=q)
 
     return render_template(
         "ui/quote/index.html",

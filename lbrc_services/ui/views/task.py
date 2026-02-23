@@ -146,7 +146,7 @@ def assign_to_me(task_id):
 @must_be_task_owner_or_requestor("task_id")
 def task_assignment_history(task_id):
     task = db.get_or_404(Task, task_id)
-    task_assignments = TaskAssignedUser.query.filter(TaskAssignedUser.task_id == task_id).order_by(TaskAssignedUser.created_date.desc()).all()
+    task_assignments =  db.session.execute(select(TaskAssignedUser).where(TaskAssignedUser.task_id == task_id).order_by(TaskAssignedUser.created_date.desc())).scalars().all()
 
     return render_template("ui/task/assignment_history.html", task=task, task_assignments=task_assignments)
 
@@ -199,7 +199,7 @@ def task_update_status(task_id):
 @must_be_task_owner_or_requestor("task_id")
 def task_status_history(task_id):
     task = db.get_or_404(Task, task_id)
-    task_statuses = TaskStatus.query.filter(TaskStatus.task_id == task_id).order_by(TaskStatus.created_date.desc()).all()
+    task_statuses = db.session.execute(select(TaskStatus).where(TaskStatus.task_id == task_id).order_by(TaskStatus.created_date.desc())).scalars().all()
 
     return render_template(
         "ui/task/status_history.html",

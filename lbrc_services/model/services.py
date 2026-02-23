@@ -3,6 +3,7 @@ import pathlib
 import re
 from flask import current_app
 from sqlalchemy.orm import backref
+from sqlalchemy import select
 from werkzeug.utils import secure_filename
 from lbrc_flask.database import db
 from lbrc_flask.security import User as BaseUser, AuditMixin
@@ -115,7 +116,7 @@ class TaskStatusType(CommonMixin, db.Model):
 
     @classmethod
     def get_task_status(cls, name):
-        return TaskStatusType.query.filter_by(name=name).one()
+        return db.session.execute(select(TaskStatusType).where(TaskStatusType.name == name)).scalar_one()
 
     @classmethod
     def get_created(cls):
@@ -203,7 +204,7 @@ class Organisation(CommonMixin, db.Model):
 
     @classmethod
     def get_organisation(cls, name):
-        return Organisation.query.filter_by(name=name).one()
+        return db.session.execute(select(Organisation).where(Organisation.name == name)).scalar_one()
 
     @classmethod
     def get_other(cls):

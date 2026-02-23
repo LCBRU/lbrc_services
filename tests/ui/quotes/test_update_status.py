@@ -1,6 +1,8 @@
 from flask import url_for
 from lbrc_services.model.quotes import QuoteStatus, QuoteStatusType
 from lbrc_flask.pytest.asserts import assert__requires_login
+from sqlalchemy import select
+from lbrc_flask.database import db
 
 
 def _url(external=True, **kwargs):
@@ -30,8 +32,8 @@ def test__quote__update_status(client, faker, quoter_user):
 
     resp = _update_status_post(client, quote, sq, notes)
 
-    assert QuoteStatus.query.filter(QuoteStatus.quote_id == quote.id).count() == 1
-    qs = QuoteStatus.query.filter(QuoteStatus.quote_id == quote.id).one()
+    assert  len(db.session.execute(select(QuoteStatus).where(QuoteStatus.quote_id == quote.id)).scalars().all()) == 1
+    qs = db.session.execute(select(QuoteStatus).where(QuoteStatus.quote_id == quote.id)).scalars().one()
     assert qs.quote_status_type_id == sq.id
     assert qs.quote_id == quote.id
     assert qs.notes == notes

@@ -9,6 +9,7 @@ from lbrc_services.model.security import ROLE_QUOTE_CHARGER, ROLE_QUOTE_APPROVER
 from lbrc_flask.forms import FlashingForm
 from wtforms import SelectField, TextAreaField
 from wtforms.validators import DataRequired, Length
+from sqlalchemy import select
 
 from lbrc_services.ui.forms import _get_quote_status_type_choices
 from .. import blueprint
@@ -97,7 +98,7 @@ def _send_quote_status_email(quote, new_quote_status_type):
 @blueprint.route("/quote/<int:quote_id>/status_history")
 def quote_status_history(quote_id):
     quote = db.get_or_404(Quote, quote_id)
-    statuses = QuoteStatus.query.filter(QuoteStatus.quote_id == quote.id).order_by(QuoteStatus.created_date.desc()).all()
+    statuses = db.session.execute(select(QuoteStatus).where(QuoteStatus.quote_id == quote.id).order_by(QuoteStatus.created_date.desc())).scalars().all()
 
     return render_template(
         "ui/quote/status_history.html",

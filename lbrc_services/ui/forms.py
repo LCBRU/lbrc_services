@@ -18,9 +18,10 @@ from sqlalchemy.orm import aliased
 
 
 def _get_requestor_choices(add_all=True):
-    service_ids = Service.query.with_entities(Service.id.distinct()).join(Service.owners).filter(User.id == current_user.id)
-    requestor_ids = Task.query.with_entities(Task.requestor_id.distinct()).filter(Task.service_id.in_(service_ids))
-    submitters = sorted(User.query.filter(User.id.in_(requestor_ids)).all(), key=lambda u: u.full_name)
+    service_ids = db.session.execute(select(Service.id.distinct()).join(Service.owners).where(User.id == current_user_id())).scalars()
+    requestor_ids = db.session.execute(select(Task.requestor_id.distinct()).where(Task.service_id.in_(service_ids))).scalars()
+    submitters = db.session.execute(select(User).where(User.id.in_(requestor_ids))).unique().scalars().all()
+    submitters = sorted(submitters, key=lambda u: u.full_name)
 
     result = [(u.id, u.full_name) for u in submitters]
 
@@ -31,19 +32,19 @@ def _get_requestor_choices(add_all=True):
 
 
 def _get_service_choices():
-    services = Service.query.join(Service.owners).filter(User.id == current_user.id).all()
+    services = db.session.execute(select(Service).join(Service.owners).where(User.id == current_user_id())).scalars().all()
 
     return [(0, 'All')] + [(rt.id, rt.name) for rt in services]
 
 
 def _get_organisation_search_choices():
-    organisations = Organisation.query.all()
+    organisations = db.session.execute(select(Organisation)).scalars().all()
 
     return [(0, 'All')] + [(rt.id, rt.name) for rt in organisations]
 
 
 def _get_task_status_type_choices():
-    task_status_types = TaskStatusType.query.order_by(TaskStatusType.name.asc()).all()
+    task_status_types = db.session.execute(select(TaskStatusType).order_by(TaskStatusType.name.asc())).scalars().all()
     return [(rt.id, rt.name) for rt in task_status_types]
 
 
@@ -100,7 +101,7 @@ def _get_combined_task_status_type_choices():
 
 
 def _get_quote_status_type_choices():
-    quote_status_types = QuoteStatusType.query.order_by(QuoteStatusType.name.asc()).all()
+    quote_status_types = db.session.execute(select(QuoteStatusType).order_by(QuoteStatusType.name.asc())).scalars().all()
     return [(rt.id, rt.name) for rt in quote_status_types]
 
 
@@ -109,8 +110,8 @@ def _get_combined_quote_status_type_choices():
 
 
 def _get_report_grouper_choices():
-    field_group_ids = Service.query.with_entities(Service.field_group_id.distinct()).join(Service.owners).filter(User.id == current_user.id)
-    report_group_fields = Field.query.filter(Field.field_group_id.in_(field_group_ids)).filter(Field.reportable == True).all()
+    field_group_ids =  db.session.execute(select(Service.field_group_id.distinct()).join(Service.owners).where(User.id == current_user_id())).scalars()
+    report_group_fields = db.session.execute(select(Field).where(Field.field_group_id.in_(field_group_ids)).where(Field.reportable == True)).scalars().all()
 
     return [(-3, 'Requested Month'), (-2, 'Current Status'), (-1, 'Organisation')] + sorted([(f.id, '{}: {}'.format(f.field_group.name, f.get_label())) for f in report_group_fields], key=lambda x: x[1])
 
@@ -223,7 +224,7 @@ def _user_coerce(value):
     if str(value).isnumeric():
         return value
 
-    u = User.query.filter(User.username == value).one_or_none()
+    u = db.session.execute(select(User).where(User.username == value)).scalar_one_or_none()
 
     if u:
         return u.id
@@ -262,7 +263,7 @@ class QuoteUpdateForm(FlashingForm):
 
         self.requestor_id.render_kw['data-options-href'] = url_for('ui.user_search')
         self.organisation_id.choices = _get_organisation_choices()
-        self.quote_pricing_type_id.choices = [(0, '')] + [(pt.id, pt.name) for pt in QuotePricingType.query.all()]
+        self.quote_pricing_type_id.choices = [(0, '')] + [(pt.id, pt.name) for pt in db.session.execute(select(QuotePricingType)).scalars().all()]
 
 
 def get_create_task_form(service, task=None, is_pdf=False):
@@ -289,7 +290,7 @@ def get_create_task_form_builder(service, is_pdf):
 
 
 def add_task_user_fields(builder, service):
-    users = User.query.order_by(User.last_name.asc(), User.first_name.asc()).all()
+    users = db.session.execute(select(User).order_by(User.last_name.asc(), User.first_name.asc())).unique().scalars().all()
     requestor_choices = [('', '')] + [(t.id, t.full_name) for t in users]
 
     default_assigned_user_id = None

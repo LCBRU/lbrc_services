@@ -13,6 +13,7 @@ from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, NumberRange
 from lbrc_services.model.quotes import QuoteWorkLineNameSuggestion
 from lbrc_flask.response import refresh_details, REFRESH_DETAILS_TRIGGER
+from sqlalchemy import select
 
 
 class QuoteWorkSectionForm(FlashingForm):
@@ -27,7 +28,7 @@ class QuoteWorkLineForm(FlashingForm):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.name_options.choices = [s.name for s in QuoteWorkLineNameSuggestion.query.all()]
+        self.name_options.choices = [s.name for s in db.session.execute(select(QuoteWorkLineNameSuggestion)).scalars().all()]
 
 
 @blueprint.route("/quote/<int:quote_id>/work_section/add", methods=["GET", "POST"])

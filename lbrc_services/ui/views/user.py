@@ -1,4 +1,4 @@
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, select
 from lbrc_flask.security.ldap import Ldap
 from lbrc_services.model.services import Task, User
 from lbrc_flask.requests import get_value_from_all_arguments
@@ -18,7 +18,7 @@ def user_search():
 
         users = {}
 
-        query = User.query.filter(
+        query = select(User).where(
             or_(
                 User.username.like(f'%{q}%'),
                 or_(
@@ -28,7 +28,7 @@ def user_search():
             )
         )
 
-        for u in query.all():
+        for u in  db.session.execute(query).scalars().all():
             users[u.username] = {
                 'id': u.id,
                 'username': u.username,
