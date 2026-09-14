@@ -28,7 +28,7 @@ tasks_organisations = db.Table(
 class User(BaseUser):
     __table_args__ = {'extend_existing': True}
 
-    owned_services = db.relationship("Service", lazy="joined", secondary=services_owners, backref='owners')
+    owned_services = db.relationship("Service", lazy="selectin", secondary=services_owners, backref='owners')
 
     @property
     def service_owner(self):
@@ -221,15 +221,15 @@ class Task(AuditMixin, CommonMixin, db.Model):
     name = db.Column(db.String(255))
     organisation_description = db.Column(db.String(255))
     service_id = db.Column(db.Integer, db.ForeignKey(Service.id))
-    service = db.relationship(Service, lazy="joined", backref='tasks')
+    service = db.relationship(Service, lazy="selectin", backref='tasks')
     requestor_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    requestor = db.relationship(User, lazy="joined", backref='tasks', foreign_keys=[requestor_id])
+    requestor = db.relationship(User, lazy="selectin", backref='tasks', foreign_keys=[requestor_id])
     current_status_type_id = db.Column(db.Integer, db.ForeignKey(TaskStatusType.id), nullable=False)
     current_status_type = db.relationship(TaskStatusType)
     current_assigned_user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
     current_assigned_user = db.relationship(User, foreign_keys=[current_assigned_user_id])
 
-    organisations = db.relationship("Organisation", lazy="joined", secondary=tasks_organisations, backref='tasks')
+    organisations = db.relationship("Organisation", lazy="selectin", secondary=tasks_organisations, backref='tasks')
 
     @property
     def long_name(self):
@@ -302,7 +302,7 @@ class TaskData(AuditMixin, CommonMixin, db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
     task = db.relationship(Task, backref=backref('data', cascade='all, delete-orphan'))
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
-    field = db.relationship(Field, lazy="joined")
+    field = db.relationship(Field, lazy="selectin")
 
     @property
     def formated_value(self):
@@ -321,7 +321,7 @@ class TaskFile(AuditMixin, CommonMixin, db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey(Task.id))
     task = db.relationship(Task, backref=backref('files', cascade='all, delete-orphan'))
     field_id = db.Column(db.Integer, db.ForeignKey(Field.id))
-    field = db.relationship(Field, lazy="joined")
+    field = db.relationship(Field, lazy="selectin")
 
     def set_filename_and_save(self, file):
         self.filename = file.filename
