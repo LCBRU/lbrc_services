@@ -15,9 +15,9 @@ class ServiceView(AdminCustomView):
 
     form_args = dict(
         name=dict(validators=[validators.DataRequired()]),
-        field_group=dict(query_factory=lambda: select(FieldGroup).order_by(FieldGroup.name)),
-        owners=dict(query_factory=lambda: select(User).order_by(User.last_name, User.first_name, User.email)),
-        excluded_organisations=dict(query_factory=lambda: select(Organisation).order_by(Organisation.name)),
+        field_group=dict(query_factory=lambda: db.session.scalars((select(FieldGroup).order_by(FieldGroup.name))),
+        owners=dict(query_factory=lambda: db.session.scalars((select(User).order_by(User.last_name, User.first_name, User.email))),
+        excluded_organisations=dict(query_factory=lambda: db.session.scalars((select(Organisation).order_by(Organisation.name))),
     )
     column_list = [
         Service.name,
