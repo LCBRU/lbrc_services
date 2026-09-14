@@ -2,7 +2,7 @@ import pytest
 import http
 from flask import url_for
 from lbrc_services.model.services import Organisation
-from lbrc_flask.pytest.asserts import assert__error__required_field_modal, assert__refresh_response, assert__requires_login
+from lbrc_flask.pytest.asserts import assert__error__required_field, assert__refresh_response, assert__requires_login
 from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import assert__task, post_task, assert_emails_sent, mock_email
 
@@ -46,7 +46,7 @@ def test__create_task__empty_name(client, faker, loggedin_user):
     resp = _create_task_post(client, expected, service=service, organisations=[organisation])
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "request title")
+    assert__error__required_field(resp.soup, "request title")
 
 
 def test__create_task__empty_organisation(client, faker, loggedin_user):
@@ -57,7 +57,7 @@ def test__create_task__empty_organisation(client, faker, loggedin_user):
     resp = _create_task_post(client, expected, service=service, organisations=[])
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "organisations")
+    assert__error__required_field(resp.soup, "organisations")
 
 
 def test__create_task__empty_requestor__uses_current_user(client, faker, loggedin_user, mock_email):
@@ -82,7 +82,7 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
     resp = _create_task_post(client, expected, service=service, organisations=[organisation])
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "organisation description")
+    assert__error__required_field(resp.soup, "organisation description")
 
 
 @pytest.mark.parametrize(

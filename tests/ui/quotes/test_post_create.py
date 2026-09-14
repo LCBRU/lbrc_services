@@ -1,6 +1,6 @@
 import http
 from flask import url_for
-from lbrc_flask.pytest.asserts import assert__refresh_response, assert__requires_login, assert__requires_role, assert__error__required_field_modal, assert__error__required_field_modal
+from lbrc_flask.pytest.asserts import assert__refresh_response, assert__requires_login, assert__requires_role, assert__error__required_field
 from lbrc_services.model.services import Organisation
 from tests.ui.quotes import assert__quote, post_quote
 
@@ -35,7 +35,7 @@ def test__create_task__empty_name(client, faker, quoter_user):
     resp = _create_post(client, expected)
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "Quote Title")
+    assert__error__required_field(resp.soup, "Quote Title")
 
 
 def test__create_task__empty_organisation(client, faker, quoter_user):
@@ -45,7 +45,8 @@ def test__create_task__empty_organisation(client, faker, quoter_user):
     resp = _create_post(client, expected)
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "organisation")
+    print(resp.soup.prettify())
+    assert__error__required_field(resp.soup, "organisation")
 
 
 def test__create_task__empty_requestor__uses_current_user(client, faker, quoter_user):
@@ -65,4 +66,4 @@ def test__create_task__empty_organisation_description__when_organisation_is_othe
     resp = _create_post(client, expected)
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "organisation description")
+    assert__error__required_field(resp.soup, "organisation description")

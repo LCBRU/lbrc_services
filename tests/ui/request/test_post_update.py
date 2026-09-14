@@ -1,8 +1,7 @@
 import pytest
 import http
 from flask import url_for
-from lbrc_services.model.services import Organisation
-from lbrc_flask.pytest.asserts import assert__error__required_field_modal, assert__refresh_response, assert__requires_login
+from lbrc_flask.pytest.asserts import assert__error__required_field, assert__refresh_response, assert__requires_login
 from lbrc_flask.forms.dynamic import FieldType
 from tests.ui.request import assert__task, post_task
 
@@ -45,7 +44,7 @@ def test__update_task__empty_name(client, faker, loggedin_user):
     resp = _edit_task_post(client, task, organisations=[organisation])
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "request title")
+    assert__error__required_field(resp.soup, "request title")
 
 
 def test__update_task__empty_organisation(client, faker, loggedin_user):
@@ -54,7 +53,7 @@ def test__update_task__empty_organisation(client, faker, loggedin_user):
     resp = _edit_task_post(client, task, organisations=[])
 
     assert resp.status_code == http.HTTPStatus.OK
-    assert__error__required_field_modal(resp.soup, "organisations")
+    assert__error__required_field(resp.soup, "organisations")
 
 
 @pytest.mark.parametrize(

@@ -11,7 +11,7 @@ from sqlalchemy import select
 from wtforms import SelectField, TextAreaField, StringField, SelectMultipleField
 from wtforms.fields import DateField
 from wtforms.fields.simple import HiddenField
-from wtforms.validators import DataRequired, Length, ValidationError
+from wtforms.validators import DataRequired, Length, ValidationError, Optional
 from lbrc_services.model.quotes import QuotePricingType, QuoteStatusType
 from lbrc_services.model.services import TaskStatusType, Service, Task, Organisation, User
 from sqlalchemy.orm import aliased
@@ -251,9 +251,9 @@ class QuoteUpdateForm(FlashingForm):
     name = StringField('Quote Title', validators=[Length(max=255), DataRequired()])
     organisation_id = SelectField('Organisation', validators=[DataRequired()])
     organisation_description = StringField('Organisation Description', validators=[Length(max=255), required_when_other_organisation])
-    quote_pricing_type_id = SelectField('Pricing Type', validators=[DataRequired()])
+    quote_pricing_type_id = SelectField('Pricing Type', coerce=int, validators=[DataRequired()])
     date_requested = DateField('Date Requested', validators=[DataRequired()])
-    date_required = DateField('Date Required')
+    date_required = DateField('Date Required', validators=[Optional()])
     introduction = TextAreaField('Introduction')
     conclusion = TextAreaField('Conclusion')
 
@@ -261,6 +261,15 @@ class QuoteUpdateForm(FlashingForm):
         super().__init__(**kwargs)
 
         self.requestor_id.render_kw['data-options-href'] = url_for('ui.user_search')
+        requestor_id = self.requestor_id.data
+
+        requestor = db.session.execute(select(User).where(User.id == requestor_id)).unique().scalar_one_or_none()
+
+        if requestor is not None:
+            self.requestor_id.choices = [(requestor.id, requestor.full_name)]
+        else:
+            self.requestor_id.choices = []
+
         self.organisation_id.choices = _get_organisation_choices()
         self.quote_pricing_type_id.choices = [(0, '')] + [(pt.id, pt.name) for pt in db.session.execute(select(QuotePricingType)).scalars().all()]
 

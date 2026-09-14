@@ -13,43 +13,13 @@ def user_search():
     results = []
 
     if q and len(q) > 1:
-        l = Ldap()
-        l.login_nonpriv()
-
         users = {}
 
-        query = select(User).where(
-            or_(
-                User.username.like(f'%{q}%'),
-                or_(
-                    func.concat(User.first_name, ' ', User.last_name).like(f'%{q}%'),
-                    User.email.like(f'%{q}%'),
-                )
-            )
-        )
+        local_users = get_local_users(q)
+        ldap_users = get_ldap_users(q)
 
-        for u in  db.session.execute(query).scalars().all():
-            users[u.username] = {
-                'id': u.id,
-                'username': u.username,
-                'full_name': u.full_name,
-                'first_name': u.first_name,
-                'last_name': u.last_name,
-            }
-
-        for u in l.search_user(q):
-            if u['username'] not in users:
-                users[u['username']] = {
-                    'id': u['username'],
-                    'username': u['username'],
-                    'full_name': '{} {} ({})'.format(
-                        u['given_name'],
-                        u['surname'],
-                        u['username'],
-                    ),
-                    'first_name': u['given_name'],
-                    'last_name': u['surname'],
-                }
+        users.update({u['id']: u for u in local_users})
+        users.update({u['id']: u for u in ldap_users})
 
         users = sorted(users.values(), key=lambda u: (u['last_name'], u['first_name']))
 
@@ -59,6 +29,57 @@ def user_search():
         } for u in users]
 
     return {'results': results}
+
+
+def get_ldap_users(q):
+    result = []
+
+    l = Ldap()
+
+    if not l.is_enabled():
+        return result
+
+    l.login_nonpriv()
+
+    for u in l.search_user(q):
+        result.append({
+            'id': u['username'],
+            'username': u['username'],
+            'full_name': '{} {} ({})'.format(
+                u['given_name'],
+                u['surname'],
+                u['username'],
+            ),
+            'first_name': u['given_name'],
+            'last_name': u['surname'],
+        })
+
+    return result
+
+
+def get_local_users(q):
+    result = []
+
+    query = select(User).where(
+            or_(
+                User.username.like(f'%{q}%'),
+                or_(
+                    func.concat(User.first_name, ' ', User.last_name).like(f'%{q}%'),
+                    User.email.like(f'%{q}%'),
+                )
+            )
+        )
+
+    for u in  db.session.execute(query).unique().scalars().all():
+        result.append({
+            'id': u.id,
+            'username': u.username,
+            'full_name': u.full_name,
+            'first_name': u.first_name,
+            'last_name': u.last_name,
+        })
+
+    return result
 
 
 @blueprint.route("/task/<int:task_id>/assigned_user_options")

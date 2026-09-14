@@ -36,13 +36,51 @@ Staying in the `lbrc_services` directory and type the command:
 ```
 
 ## Development
-
-### Installation
-
-To test the application, run the following command from the project folder:
-
+### Virtual Environment
+Create a python virtual environment
 ```bash
-pip install -r requirements-dev.txt
+uv venv --python 3.13
+```
+
+Then enable that environment
+```bash
+# Bash
+. .venv/bin/activate
+# Fish
+. .venv/bin/activate.fish
+```
+
+### Installation Requirements
+First compile the development requirements:
+```bash
+uv pip compile requirements.dev.in -o requirements.txt
+```
+
+Then install the requirements
+```bash
+pip install -r requirements.txt
+```
+
+### Create the environment variables
+Copy the file `example.env` to `.env`
+
+Change the settings as required.  You will have to change
+the `SQLALCHEMY_DATABASE_URI` to a valid connection string.
+
+### Create A Test Database
+To create the test database on a local MySQL database server run:
+```bash
+ mysql -e "CREATE DATABASE test_requests;"
+```
+
+To delete and recreate the database use the command:
+```bash
+ mysql -e "DROP DATABASE test_requests; CREATE DATABASE test_requests;"
+```
+
+Then populate the database with the test data by running:
+```bash
+python create_test_db.py
 ```
 
 ### Testing
@@ -52,6 +90,13 @@ To test the application, run the following command from the project folder:
 ```bash
 pytest
 ```
+
+### Running
+Run the development system using the command:
+```bash
+python app.py
+```
+The application will be available at [http://localhost:5000](http://localhost:5000).
 
 ### Database Schema Amendments
 
