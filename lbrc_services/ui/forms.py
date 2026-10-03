@@ -18,8 +18,8 @@ from sqlalchemy.orm import aliased
 
 
 def _get_requestor_choices(add_all=True):
-    service_ids = db.session.execute(select(Service.id.distinct()).join(Service.owners).where(User.id == current_user_id())).scalars()
-    requestor_ids = db.session.execute(select(Task.requestor_id.distinct()).where(Task.service_id.in_(service_ids))).scalars()
+    service_ids = db.session.execute(select(Service.id).distinct().join(Service.owners).where(User.id == current_user_id())).scalars()
+    requestor_ids = db.session.execute(select(Task.requestor_id).distinct().where(Task.service_id.in_(service_ids))).scalars()
     submitters = db.session.execute(select(User).where(User.id.in_(requestor_ids))).unique().scalars().all()
     submitters = sorted(submitters, key=lambda u: u.full_name)
 
@@ -110,7 +110,7 @@ def _get_combined_quote_status_type_choices():
 
 
 def _get_report_grouper_choices():
-    field_group_ids =  db.session.execute(select(Service.field_group_id.distinct()).join(Service.owners).where(User.id == current_user_id())).scalars()
+    field_group_ids =  db.session.execute(select(Service.field_group_id).distinct().join(Service.owners).where(User.id == current_user_id())).scalars()
     report_group_fields = db.session.execute(select(Field).where(Field.field_group_id.in_(field_group_ids)).where(Field.reportable == True)).scalars().all()
 
     return [(-3, 'Requested Month'), (-2, 'Current Status'), (-1, 'Organisation')] + sorted([(f.id, '{}: {}'.format(f.field_group.name, f.get_label())) for f in report_group_fields], key=lambda x: x[1])
